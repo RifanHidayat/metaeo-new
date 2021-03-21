@@ -9,4 +9,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class PicPo extends Model
 {
     use HasFactory, SoftDeletes;
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }

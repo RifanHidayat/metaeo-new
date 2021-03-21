@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePicPosTable extends Migration
+class CreatePapersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,11 @@ class CreatePicPosTable extends Migration
      */
     public function up()
     {
-        Schema::create('pic_pos', function (Blueprint $table) {
+        Schema::create('papers', function (Blueprint $table) {
             $table->id();
+            $table->string('code', 10)->nullable();
             $table->string('name', 255);
-            $table->string('position', 255)->nullable();
-            $table->string('email', 255)->nullable();
-            $table->string('phone', 255)->nullable();
-            $table->foreignId('customer_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->integer('price')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -32,6 +30,6 @@ class CreatePicPosTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pic_pos');
+        Schema::dropIfExists('papers');
     }
 }

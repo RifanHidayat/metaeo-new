@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use Illuminate\Http\Request;
 
 class EstimationController extends Controller
@@ -23,7 +24,12 @@ class EstimationController extends Controller
      */
     public function create()
     {
-        //
+        $customers = Customer::all();
+        $customers = $customers->map(function ($item, $key) {
+            return ['id' => $item->id, 'text' => $item->name];
+        });
+        $customers->prepend(['id' => '', 'text' => 'Choose Customer']);
+        return view('estimation.create', ['customers' => $customers]);
     }
 
     /**
