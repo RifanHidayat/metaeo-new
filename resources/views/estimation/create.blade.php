@@ -81,7 +81,7 @@
           <div class="form-group row">
             <div class="col-lg-6">
               <label>Estimation Date:<span class="text-danger">*</span></label>
-              <input v-model="date" type="date" class="form-control estimation-date" readonly>
+              <input v-model="date" type="text" class="form-control estimation-date" readonly>
             </div>
             <div class="col-lg-6">
               <label>HPP (IDR):</label>
@@ -143,7 +143,7 @@
           <div class="form-group row">
             <div class="col-lg-6">
               <label>Delivery Date:<span class="text-danger">*</span></label>
-              <input v-model="deliveryDate" type="date" class="form-control delivery-date" placeholder="Enter delivery date" readonly>
+              <input v-model="deliveryDate" type="text" class="form-control delivery-date" placeholder="Enter delivery date" readonly>
             </div>
             <div class="col-lg-6">
               <label>PPH (IDR):</label>
@@ -706,26 +706,21 @@
         // }],
 
       }, ],
-      digitalItems: [{
-        item: '',
-        printType: '',
-        color1: '',
-        color2: '',
-        price: '',
-        quantity: '',
-        total: '',
-        finishingItem: '',
-        finishingQuantity: '',
-        finishingUnitPrice: '',
-        finishingTotal: '',
-        subFinishingItems: [],
-        // subFinishingItems: [{
-        //   item: '',
-        //   quantity: '',
-        //   unitPrice: '',
-        //   total: '',
-        // }],
-      }],
+      digitalItems: [],
+      // digitalItems: [{
+      //   item: '',
+      //   printType: '',
+      //   color1: '',
+      //   color2: '',
+      //   price: '',
+      //   quantity: '',
+      //   total: '',
+      //   finishingItem: '',
+      //   finishingQuantity: '',
+      //   finishingUnitPrice: '',
+      //   finishingTotal: '',
+      //   subFinishingItems: [],
+      // }],
       customers: JSON.parse('{!! $customers !!}'),
       loading: false,
     },
