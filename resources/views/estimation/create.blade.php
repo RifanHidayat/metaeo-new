@@ -75,7 +75,7 @@
             </div>
             <div class="col-lg-6">
               <label>Total Production (IDR):</label>
-              <input v-model="totalProduction" type="text" class="form-control bg-light text-right mask-number" readonly required>
+              <input v-model="totalProduction" type="text" class="form-control bg-light text-right" readonly required>
             </div>
           </div>
           <div class="form-group row">
@@ -85,7 +85,7 @@
             </div>
             <div class="col-lg-6">
               <label>HPP (IDR):</label>
-              <input v-model="hpp" type="text" class="form-control bg-light text-right mask-number" readonly required>
+              <input v-model="hpp" type="text" class="form-control bg-light text-right" readonly required>
             </div>
           </div>
           <div class="form-group row">
@@ -96,7 +96,7 @@
             </div>
             <div class="col-lg-6">
               <label>HPP / Unit (IDR):</label>
-              <input v-model="hppPerUnit" type="text" class="form-control bg-light text-right mask-number" readonly required>
+              <input v-model="hppPerUnit" type="text" class="form-control bg-light text-right" readonly required>
             </div>
           </div>
           <div class="form-group row">
@@ -107,7 +107,7 @@
             </div>
             <div class="col-lg-6">
               <label>Harga Jual / Unit (IDR):</label>
-              <input v-model="sellPricePerUnit" type="text" class="form-control text-right mask-number" required>
+              <input v-model="sellPricePerUnit" v-cleave="cleaveCurrency" type="text" class="form-control text-right" required>
             </div>
           </div>
           <div class="form-group row">
@@ -127,17 +127,17 @@
             </div>
             <div class="col-lg-6">
               <label>Total Harga Jual (IDR):</label>
-              <input v-model="totalSellPrice" type="text" class="form-control bg-light text-right mask-number" readonly required>
+              <input v-model="totalSellPrice" type="text" class="form-control bg-light text-right" readonly required>
             </div>
           </div>
           <div class="form-group row">
             <div class="col-lg-6">
-              <label>Total Quantity (IDR):<span class="text-danger">*</span></label>
-              <input v-model="totalQuantity" type="text" class="form-control mask-number" placeholder="Enter Quantity" required>
+              <label>Total Quantity:<span class="text-danger">*</span></label>
+              <input v-model="totalQuantity" v-cleave="cleaveCurrency" type="text" class="form-control" placeholder="Enter Quantity" required>
             </div>
             <div class="col-lg-6">
               <label>PPN (IDR):</label>
-              <input v-model="ppn" type="text" class="form-control bg-light text-right mask-number" readonly required>
+              <input v-model="ppn" type="text" class="form-control bg-light text-right" readonly required>
             </div>
           </div>
           <div class="form-group row">
@@ -147,7 +147,7 @@
             </div>
             <div class="col-lg-6">
               <label>PPH (IDR):</label>
-              <input v-model="pph" type="text" class="form-control bg-light text-right mask-number" readonly required>
+              <input v-model="pph" type="text" class="form-control bg-light text-right" readonly required>
             </div>
           </div>
           <div class="form-group row">
@@ -156,7 +156,7 @@
             </div>
             <div class="col-lg-6">
               <label>Total Piutang (IDR):</label>
-              <input v-model="totalDebt" type="text" class="form-control bg-light text-right mask-number" readonly required>
+              <input v-model="totalDebt" type="text" class="form-control bg-light text-right" readonly required>
             </div>
           </div>
           <div class="form-group row">
@@ -195,11 +195,11 @@
           </div>
 
           <!-- begin::estimation-item -->
-          <offset :items="offsetItems" :onaddsubitem="addSubFinishingItem" :onremovesubitem="removeSubFinishingItem" :onremoveitem="removeOffsetItem"></offset>
+          <offset :items="offsetItems" :onaddsubitem="addSubFinishingItem" :onremovesubitem="removeSubFinishingItem" :onremoveitem="removeOffsetItem" :calculate="calculateOffset" :calculatesubitem="calculateSubFinishingItem" :cleave="cleaveCurrency" :grandtotal="offsetGrandTotal"></offset>
           <!-- end::estimation-item -->
 
           <!-- begin::estimation-item-digital -->
-          <digital :items="digitalItems" :onaddsubitem="addSubFinishingItem" :onremovesubitem="removeSubFinishingItem" :onremoveitem="removeDigitalItem"></digital>
+          <digital :items="digitalItems" :onaddsubitem="addSubFinishingItem" :onremovesubitem="removeSubFinishingItem" :onremoveitem="removeDigitalItem" :calculate="calculateDigital" :calculatesubitem="calculateSubFinishingItem" :cleave="cleaveCurrency" :grandtotal="digitalGrandTotal"></digital>
           <!-- end::estimation-item-digital -->
         </div>
         <div class="card-footer">
@@ -225,6 +225,7 @@
 @section('script')
 <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
 <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
 @endsection
 
 @section('pagescript')
@@ -238,6 +239,15 @@
     $('.mask-number').mask('000.000.000.000.000', {
       reverse: true
     });
+    // let maskNumbers = document.querySelectorAll('.mask-number');
+    // $('.mask-number').toArray().forEach(function(input) {
+    //   var cleave = new Cleave(input, {
+    //     delimiter: '.',
+    //     numeralDecimalMark: ',',
+    //     numeral: true,
+    //     numeralThousandsGroupStyle: 'thousand'
+    //   });
+    // })
 
     FilePond.registerPlugin(FilePondPluginImagePreview);
     const inputElement = document.querySelector('input[type="file"]');
@@ -290,8 +300,23 @@
     }
   });
 
+  Vue.directive('cleave', {
+    inserted: (el, binding) => {
+      el.cleave = new Cleave(el, binding.value || {})
+    },
+    update: (el) => {
+      const event = new Event('input', {
+        bubbles: true
+      });
+      setTimeout(function() {
+        el.value = el.cleave.properties.result
+        el.dispatchEvent(event)
+      }, 100);
+    }
+  })
+
   Vue.component('offset', {
-    props: ['items', 'onaddsubitem', 'onremovesubitem', 'onremoveitem'],
+    props: ['items', 'onaddsubitem', 'onremovesubitem', 'onremoveitem', 'calculate', 'calculatesubitem', 'cleave', 'grandtotal'],
     template: `
 
     <div  v-if="items.length > 0">
@@ -355,65 +380,65 @@
           <tbody>
             <template v-for="(item, index) in items">
             <tr :key="item.id">
-              <td><input type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
+              <td><input v-model="item.item" @input="calculate(item)" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
               <td>
-                <select class="form-control" style="width: 150px;">
+                <select v-model="item.machineType" @input="calculate(item)" class="form-control" style="width: 150px;">
                   <option value="GTO">GTO</option>
                   <option value="SM 74">GTO</option>
                   <option value="SM 102">SM102</option>
                 </select>
               </td>
               <!-- Size -->
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.sizeOpenedP" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.sizeOpenedL" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.sizeClosedP" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.sizeClosedL" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
               <!-- Color -->
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.color1" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.color2" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
               <!-- Paper -->
               <td>
-                <select class="form-control" style="width: 150px;">
+                <select v-model="item.paperType" @input="calculate(item)" class="form-control" style="width: 150px;">
                   <option value="HVS">HVS</option>
                 </select>
               </td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="number" class="form-control bg-light" style="width: 100px;" readonly></td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="number" class="form-control bg-light" style="width: 100px;" readonly></td>
-              <td><input type="text" class="form-control mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control bg-light text-right mask-number" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="item.paperSizePlanoP" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperSizePlanoL" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperGramasi" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperPricePerKg" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.paperQuantityPlano" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.paperCuttingSizeP" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperSizePlanoDivCuttingSizeP" type="number" class="form-control bg-light" style="width: 100px;" readonly></td>
+              <td><input v-model="item.paperCuttingSizeL" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperSizePlanoDivCuttingSizeL" type="number" class="form-control bg-light" style="width: 100px;" readonly></td>
+              <td><input v-model="item.paperQuantity" type="text" class="form-control bg-light" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="item.paperUnitPrice" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="item.paperTotal" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
               <!-- Film -->
-              <td><input type="text" class="form-control mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control bg-light text-right mask-number" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="item.filmQuantitySet" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.filmUnitPrice" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.filmTotal" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
               <!-- End::Film -->
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.appSetDesign" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
               <!-- Printing -->
               <td>
-                <select class="form-control" style="width: 150px;">
+                <select v-model="item.printingType" @change="calculate(item)" class="form-control" style="width: 150px;">
                   <option value="BBS">BBS</option>
                   <option value="BBL">BBL</option>
                   <option value="BB">BB</option>
                   <option value="1 Muka">1 Muka</option>
                 </select>
               </td>
-              <td><input type="text" class="form-control bg-light mask-number" style="width: 150px;" value="" readonly required></td>
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control bg-light text-right mask-number" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="item.printingQuantity" type="text" class="form-control bg-light" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="item.printingMinPrice" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right " style="width: 150px;" value="" required></td>
+              <td><input v-model="item.printingDrukPrice" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right " style="width: 150px;" value="" required></td>
+              <td><input v-model="item.printingTotal" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
               <!-- Finishing -->
               
-              <td><input type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
-              <td><input type="text" class="form-control mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control bg-light text-right mask-number" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="item.finishingItem" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
+              <td><input v-model="item.finishingQuantity" type="text" class="form-control" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.finishingUnitPrice" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.finishingTotal" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
               <td>
                 <a href="#" @click.prevent="onaddsubitem(item)" class="btn btn-icon btn-success">
                   <span class="svg-icon svg-icon-light svg-icon-2x">
@@ -447,10 +472,10 @@
             <tr v-for="(subFinishingItem, subIndex) in item.subFinishingItems" :key="subFinishingItem.id">
             <!-- Finishing -->
               <td colspan="30"></td>
-              <td><input type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
-              <td><input type="text" class="form-control mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control bg-light text-right mask-number" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="subFinishingItem.item" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
+              <td><input v-model="subFinishingItem.quantity" @input="calculatesubitem(subFinishingItem)" type="text" class="form-control" style="width: 150px;" value="" required></td>
+              <td><input v-model="subFinishingItem.unitPrice" @input="calculatesubitem(subFinishingItem)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
+              <td><input v-model="subFinishingItem.total" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
               <td>
                 <a href="#" @click.prevent="onremovesubitem(item, subIndex)" class="btn btn-icon btn-danger">
                   <span class="svg-icon svg-icon-light svg-icon-2x"><!--begin::Svg Icon | path:C:\wamp64\www\keenthemes\themes\metronic\theme\html\demo1\dist/../src/media/svg/icons\Code\Minus.svg--><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -487,20 +512,20 @@
             <td></td>
             <td></td>
             <td></td>
-            <td class="text-right"><strong>Rp. 99.002.000</strong></td>
+            <td class="text-right"><strong>IDR @{{ grandtotal.paper }}</strong></td>
             <td></td>
             <td></td>
-            <td class="text-right"><strong>Rp. 99.002.000</strong></td>
-            <td class="text-right"><strong>Rp. 99.002.000</strong></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td class="text-right"><strong>Rp. 99.002.000</strong></td>
+            <td class="text-right"><strong>IDR @{{ grandtotal.film }}</strong></td>
+            <td class="text-right"><strong>IDR @{{ grandtotal.appSetDesign }}</strong></td>
             <td></td>
             <td></td>
             <td></td>
-            <td class="text-right"><strong>Rp. 99.002.000</strong></td>
+            <td></td>
+            <td class="text-right"><strong>IDR @{{ grandtotal.printing }}</strong></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="text-right"><strong>IDR @{{ grandtotal.finishing }}</strong></td>
             <td></td>
             <td></td>
           </tfoot>
@@ -510,15 +535,16 @@
   `
   })
   Vue.component('digital', {
-    props: ['items', 'onaddsubitem', 'onremovesubitem', 'onremoveitem'],
+    props: ['items', 'onaddsubitem', 'onremovesubitem', 'onremoveitem', 'calculate', 'calculatesubitem', 'cleave', 'grandtotal'],
     template: `
-    <div class="mt-5" v-if="items.length > 0">
+    <div class="mt-10" v-if="items.length > 0">
       <h4 class="text-dark font-weight-bold mb-5">Digital</h4>
       <div class="table-responsive">
         <table class="table table-bordered w-100">
           <thead class="text-center bg-light">
             <tr>
               <td rowspan="2" class="align-middle">Item</td>
+              <td rowspan="2" class="align-middle">Paper</td>
               <td rowspan="2" class="align-middle">Print Type</td>
               <td colspan="2">Color</td>
               <td rowspan="2" class="align-middle">Price</td>
@@ -542,26 +568,27 @@
           <tbody>
           <template v-for="(item, index) in items">
             <tr :key="item.id">
-              <td><input type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
+              <td><input v-model="item.item" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
               <td>
-                <select class="form-control" style="width: 150px;">
+                <select v-model="item.paper" class="form-control" style="width: 150px;">
                   <option value="Fancy">Fancy</option>
                   <option value="Biasa">Biasa</option>
                   <option value="Sticker">Sticker</option>
                 </select>
               </td>
+              <td><input v-model="item.printingType" type="text" class="form-control bg-light" style="width: 250px;" value="BBL"></td>
               <!-- Color -->
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
-              <td><input type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.color1" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.color2" type="number" class="form-control" style="width: 100px;"></td>
               <!-- End::Color -->
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control bg-light text-right mask-number" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="item.price" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.quantity" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.total" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
               <!-- Finishing -->
-              <td><input type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
-              <td><input type="text" class="form-control mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control bg-light text-right mask-number" style="width: 150px;" value="" readonly required></td>
+              <td><input v-model="item.finishingItem" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
+              <td><input v-model="item.finishingQuantity" @input="calculate(item)" type="text" class="form-control" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.finishingUnitPrice" @input="calculate(item)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
+              <td><input v-model="item.finishingTotal" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
               <td>
                 <a href="#" @click.prevent="onaddsubitem(item)" class="btn btn-icon btn-success">
                   <span class="svg-icon svg-icon-light svg-icon-2x">
@@ -593,21 +620,21 @@
             </tr>
             <tr v-for="(subFinishingItem, subIndex) in item.subFinishingItems" :key="subFinishingItem.id">
             <!-- Finishing -->
-              <td colspan="7"></td>
-              <td><input type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
-              <td><input type="text" class="form-control mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control text-right mask-number" style="width: 150px;" value="" required></td>
-              <td><input type="text" class="form-control bg-light text-right mask-number" style="width: 150px;" value="" readonly required></td>
+              <td colspan="8"></td>
+              <td><input v-model="subFinishingItem.item" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
+              <td><input v-model="subFinishingItem.quantity" @input="calculatesubitem(subFinishingItem)" type="text" class="form-control" style="width: 150px;" value="" required></td>
+              <td><input v-model="subFinishingItem.unitPrice" @input="calculatesubitem(subFinishingItem)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
+              <td><input v-model="subFinishingItem.total" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
               <td>
-                <a href="#" class="btn btn-icon btn-danger" @click.prevent="onremovesubitem(item, subIndex)" >
-                    <span class="svg-icon svg-icon-light svg-icon-2x"><!--begin::Svg Icon | path:C:\wamp64\www\keenthemes\themes\metronic\theme\html\demo1\dist/../src/media/svg/icons\Code\Minus.svg--><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                            <rect x="0" y="0" width="24" height="24"/>
-                            <circle fill="#000000" opacity="0.3" cx="12" cy="12" r="10"/>
-                            <rect fill="#000000" x="6" y="11" width="12" height="2" rx="1"/>
-                        </g>
-                    </svg><!--end::Svg Icon--></span>
-                  </a>
+                <a href="#" @click.prevent="onremovesubitem(item, subIndex)" class="btn btn-icon btn-danger">
+                  <span class="svg-icon svg-icon-light svg-icon-2x"><!--begin::Svg Icon | path:C:\wamp64\www\keenthemes\themes\metronic\theme\html\demo1\dist/../src/media/svg/icons\Code\Minus.svg--><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                      <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                          <rect x="0" y="0" width="24" height="24"/>
+                          <circle fill="#000000" opacity="0.3" cx="12" cy="12" r="10"/>
+                          <rect fill="#000000" x="6" y="11" width="12" height="2" rx="1"/>
+                      </g>
+                  </svg><!--end::Svg Icon--></span>
+                </a>
               </td>
               <td></td>
             </tr>
@@ -621,11 +648,12 @@
               <td></td>
               <td></td>
               <td></td>
-              <td class="text-right"><strong>Rp 12.000.000</strong></td>
+              <td></td>
+              <td class="text-right"><strong>IDR @{{ grandtotal.item }}</strong></td>
               <td></td>
               <td></td>
               <td></td>
-              <td class="text-right"><strong>Rp 12.000.000</strong></td>
+              <td class="text-right"><strong>IDR @{{ grandtotal.finishing }}</strong></td>
               <td></td>
               <td></td>
             </tr>
@@ -642,6 +670,12 @@
     data: {
       offsetCounter: 1,
       digitalCounter: 1,
+      cleaveCurrency: {
+        delimiter: '.',
+        numeralDecimalMark: ',',
+        numeral: true,
+        numeralThousandsGroupStyle: 'thousand'
+      },
       status: '',
       number: '',
       date: '',
@@ -651,16 +685,12 @@
       work: '',
       totalQuantity: '',
       deliveryDate: '',
-      totalProduction: 0,
-      hpp: 0,
-      hppPerUnit: 0,
       sellPricePerUnit: '',
-      margin: 0,
-      totalSellPrice: 0,
       ppn: 0,
       pph: 0,
       totalDebt: 0,
       note: '',
+      // offsetItems: [],
       offsetItems: [{
         id: 0,
         item: '',
@@ -677,17 +707,17 @@
         paperGramasi: '',
         paperPricePerKg: '',
         paperQuantityPlano: '',
-        paperCuttingSizeP: '',
+        paperCuttingSizeP: 1,
         paperSizePlanoDivCuttingSizeP: '',
-        paperCuttingSizeL: '',
+        paperCuttingSizeL: 1,
         paperSizePlanoDivCuttingSizeL: '',
         paperQuantity: '',
         paperUnitPrice: '',
         paperTotal: '',
-        filmQtySet: '',
+        filmQuantitySet: '',
         filmUnitPrice: '',
         filmTotal: '',
-        appSetDesign: '',
+        appSetDesign: 0,
         printingType: '',
         printingQuantity: '',
         printingMinPrice: '',
@@ -698,18 +728,20 @@
         finishingUnitPrice: '',
         finishingTotal: '',
         subFinishingItems: [],
-        // subFinishingItems: [{
-        //   item: '',
-        //   quantity: '',
-        //   unitPrice: '',
-        //   total: '',
-        // }],
-
       }, ],
+      offsetGrandTotal: {
+        paper: 0,
+        film: 0,
+        appSetDesign: 0,
+        printing: 0,
+        finishing: 0,
+        total: 0,
+      },
       digitalItems: [],
       // digitalItems: [{
       //   item: '',
-      //   printType: '',
+      //   paper: '',
+      //   printingType: 'BBL',
       //   color1: '',
       //   color2: '',
       //   price: '',
@@ -721,8 +753,45 @@
       //   finishingTotal: '',
       //   subFinishingItems: [],
       // }],
+      digitalGrandTotal: {
+        item: 0,
+        finishing: 0,
+        total: 0,
+      },
       customers: JSON.parse('{!! $customers !!}'),
       loading: false,
+    },
+    computed: {
+      totalProduction: function() {
+        let digitalGrandTotal = this.digitalItems.length > 0 ? this.digitalGrandTotal.total : 0;
+        let offsetGrandTotal = this.offsetItems.length > 0 ? this.offsetGrandTotal.total : 0;
+        let totalProduction = digitalGrandTotal + offsetGrandTotal;
+        return this.toThousandFormat(totalProduction);
+      },
+      hpp: function() {
+        let totalProduction = parseInt(this.clearCurrencyMask(this.totalProduction));
+        let offsetAppGrandTotal = parseInt(this.clearCurrencyMask(this.offsetGrandTotal.appSetDesign));
+        return this.toThousandFormat(totalProduction + offsetAppGrandTotal);
+      },
+      hppPerUnit: function() {
+        let hpp = parseInt(this.clearCurrencyMask(this.hpp));
+        let totalQuantity = parseInt(this.clearCurrencyMask(this.totalQuantity));
+        let hppPerUnit = this.toThousandFormat(Math.round(hpp / totalQuantity))
+        return (isNaN(hppPerUnit)) ? 0 : hppPerUnit;
+      },
+      margin: function() {
+        let sellPricePerUnit = parseInt(this.clearCurrencyMask(this.sellPricePerUnit));
+        let hppPerUnit = parseInt(this.clearCurrencyMask(this.hppPerUnit));
+        let margin = Math.round(((sellPricePerUnit - hppPerUnit) / sellPricePerUnit) * 100);
+        // let margin = (Math.abs(sellPricePerUnit - hppPerUnit) / ((sellPricePerUnit + hppPerUnit) / 2)) * 100;
+        // return margin;
+        return (isNaN(margin)) ? 0 : margin;
+      },
+      totalSellPrice: function() {
+        let sellPricePerUnit = parseInt(this.clearCurrencyMask(this.sellPricePerUnit));
+        let totalQuantity = parseInt(this.clearCurrencyMask(this.totalQuantity));
+        return this.toThousandFormat(sellPricePerUnit * totalQuantity);
+      },
     },
     methods: {
       submitForm: function() {
@@ -776,17 +845,17 @@
           paperGramasi: '',
           paperPricePerKg: '',
           paperQuantityPlano: '',
-          paperCuttingSizeP: '',
+          paperCuttingSizeP: 1,
           paperSizePlanoDivCuttingSizeP: '',
-          paperCuttingSizeL: '',
+          paperCuttingSizeL: 1,
           paperSizePlanoDivCuttingSizeL: '',
           paperQuantity: '',
           paperUnitPrice: '',
           paperTotal: '',
-          filmQtySet: '',
+          filmQuantitySet: '',
           filmUnitPrice: '',
           filmTotal: '',
-          appSetDesign: '',
+          appSetDesign: 0,
           printingType: '',
           printingQuantity: '',
           printingMinPrice: '',
@@ -798,12 +867,14 @@
           finishingTotal: '',
           subFinishingItems: [],
         })
+        this.calculateOffsetGrandTotal();
       },
       addDigitalItem: function() {
         this.digitalItems.push({
           id: this.digitalCounter++,
           item: '',
-          printType: '',
+          paper: '',
+          printingType: 'BBL',
           color1: '',
           color2: '',
           price: '',
@@ -821,8 +892,8 @@
           //   total: '',
           // }],
         })
+        this.calculateDigitalGrandTotal();
       },
-
       removeOffsetItem: function(index) {
         this.offsetItems.splice(index, 1);
         // console.log(index);
@@ -842,6 +913,180 @@
       },
       removeSubFinishingItem: function(item, index) {
         item.subFinishingItems.splice(index, 1);
+      },
+      calculateOffset: function(item) {
+        let color1 = item.color1;
+        let color2 = item.color2;
+
+        let paperSizePlanoP = item.paperSizePlanoP;
+        let paperSizePlanoL = item.paperSizePlanoL;
+        let paperCuttingSizeP = item.paperCuttingSizeP;
+        let paperCuttingSizeL = item.paperCuttingSizeL;
+        // ------ Paper ------
+        // Calculate Cutting Size
+        let paperSizePlanoDivCuttingSizeP = paperSizePlanoP / paperCuttingSizeP;
+        item.paperSizePlanoDivCuttingSizeP = this.round2Decimal(paperSizePlanoDivCuttingSizeP);
+        let paperSizePlanoDivCuttingSizeL = paperSizePlanoL / paperCuttingSizeL;
+        item.paperSizePlanoDivCuttingSizeL = this.round2Decimal(paperSizePlanoDivCuttingSizeL);
+        // Calculate Paper Quantity
+        let paperQuantityPlano = item.paperQuantityPlano;
+        let paperQuantity = this.clearCurrencyMask(paperQuantityPlano) * paperCuttingSizeP * paperCuttingSizeL;
+        item.paperQuantity = this.toThousandFormat(Math.round(paperQuantity));
+        // Calculate Unit Price
+        let paperGramasi = item.paperGramasi;
+        let paperPricePerKg = item.paperPricePerKg;
+        let paperUnitPrice = ((paperSizePlanoP * paperSizePlanoL * paperGramasi * this.clearCurrencyMask(paperPricePerKg)) / 20000) / 500;
+        item.paperUnitPrice = this.toThousandFormat(Math.round(paperUnitPrice));
+        // Calculate Total Paper
+        let paperTotal = this.clearCurrencyMask(paperQuantityPlano) * paperUnitPrice;
+        item.paperTotal = this.toThousandFormat(Math.round(paperTotal));
+
+        // ------ Film -------
+        // Calculate Total Film
+        let filmQuantitySet = item.filmQuantitySet;
+        let filmUnitPrice = item.filmUnitPrice;
+        let filmTotal = this.clearCurrencyMask(filmQuantitySet) * paperSizePlanoDivCuttingSizeP * paperSizePlanoDivCuttingSizeL * color1 * this.clearCurrencyMask(filmUnitPrice);
+        item.filmTotal = this.toThousandFormat(Math.round(filmTotal));
+
+        // ------ App/Set/Design ------
+        // Calculate
+        let appSetDesign = item.appSetDesign;
+
+        // ------ Printing ------
+        // Calculate Total Quantity
+        let printingType = item.printingType;
+        let printingQuantity = (printingType == 'BBS') ? parseInt(this.clearCurrencyMask(paperQuantity)) * 2 : this.clearCurrencyMask(paperQuantity);
+        item.printingQuantity = this.toThousandFormat(printingQuantity);
+
+        let printingMinPrice = item.printingMinPrice;
+        let printingDrukPrice = item.printingDrukPrice;
+        let printingTotal = 0;
+        if (printingQuantity <= 3000) {
+          printingTotal = this.clearCurrencyMask(printingMinPrice) * color1 * this.clearCurrencyMask(filmQuantitySet);
+        } else {
+          printingTotal = (this.clearCurrencyMask(printingMinPrice) * color1) + (printingQuantity - 3000) * color1 * this.clearCurrencyMask(printingDrukPrice) * this.clearCurrencyMask(filmQuantitySet);
+        }
+
+        item.printingTotal = (printingTotal < 1) ? 1 : this.toThousandFormat(Math.round(printingTotal));
+
+        // ------ Finishing -------
+        // Calculate Total
+        let finishingQuantity = item.finishingQuantity;
+        let finishingUnitPrice = item.finishingUnitPrice;
+
+        let finishingTotal = finishingQuantity * finishingUnitPrice;
+
+        item.finishingTotal = this.toThousandFormat(Math.round(finishingTotal));
+        // ------ Sub Finishing ------
+
+
+        // Calculate Grand Total
+        this.calculateOffsetGrandTotal();
+
+      },
+      calculateOffsetGrandTotal: function() {
+        let vm = this;
+
+        let offsetPaperGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.paperTotal))).reduce((cur, acc) => cur + acc);
+        this.offsetGrandTotal.paper = this.toThousandFormat(offsetPaperGrandTotal);
+
+        let offsetFilmGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.filmTotal))).reduce((cur, acc) => cur + acc);
+        this.offsetGrandTotal.film = this.toThousandFormat(offsetFilmGrandTotal);
+
+        let offsetAppGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.appSetDesign))).reduce((cur, acc) => cur + acc);
+        this.offsetGrandTotal.appSetDesign = this.toThousandFormat(offsetAppGrandTotal);
+
+        let offsetPrintingGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.printingTotal))).reduce((cur, acc) => cur + acc);
+        this.offsetGrandTotal.printing = this.toThousandFormat(offsetPrintingGrandTotal);
+
+        let offsetFinishingGrandTotal = this.offsetItems.map(item => {
+          // parseInt(vm.clearCurrencyMask(item.finishingTotal))
+          let subItem = 0;
+          if (item.subFinishingItems.length > 0) {
+            subItem = item.subFinishingItems.map(sub => parseInt(vm.clearCurrencyMask(sub.total))).reduce((cur, acc) => cur + acc);
+          }
+          return parseInt(vm.clearCurrencyMask(item.finishingTotal)) + subItem;
+        }).reduce((cur, acc) => cur + acc);
+        this.offsetGrandTotal.finishing = this.toThousandFormat(offsetFinishingGrandTotal);
+
+        this.offsetGrandTotal.total = offsetPaperGrandTotal + offsetFilmGrandTotal + offsetPrintingGrandTotal + offsetFinishingGrandTotal;
+
+      },
+      calculateDigital: function(item) {
+        // item: '',
+        //   printType: '',
+        //   color1: '',
+        //   color2: '',
+        //   price: '',
+        //   quantity: '',
+        //   total: '',
+        //   finishingItem: '',
+        //   finishingQuantity: '',
+        //   finishingUnitPrice: '',
+        //   finishingTotal: '',
+        //   subFinishingItems: [],
+        let color1 = item.color1;
+        let color2 = item.color2;
+        let price = item.price;
+        let quantity = item.quantity;
+
+        total = this.clearCurrencyMask(price) * this.clearCurrencyMask(quantity);
+        item.total = this.toThousandFormat(Math.round(total));
+        // ------ Finishing -------
+        // Calculate Total
+        let finishingQuantity = item.finishingQuantity;
+        let finishingUnitPrice = item.finishingUnitPrice;
+        let finishingTotal = finishingQuantity * finishingUnitPrice;
+        item.finishingTotal = this.toThousandFormat(Math.round(finishingTotal));
+
+        // Calculate Grand Total
+        this.calculateDigitalGrandTotal();
+
+      },
+      calculateDigitalGrandTotal: function() {
+        let vm = this;
+        let digitalItemGrandTotal = this.digitalItems.map(item => parseInt(vm.clearCurrencyMask(item.total))).reduce((cur, acc) => cur + acc);
+        this.digitalGrandTotal.item = this.toThousandFormat(digitalItemGrandTotal);
+
+        let digitalFinishingGrandTotal = this.digitalItems.map(item => {
+          // parseInt(vm.clearCurrencyMask(item.finishingTotal))
+          let subItem = 0;
+          if (item.subFinishingItems.length > 0) {
+            subItem = item.subFinishingItems.map(sub => parseInt(vm.clearCurrencyMask(sub.total))).reduce((cur, acc) => cur + acc);
+          }
+          return parseInt(vm.clearCurrencyMask(item.finishingTotal)) + subItem;
+        }).reduce((cur, acc) => cur + acc);
+
+        this.digitalGrandTotal.finishing = this.toThousandFormat(digitalFinishingGrandTotal);
+
+        this.digitalGrandTotal.total = digitalItemGrandTotal + digitalFinishingGrandTotal;
+      },
+      calculateSubFinishingItem: function(item) {
+        let finishingQuantity = item.quantity;
+        let finishingUnitPrice = item.unitPrice;
+
+        let finishingTotal = finishingQuantity * finishingUnitPrice;
+
+        item.total = this.toThousandFormat(Math.round(finishingTotal));
+      },
+      round2Decimal: function(number) {
+        return Math.round((number + Number.EPSILON) * 100) / 100
+      },
+      clearCurrencyMask: function(masked) {
+        if (masked == '' || masked == 0 || typeof(masked) == 'undefined') {
+          return 0;
+        }
+        return masked.toString().split('.').join('');
+      },
+      toThousandFormat: function(number) {
+        if (number !== '') {
+          // return number.toString().replace(/\d(?=(\d{3})+\.)/g, '$&,');
+          return new Intl.NumberFormat('de-DE').format(number)
+        }
+        return;
+      },
+      onChangeCustomer: function() {
+
       }
     }
   })
