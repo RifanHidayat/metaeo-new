@@ -91,7 +91,7 @@
           <div class="form-group row">
             <div class="col-lg-6">
               <label>Customer:<span class="text-danger">*</span></label>
-              <select2 v-model="customerId" :options="customers" class="form-control" required>
+              <select2 v-model="customerId" :options="customers" class="form-control" @selected="onChangeCustomer" required>
               </select2>
             </div>
             <div class="col-lg-6">
@@ -102,7 +102,7 @@
           <div class="form-group row">
             <div class="col-lg-6">
               <label>PIC PO:<span class="text-danger">*</span></label>
-              <select2 v-model="picId" :options="customers" class="form-control" disabled required>
+              <select2 v-model="picId" :options="picPosOptions" class="form-control" @selected="onChangePicPo" v-bind:disabled="picLoading" required>
               </select2>
             </div>
             <div class="col-lg-6">
@@ -274,6 +274,7 @@
         .trigger("change")
         // emit event on change.
         .on("change", function() {
+          vm.$emit('selected', this.value);
           vm.$emit("input", this.value);
         });
     },
@@ -282,7 +283,7 @@
         // update value
         $(this.$el)
           .val(value)
-          .trigger("change");
+        // .trigger("change");
       },
       options: function(options) {
         // update options
@@ -680,14 +681,16 @@
       number: '',
       date: '',
       customerId: '',
+      customerPpn: 0,
+      customerPph: 0,
       picId: '',
       picEmail: '',
       work: '',
       totalQuantity: '',
       deliveryDate: '',
       sellPricePerUnit: '',
-      ppn: 0,
-      pph: 0,
+      // ppn: 0,
+      // pph: 0,
       totalDebt: 0,
       note: '',
       // offsetItems: [],
@@ -759,6 +762,13 @@
         total: 0,
       },
       customers: JSON.parse('{!! $customers !!}'),
+      customersAll: JSON.parse('{!! $customers_all !!}'),
+      picPos: [],
+      picPosOptions: [{
+        id: '',
+        text: 'Choose PIC PO'
+      }],
+      picLoading: false,
       loading: false,
     },
     computed: {
@@ -770,7 +780,7 @@
       },
       hpp: function() {
         let totalProduction = parseInt(this.clearCurrencyMask(this.totalProduction));
-        let offsetAppGrandTotal = parseInt(this.clearCurrencyMask(this.offsetGrandTotal.appSetDesign));
+        let offsetAppGrandTotal = this.offsetItems.length > 0 ? parseInt(this.clearCurrencyMask(this.offsetGrandTotal.appSetDesign)) : 0;
         return this.toThousandFormat(totalProduction + offsetAppGrandTotal);
       },
       hppPerUnit: function() {
@@ -792,6 +802,20 @@
         let totalQuantity = parseInt(this.clearCurrencyMask(this.totalQuantity));
         return this.toThousandFormat(sellPricePerUnit * totalQuantity);
       },
+      ppn: function() {
+        const PERCENTAGE = 0.10;
+        if (this.customerPpn == 0) {
+          return 0
+        }
+
+        let ppn = parseInt(this.clearCurrencyMask(this.totalSellPrice)) * PERCENTAGE;
+        return ppn;
+      },
+      pph: function() {
+        if (this.customerPph == 0) {
+          return 0
+        }
+      }
     },
     methods: {
       submitForm: function() {
@@ -987,26 +1011,38 @@
       calculateOffsetGrandTotal: function() {
         let vm = this;
 
-        let offsetPaperGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.paperTotal))).reduce((cur, acc) => cur + acc);
+        let offsetPaperGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.paperTotal))).reduce((cur, acc) => {
+          return cur + acc
+        }, 0);
         this.offsetGrandTotal.paper = this.toThousandFormat(offsetPaperGrandTotal);
 
-        let offsetFilmGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.filmTotal))).reduce((cur, acc) => cur + acc);
+        let offsetFilmGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.filmTotal))).reduce((cur, acc) => {
+          return cur + acc
+        }, 0);
         this.offsetGrandTotal.film = this.toThousandFormat(offsetFilmGrandTotal);
 
-        let offsetAppGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.appSetDesign))).reduce((cur, acc) => cur + acc);
+        let offsetAppGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.appSetDesign))).reduce((cur, acc) => {
+          return cur + acc
+        }, 0);
         this.offsetGrandTotal.appSetDesign = this.toThousandFormat(offsetAppGrandTotal);
 
-        let offsetPrintingGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.printingTotal))).reduce((cur, acc) => cur + acc);
+        let offsetPrintingGrandTotal = this.offsetItems.map(item => parseInt(vm.clearCurrencyMask(item.printingTotal))).reduce((cur, acc) => {
+          return cur + acc
+        }, 0);
         this.offsetGrandTotal.printing = this.toThousandFormat(offsetPrintingGrandTotal);
 
         let offsetFinishingGrandTotal = this.offsetItems.map(item => {
           // parseInt(vm.clearCurrencyMask(item.finishingTotal))
           let subItem = 0;
           if (item.subFinishingItems.length > 0) {
-            subItem = item.subFinishingItems.map(sub => parseInt(vm.clearCurrencyMask(sub.total))).reduce((cur, acc) => cur + acc);
+            subItem = item.subFinishingItems.map(sub => parseInt(vm.clearCurrencyMask(sub.total))).reduce((cur, acc) => {
+              return cur + acc
+            }, 0);
           }
           return parseInt(vm.clearCurrencyMask(item.finishingTotal)) + subItem;
-        }).reduce((cur, acc) => cur + acc);
+        }).reduce((cur, acc) => {
+          return cur + acc
+        }, 0);
         this.offsetGrandTotal.finishing = this.toThousandFormat(offsetFinishingGrandTotal);
 
         this.offsetGrandTotal.total = offsetPaperGrandTotal + offsetFilmGrandTotal + offsetPrintingGrandTotal + offsetFinishingGrandTotal;
@@ -1045,17 +1081,23 @@
       },
       calculateDigitalGrandTotal: function() {
         let vm = this;
-        let digitalItemGrandTotal = this.digitalItems.map(item => parseInt(vm.clearCurrencyMask(item.total))).reduce((cur, acc) => cur + acc);
+        let digitalItemGrandTotal = this.digitalItems.map(item => parseInt(vm.clearCurrencyMask(item.total))).reduce((cur, acc) => {
+          return cur + acc
+        }, 0);
         this.digitalGrandTotal.item = this.toThousandFormat(digitalItemGrandTotal);
 
         let digitalFinishingGrandTotal = this.digitalItems.map(item => {
           // parseInt(vm.clearCurrencyMask(item.finishingTotal))
           let subItem = 0;
           if (item.subFinishingItems.length > 0) {
-            subItem = item.subFinishingItems.map(sub => parseInt(vm.clearCurrencyMask(sub.total))).reduce((cur, acc) => cur + acc);
+            subItem = item.subFinishingItems.map(sub => parseInt(vm.clearCurrencyMask(sub.total))).reduce((cur, acc) => {
+              return cur + acc
+            }, 0);
           }
           return parseInt(vm.clearCurrencyMask(item.finishingTotal)) + subItem;
-        }).reduce((cur, acc) => cur + acc);
+        }).reduce((cur, acc) => {
+          return cur + acc
+        }, 0);
 
         this.digitalGrandTotal.finishing = this.toThousandFormat(digitalFinishingGrandTotal);
 
@@ -1076,7 +1118,7 @@
         if (masked == '' || masked == 0 || typeof(masked) == 'undefined') {
           return 0;
         }
-        return masked.toString().split('.').join('');
+        return masked.toString().replaceAll('.', '');
       },
       toThousandFormat: function(number) {
         if (number !== '') {
@@ -1085,9 +1127,49 @@
         }
         return;
       },
-      onChangeCustomer: function() {
+      onChangeCustomer: function(id) {
+        //   console.log('changed');
+        //   console.log(event.target.value);
+        this.customerPpn = 0;
+        this.customerPph = 0;
 
-      }
+        const customer = this.customersAll.filter(customer => customer.id == id)[0];
+        if (customer !== undefined) {
+          this.customerPpn = customer.with_ppn;
+          this.customerPph = customer.with_pph;
+        }
+
+        this.picEmail = '';
+        this.picLoading = true;
+        this.picPosOptions = [{
+          id: '',
+          text: 'Choose PIC PO'
+        }];
+        let vm = this;
+        // let id = event.target.value;
+        if (this.customers.length > 0 && this.customers !== null && id !== '') {
+          axios.get('/api/customers/' + id + '/pic-pos').then((res) => {
+            // console.log(res);
+            vm.picPos = res.data.data;
+            res.data.data.forEach(pic => {
+              vm.picPosOptions.push({
+                id: pic.id,
+                text: pic.name,
+              })
+            })
+            vm.picLoading = false;
+            // vm.companySelected = true;
+          }).catch(err => {
+            vm.picLoading = false;
+            console.log(err);
+          });
+        }
+      },
+      onChangePicPo: function(id) {
+        if (id !== '') {
+          this.picEmail = this.picPos.filter(pic => pic.id == id)[0].email;
+        }
+      },
     }
   })
 </script>

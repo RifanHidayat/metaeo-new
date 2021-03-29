@@ -45,7 +45,7 @@ class CustomerController extends Controller
         $customer->with_pph = $request->with_pph;
         $customer->address = $request->address;
 
-        try{
+        try {
             $customer->save();
             return response()->json([
                 'message' => 'Data has been saved',
@@ -53,14 +53,14 @@ class CustomerController extends Controller
                 'error' => false,
                 'data' => $customer,
             ]);
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'message' => 'Internal error',
                 'code' => 500,
                 'error' => true,
                 'errors' => $e,
             ], 500);
-        }   
+        }
     }
 
     /**
@@ -103,7 +103,7 @@ class CustomerController extends Controller
         $customer->with_pph = $request->with_pph;
         $customer->address = $request->address;
 
-        try{
+        try {
             $customer->save();
             return response()->json([
                 'message' => 'Data has been saved',
@@ -111,14 +111,14 @@ class CustomerController extends Controller
                 'error' => false,
                 'data' => $customer,
             ]);
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'message' => 'Internal error',
                 'code' => 500,
                 'error' => true,
                 'errors' => $e,
             ], 500);
-        }   
+        }
     }
 
     /**
@@ -135,7 +135,28 @@ class CustomerController extends Controller
             return [
                 'message' => 'data has been deleted',
                 'error' => false,
-                'code' => 200,     
+                'code' => 200,
+            ];
+        } catch (Exception $e) {
+            return [
+                'message' => 'internal error',
+                'error' => true,
+                'code' => 500,
+                'errors' => $e,
+            ];
+        }
+    }
+
+    public function getAllPicPos($id)
+    {
+        try {
+            $customer = Customer::find($id);
+            $picPos = $customer->picpos;
+            return [
+                'message' => 'data has been deleted',
+                'error' => false,
+                'code' => 200,
+                'data' => $picPos,
             ];
         } catch (Exception $e) {
             return [
