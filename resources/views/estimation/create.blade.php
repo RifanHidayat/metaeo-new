@@ -62,16 +62,16 @@
             <div class="col-lg-6">
               <label>Status:<span class="text-danger">*</span></label>
               <select v-model="status" class="form-control">
-                <option value="">Open</option>
-                <option value="">Closed</option>
-                <option value="">Rejected</option>
+                <option value="open">Open</option>
+                <option value="closed">Closed</option>
+                <option value="rejected">Rejected</option>
               </select>
             </div>
           </div>
           <div class="form-group row">
             <div class="col-lg-6">
               <label>Estimated Number:</label>
-              <input v-model="number" type="text" class="form-control bg-light" value="NT-786786867" required readonly>
+              <input v-model="number" type="text" class="form-control bg-light" required readonly>
             </div>
             <div class="col-lg-6">
               <label>Total Production (IDR):</label>
@@ -229,31 +229,6 @@
 @endsection
 
 @section('pagescript')
-<script>
-  $(function() {
-    $('.estimation-date, .delivery-date').datepicker({
-      todayBtn: true,
-      clearBtn: true,
-      orientation: "bottom left"
-    });
-    $('.mask-number').mask('000.000.000.000.000', {
-      reverse: true
-    });
-    // let maskNumbers = document.querySelectorAll('.mask-number');
-    // $('.mask-number').toArray().forEach(function(input) {
-    //   var cleave = new Cleave(input, {
-    //     delimiter: '.',
-    //     numeralDecimalMark: ',',
-    //     numeral: true,
-    //     numeralThousandsGroupStyle: 'thousand'
-    //   });
-    // })
-
-    FilePond.registerPlugin(FilePondPluginImagePreview);
-    const inputElement = document.querySelector('input[type="file"]');
-    const pond = FilePond.create(inputElement);
-  });
-</script>
 <script type="text/x-template" id="select2-template">
   <select>
         <slot></slot>
@@ -390,28 +365,28 @@
                 </select>
               </td>
               <!-- Size -->
-              <td><input v-model="item.sizeOpenedP" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
-              <td><input v-model="item.sizeOpenedL" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
-              <td><input v-model="item.sizeClosedP" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
-              <td><input v-model="item.sizeClosedL" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.sizeOpenedP" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.sizeOpenedL" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.sizeClosedP" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.sizeClosedL" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
               <!-- Color -->
-              <td><input v-model="item.color1" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
-              <td><input v-model="item.color2" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.color1" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.color2" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
               <!-- Paper -->
               <td>
                 <select v-model="item.paperType" @input="calculate(item)" class="form-control" style="width: 150px;">
-                  <option value="HVS">HVS</option>
+                  <option value="0">HVS</option>
                 </select>
               </td>
-              <td><input v-model="item.paperSizePlanoP" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
-              <td><input v-model="item.paperSizePlanoL" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
-              <td><input v-model="item.paperGramasi" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperSizePlanoP" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperSizePlanoL" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperGramasi" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
               <td><input v-model="item.paperPricePerKg" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
               <td><input v-model="item.paperQuantityPlano" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control" style="width: 150px;" value="" required></td>
-              <td><input v-model="item.paperCuttingSizeP" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
-              <td><input v-model="item.paperSizePlanoDivCuttingSizeP" type="number" class="form-control bg-light" style="width: 100px;" readonly></td>
-              <td><input v-model="item.paperCuttingSizeL" @input="calculate(item)" type="number" class="form-control" style="width: 100px;"></td>
-              <td><input v-model="item.paperSizePlanoDivCuttingSizeL" type="number" class="form-control bg-light" style="width: 100px;" readonly></td>
+              <td><input v-model="item.paperCuttingSizeP" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperSizePlanoDivCuttingSizeP" type="number" step="any" class="form-control bg-light" style="width: 100px;" readonly></td>
+              <td><input v-model="item.paperCuttingSizeL" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.paperSizePlanoDivCuttingSizeL" type="number" step="any" class="form-control bg-light" style="width: 100px;" readonly></td>
               <td><input v-model="item.paperQuantity" type="text" class="form-control bg-light" style="width: 150px;" value="" readonly required></td>
               <td><input v-model="item.paperUnitPrice" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
               <td><input v-model="item.paperTotal" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
@@ -572,15 +547,15 @@
               <td><input v-model="item.item" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
               <td>
                 <select v-model="item.paper" class="form-control" style="width: 150px;">
-                  <option value="Fancy">Fancy</option>
-                  <option value="Biasa">Biasa</option>
-                  <option value="Sticker">Sticker</option>
+                  <option value="0">Fancy</option>
+                  <option value="1">Biasa</option>
+                  <option value="2">Sticker</option>
                 </select>
               </td>
               <td><input v-model="item.printingType" type="text" class="form-control bg-light" style="width: 250px;" value="BBL"></td>
               <!-- Color -->
-              <td><input v-model="item.color1" type="number" class="form-control" style="width: 100px;"></td>
-              <td><input v-model="item.color2" type="number" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.color1" type="number" step="any" class="form-control" style="width: 100px;"></td>
+              <td><input v-model="item.color2" type="number" step="any" class="form-control" style="width: 100px;"></td>
               <!-- End::Color -->
               <td><input v-model="item.price" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
               <td><input v-model="item.quantity" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control" style="width: 150px;" value="" required></td>
@@ -678,7 +653,7 @@
         numeralThousandsGroupStyle: 'thousand'
       },
       status: '',
-      number: '',
+      number: '{{ $estimation_number }}',
       date: '',
       customerId: '',
       customerPpn: 0,
@@ -691,7 +666,7 @@
       sellPricePerUnit: '',
       // ppn: 0,
       // pph: 0,
-      totalDebt: 0,
+      // totalDebt: 0,
       note: '',
       // offsetItems: [],
       offsetItems: [{
@@ -809,12 +784,17 @@
         }
 
         let ppn = parseInt(this.clearCurrencyMask(this.totalSellPrice)) * PERCENTAGE;
-        return ppn;
+        return this.toThousandFormat(ppn);
       },
       pph: function() {
         if (this.customerPph == 0) {
           return 0
         }
+
+        return 0;
+      },
+      totalDebt: function() {
+        return 100;
       }
     },
     methods: {
@@ -825,9 +805,30 @@
         // console.log('submitted');
         let vm = this;
         vm.loading = true;
-        axios.post('/estimation', {
 
-          })
+        const data = {
+          number: this.number,
+          date: this.date,
+          pic_po_id: this.picId,
+          work: this.work,
+          quantity: this.totalQuantity,
+          production: this.totalProduction,
+          hpp: this.hpp,
+          hpp_per_unit: this.hppPerUnit,
+          price_per_unit: this.sellPricePerUnit,
+          margin: this.margin,
+          total_price: this.totalSellPrice,
+          ppn: this.ppn,
+          pph: this.pph,
+          total_bill: this.totalDebt,
+          delivery_date: this.deliveryDate,
+          status: this.status,
+          note: this.note,
+          offsetItems: this.offsetItems,
+          digitalItems: this.digitalItems,
+        }
+
+        axios.post('/estimation', data)
           .then(function(response) {
             vm.loading = false;
             Swal.fire({
@@ -837,7 +838,7 @@
               allowOutsideClick: false,
             }).then((result) => {
               if (result.isConfirmed) {
-                window.location.href = '/pic-po';
+                // window.location.href = '/pic-po';
               }
             })
             // console.log(response);
@@ -1172,5 +1173,51 @@
       },
     }
   })
+</script>
+<script>
+  $(function() {
+    // $('.estimation-date, .delivery-date').datepicker({
+    //   todayBtn: true,
+    //   clearBtn: true,
+    //   orientation: "bottom left"
+    // });
+
+    $('.estimation-date').datepicker({
+      format: 'yyyy-mm-dd',
+      todayBtn: true,
+      clearBtn: true,
+      orientation: "bottom left",
+    }).on('changeDate', function(e) {
+      app.$data.date = e.format(0, 'yyyy-mm-dd');
+    });
+
+    $('.delivery-date').datepicker({
+      format: 'yyyy-mm-dd',
+      todayBtn: true,
+      clearBtn: true,
+      orientation: "bottom left",
+    }).on('changeDate', function(e) {
+      app.$data.deliveryDate = e.format(0, 'yyyy-mm-dd');
+    });
+
+
+
+    $('.mask-number').mask('000.000.000.000.000', {
+      reverse: true
+    });
+    // let maskNumbers = document.querySelectorAll('.mask-number');
+    // $('.mask-number').toArray().forEach(function(input) {
+    //   var cleave = new Cleave(input, {
+    //     delimiter: '.',
+    //     numeralDecimalMark: ',',
+    //     numeral: true,
+    //     numeralThousandsGroupStyle: 'thousand'
+    //   });
+    // })
+
+    FilePond.registerPlugin(FilePondPluginImagePreview);
+    const inputElement = document.querySelector('input[type="file"]');
+    const pond = FilePond.create(inputElement);
+  });
 </script>
 @endsection

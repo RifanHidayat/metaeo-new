@@ -27,7 +27,7 @@ class CreateEstimationDigitalItemsTable extends Migration
             $table->integer('finishing_qty')->nullable();
             $table->bigInteger('finishing_unit_price')->nullable();
             $table->bigInteger('finishing_total')->nullable();
-            $table->foreignId('estimation_id')->constrained('pic_pos')
+            $table->foreignId('estimation_id')->constrained()
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->timestamps();
