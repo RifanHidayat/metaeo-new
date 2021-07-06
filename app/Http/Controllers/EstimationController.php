@@ -20,7 +20,8 @@ class EstimationController extends Controller
      */
     public function index()
     {
-        //
+        $estimations = Estimation::all();
+        return view('estimation.index', ['estimations' => $estimations]);
     }
 
     /**
