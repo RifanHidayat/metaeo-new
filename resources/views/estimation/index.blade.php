@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
   <div class="card-header flex-wrap py-3">
     <div class="card-title">
-      <h3 class="card-label">List All Customers
+      <h3 class="card-label">List All Estimations
         <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
       </h3>
     </div>
@@ -69,39 +69,33 @@
   </div>
   <div class="card-body">
     <!--begin: Datatable-->
-    <table class="table table-bordered" id="basic-table">
+    <table class="table datatable datatable-bordered datatable-head-custom" id="estimation-table">
+      <thead>
+        <tr class="text-center">
+          <th>Number</th>
+          <th>Tanggal</th>
+          <th>Customer</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Jumlah</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <!-- <table class="datatable-table" id="estimation-table">
       <thead>
         <tr>
-          <td>ID</td>
+          <td>Number</td>
           <td>Status</td>
           <td>Action</td>
         </tr>
       </thead>
       <tbody>
-        @foreach($estimations as $estimation)
-        <tr>
-          <td>{{ $estimation->id }}</td>
-          <td>{{ $estimation->status }}</td>
-          <td class="text-center">
-            <a href="/customer/edit/{{ $customer->id }}" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                    <rect x="0" y="0" width="24" height="24"></rect>
-                    <path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "></path>
-                    <rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"></rect>
-                  </g>
-                </svg> </span> </a>
-            <a href="#" @click.prevent="deleteRecord({{ $customer->id }})" class="btn btn-sm btn-clean btn-icon" title="Delete"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                    <rect x="0" y="0" width="24" height="24"></rect>
-                    <path d="M6,8 L6,20.5 C6,21.3284271 6.67157288,22 7.5,22 L16.5,22 C17.3284271,22 18,21.3284271 18,20.5 L18,8 L6,8 Z" fill="#000000" fill-rule="nonzero"></path>
-                    <path d="M14,4.5 L14,4 C14,3.44771525 13.5522847,3 13,3 L11,3 C10.4477153,3 10,3.44771525 10,4 L10,4.5 L5.5,4.5 C5.22385763,4.5 5,4.72385763 5,5 L5,5.5 C5,5.77614237 5.22385763,6 5.5,6 L18.5,6 C18.7761424,6 19,5.77614237 19,5.5 L19,5 C19,4.72385763 18.7761424,4.5 18.5,4.5 L14,4.5 Z" fill="#000000" opacity="0.3"></path>
-                  </g>
-                </svg> </span> </a>
-          </td>
-        </tr>
-        @endforeach
+
       </tbody>
-    </table>
+    </table> -->
     <!--end: Datatable-->
   </div>
 </div>
@@ -166,7 +160,131 @@
 </script>
 <script>
   $(function() {
-    $('#basic-table').DataTable();
+    const estimationsTable = $('#estimation-table').DataTable({
+      processing: true,
+      serverSide: true,
+      ajax: '/datatables/estimations',
+      columns: [{
+          data: 'number',
+          render: function(data, type, row) {
+            return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div><span  class="text-muted font-weight-bold text-hover-primary">${row.work}</span>`;
+          }
+        },
+        {
+          data: 'date',
+          render: function(data, type) {
+            return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+          }
+        },
+        {
+          data: 'pic_po.customer.name',
+          name: 'pic_po_id',
+          render: function(data, type) {
+            return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+          }
+        },
+        {
+          data: 'quantity',
+          className: 'text-right',
+          render: function(data, type) {
+            return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${data}</span>`;
+          }
+        },
+        {
+          data: 'price_per_unit',
+          className: 'text-right',
+          render: function(data, type) {
+            return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${data}</span>`;
+          }
+        },
+        {
+          data: 'total_bill',
+          className: 'text-right',
+          render: function(data, type) {
+            return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${data}</span>`;
+          }
+        },
+        {
+          data: 'status',
+          className: 'text-center',
+          render: function(data, type) {
+            const label = function(text, type) {
+              return `<span class="label label-light-${type} label-pill label-inline text-capitalize">${text}</span>`;
+            }
+
+            switch (data) {
+              case 'open':
+                return label(data, 'warning');
+                break;
+              case 'closed':
+                return label(data, 'success');
+                break;
+              case 'rejected':
+                return label(data, 'danger');
+                break;
+              case 'final':
+                return label(data, 'primart');
+                break;
+              default:
+                return label('unknown', 'light');
+            }
+          }
+        },
+        {
+          data: 'action',
+          name: 'action',
+          orderable: false,
+          searchable: false
+        },
+
+      ]
+    });
+
+    $('#estimation-table').on('click', 'tr .btn-delete', function(e) {
+      e.preventDefault();
+      // alert('click');
+      const id = $(this).attr('data-id');
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "The data will be deleted",
+        icon: 'warning',
+        reverseButtons: true,
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+          return axios.delete('/estimation/' + id)
+            .then(function(response) {
+              console.log(response.data);
+            })
+            .catch(function(error) {
+              console.log(error.data);
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops',
+                text: 'Something wrong',
+              })
+            });
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Data has been deleted',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // window.location.reload();
+              estimationsTable.ajax.reload();
+            }
+          })
+        }
+      })
+    })
   })
 </script>
 @endsection

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Group;
+use Exception;
 use Illuminate\Http\Request;
 
 class GroupController extends Controller
@@ -23,7 +25,7 @@ class GroupController extends Controller
      */
     public function create()
     {
-        //
+        return view('group.create');
     }
 
     /**
@@ -34,7 +36,27 @@ class GroupController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+        $group = new Group;
+        $group->name = $request->name;
+        $group->permission = json_encode($request->permission);
+
+        try {
+            $group->save();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $group,
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
     }
 
     /**
@@ -56,7 +78,11 @@ class GroupController extends Controller
      */
     public function edit($id)
     {
-        //
+        $group = Group::findOrFail($id);
+
+        return view('group.edit', [
+            'group' => $group,
+        ]);
     }
 
     /**
@@ -68,7 +94,26 @@ class GroupController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $group = Group::find($id);
+        $group->name = $request->name;
+        $group->permission = $request->permission;
+
+        try {
+            $group->save();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $group,
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
     }
 
     /**
@@ -79,6 +124,21 @@ class GroupController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $group = Group::find($id);
+        try {
+            $group->delete();
+            return [
+                'message' => 'data has been deleted',
+                'error' => false,
+                'code' => 200,
+            ];
+        } catch (Exception $e) {
+            return [
+                'message' => 'internal error',
+                'error' => true,
+                'code' => 500,
+                'errors' => $e,
+            ];
+        }
     }
 }

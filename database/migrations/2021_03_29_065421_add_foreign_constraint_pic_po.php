@@ -14,9 +14,9 @@ class AddForeignConstraintPicPo extends Migration
     public function up()
     {
         Schema::table('estimations', function (Blueprint $table) {
-            $table->foreignId('pic_po_id')->after('date')->constrained()
+            $table->foreignId('pic_po_id')->constrained()
                 ->onUpdate('cascade')
-                ->onDelete('cascade');
+                ->onDelete('cascade');;
         });
     }
 

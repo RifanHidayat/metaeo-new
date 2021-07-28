@@ -14,4 +14,14 @@ class PicPo extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+
+    public function estimations()
+    {
+        return $this->hasMany(Estimation::class);
+    }
+
+    public function quotations()
+    {
+        return $this->hasMany(Quotation::class);
+    }
 }

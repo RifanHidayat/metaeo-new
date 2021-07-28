@@ -8,5 +8,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EstimationDigitalItem extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+
+    public function estimation()
+    {
+        return $this->belongsTo(Estimation::class);
+    }
+
+    public function subItems()
+    {
+        return $this->hasMany(EstimationDigitalSubItem::class);
+    }
 }

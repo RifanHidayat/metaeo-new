@@ -787,14 +787,17 @@
         return this.toThousandFormat(ppn);
       },
       pph: function() {
+        const PERCENTAGE = 0.02;
         if (this.customerPph == 0) {
           return 0
         }
 
-        return 0;
+        let pph = parseInt(this.clearCurrencyMask(this.totalSellPrice)) * PERCENTAGE;
+        return this.toThousandFormat(pph);
       },
       totalDebt: function() {
-        return 100;
+        const totalDebt = Number(this.clearCurrencyMask(this.totalSellPrice)) + Number(this.clearCurrencyMask(this.ppn)) - Number(this.clearCurrencyMask(this.pph))
+        return this.toThousandFormat(totalDebt);
       }
     },
     methods: {

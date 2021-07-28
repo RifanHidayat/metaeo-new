@@ -391,7 +391,7 @@ License: You must have a valid license purchased only from themeforest(the above
     <!--end::Global Config-->
     <!--begin::Global Theme Bundle(used by all pages)-->
     <script src="{{ asset('plugins/global/plugins.bundle.js') }}"></script>
-    <script src="{{ asset('plugins/custom/prismjs/prismjs.bundle.js') }}"></script>
+    <!-- <script src="{{ asset('plugins/custom/prismjs/prismjs.bundle.js') }}"></script> -->
     <script src="{{ asset('js/scripts.bundle.js') }}"></script>
     <!--end::Global Theme Bundle-->
     <!--begin::Page Vendors(used by this page)-->
