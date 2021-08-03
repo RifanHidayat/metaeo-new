@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Delivery Order</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Faktur</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Delivery Order</a>
+                        <a href="" class="text-muted">Faktur</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Add</a>
@@ -44,7 +44,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Add Delivery Order</h3>
+                <h3 class="card-title">Add Faktur</h3>
             </div>
 
             <!--begin::Form-->
@@ -163,8 +163,8 @@
                                     <div class="d-flex flex-column text-dark-50">
                                         <span class="font-weight-bolder font-size-sm">Customer</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            @if($customer !== null)
-                                            {{ $customer->name }}
+                                            @if($sales_order->customer !== null)
+                                            {{ $sales_order->customer->name }}
                                             @else
                                             -
                                             @endif
@@ -181,8 +181,8 @@
                                     <div class="d-flex flex-column text-dark-50">
                                         <span class="font-weight-bolder font-size-sm">Alamat Customer</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            @if($customer !== null)
-                                            {{ $customer->address }}
+                                            @if($sales_order->customer !== null)
+                                            {{ $sales_order->customer->address }}
                                             @else
                                             -
                                             @endif
@@ -199,8 +199,8 @@
                                     <div class="d-flex flex-column text-dark-50">
                                         <span class="font-weight-bolder font-size-sm">NPWP Customer</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            @if($customer !== null)
-                                            {{ $customer->npwp }}
+                                            @if($sales_order->customer !== null)
+                                            {{ $sales_order->customer->npwp }}
                                             @else
                                             -
                                             @endif
@@ -250,7 +250,7 @@
                                         <!--begin::Body-->
                                         <div class="card-body pt-4">
                                             <!--begin::User-->
-                                            <span v-if="quotation.paid == 1" class="label label-inline label-light-success label-lg  font-weight-bolder">Dibayarkan</span>
+                                            <!-- <span v-if="quotation.paid == 1" class="label label-inline label-light-success label-lg  font-weight-bolder">Dibayarkan</span> -->
                                             <div class="d-flex align-items-center my-7">
                                                 <!--begin::Title-->
                                                 <div class="d-flex flex-column">
@@ -269,7 +269,7 @@
                                             <div class="mb-7">
                                                 <div class="d-flex justify-content-between align-items-center my-1">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Quantity:</span>
-                                                    <a href="#" class="text-muted text-hover-primary">@{{ Intl.NumberFormat('de-DE').format(quotation.quantity) }}</a>
+                                                    <a href="#" class="text-muted text-hover-primary">@{{ Intl.NumberFormat('de-DE').format(quotation.selected_estimation.quantity) }}</a>
                                                 </div>
                                                 <!-- <div class="d-flex justify-content-between align-items-center my-1">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Quantity Sudah Diproduksi:</span>
@@ -281,11 +281,11 @@
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-cente my-1">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Unit Price:</span>
-                                                    <a href="#" class="text-muted text-hover-primary">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.price_per_unit) }}</a>
+                                                    <a href="#" class="text-muted text-hover-primary">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.selected_estimation.price_per_unit) }}</a>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center my-1">
-                                                    <span class="text-dark-75 font-weight-bolder mr-2">Total:</span>
-                                                    <span class="text-muted font-weight-bold">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.quantity * quotation.price_per_unit) }}</span>
+                                                    <span class="text-dark-75 font-weight-bolder mr-2">Netto:</span>
+                                                    <span class="text-muted font-weight-bold">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.selected_estimation.quantity * quotation.selected_estimation.price_per_unit) }}</span>
                                                 </div>
                                             </div>
                                             <!--end::Info-->
@@ -369,7 +369,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || checkedQuotationsIds.length < 1">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -393,10 +393,11 @@
     let app = new Vue({
         el: '#app',
         data: {
-            quotations: JSON.parse('{!! $sales_order->quotations !!}'),
+            quotations: JSON.parse(String.raw `{!! $sales_order->quotations !!}`),
             checkedQuotationsIds: [],
             number: '{{ $invoice_number }}',
             date: '',
+            customer: '{{ $sales_order->customer->id }}',
             taxInvoiceSeries: '',
             termsOfPayment: '',
             picPo: '',
@@ -417,6 +418,7 @@
                 const data = {
                     number: vm.number,
                     date: vm.date,
+                    customer_id: vm.customer,
                     tax_invoice_series: vm.taxInvoiceSeries,
                     terms_of_payment: vm.termsOfPayment,
                     pic_po: vm.picPo,
@@ -428,6 +430,7 @@
                     total: vm.total,
                     terbilang: vm.terbilang,
                     sales_order_id: vm.salesOrderId,
+                    // customer_id: vm.customerId,
                     selected_quotations: vm.checkedQuotations,
                 }
 
@@ -522,7 +525,7 @@
                 return newTerbilang;
             },
             totalQuantity: function() {
-                return this.checkedQuotations.map(quotation => quotation.quantity).reduce((acc, cur) => {
+                return this.checkedQuotations.map(quotation => quotation.selected_estimation.quantity).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0);
             },

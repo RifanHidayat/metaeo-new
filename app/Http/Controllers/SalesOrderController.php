@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use Carbon\Carbon;
@@ -97,8 +98,12 @@ class SalesOrderController extends Controller
         $salesOrdersByCurrentDateCount = SalesOrder::query()->where('date', date("Y-m-d"))->get()->count();
         // return $estimationsByCurrentDateCount;
         $salesOrderNumber = 'SO-' . date('d') . date('m') . date("y") . sprintf('%04d', $salesOrdersByCurrentDateCount + 1);
+
+        $customers = Customer::all();
+
         return view('sales-order.create', [
-            'sales_order_number' => $salesOrderNumber
+            'sales_order_number' => $salesOrderNumber,
+            'customers' => $customers
         ]);
     }
 
@@ -113,6 +118,7 @@ class SalesOrderController extends Controller
         $salesOrder = new SalesOrder;
         $salesOrder->number = $request->number;
         $salesOrder->date = $request->date;
+        $salesOrder->customer_id = $request->customer_id;
         $salesOrder->po_number = $request->po_number;
         $salesOrder->po_date = $request->po_date;
 
@@ -141,7 +147,32 @@ class SalesOrderController extends Controller
 
         try {
             $salesOrder->quotations()->attach($keyedQuotations);
+            // return response()->json([
+            //     'message' => 'Data has been saved',
+            //     'code' => 200,
+            //     'error' => false,
+            //     'data' => $salesOrder,
+            // ]);
+        } catch (Exception $e) {
+            $salesOrder->delete();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
 
+        try {
+            foreach ($quotations as $quotation) {
+                $quotationRow = Quotation::find($quotation['id']);
+                if ($quotationRow == null) {
+                    continue;
+                }
+
+                $quotationRow->estimation_id = $quotation['selected_estimation'];
+                $quotationRow->save();
+            }
             return response()->json([
                 'message' => 'Data has been saved',
                 'code' => 200,
@@ -149,6 +180,7 @@ class SalesOrderController extends Controller
                 'data' => $salesOrder,
             ]);
         } catch (Exception $e) {
+            $salesOrder->quotations()->detach();
             $salesOrder->delete();
             return response()->json([
                 'message' => 'Internal error',
@@ -184,8 +216,11 @@ class SalesOrderController extends Controller
             $quotation->selected_estimation = $quotation->pivot->estimation_id;
         }
 
+        $customers = Customer::all();
+
         return view('sales-order.edit', [
             'sales_order' => $salesOrder,
+            'customers' => $customers,
         ]);
     }
 
@@ -241,6 +276,32 @@ class SalesOrderController extends Controller
         try {
             $salesOrder->quotations()->attach($keyedQuotations);
 
+            // return response()->json([
+            //     'message' => 'Data has been saved',
+            //     'code' => 200,
+            //     'error' => false,
+            //     'data' => $salesOrder,
+            // ]);
+        } catch (Exception $e) {
+            $salesOrder->delete();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
+
+        try {
+            foreach ($quotations as $quotation) {
+                $quotationRow = Quotation::find($quotation['id']);
+                if ($quotationRow == null) {
+                    continue;
+                }
+
+                $quotationRow->estimation_id = $quotation['selected_estimation'];
+                $quotationRow->save();
+            }
             return response()->json([
                 'message' => 'Data has been saved',
                 'code' => 200,
@@ -248,6 +309,7 @@ class SalesOrderController extends Controller
                 'data' => $salesOrder,
             ]);
         } catch (Exception $e) {
+            $salesOrder->quotations()->detach();
             $salesOrder->delete();
             return response()->json([
                 'message' => 'Internal error',
@@ -285,11 +347,39 @@ class SalesOrderController extends Controller
         }
     }
 
-    public function datatablesQuotations()
+    public function datatablesQuotations(Request $request)
     {
+        $customerId = $request->query('customer_id');
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $estimations = Quotation::with(['estimations']);
-        return DataTables::of($estimations)
+        $quotations = Quotation::with(['estimations', 'salesOrders'])
+            ->where('customer_id', $customerId)
+            ->get()
+            ->filter(function ($quotation) {
+                return count($quotation->salesOrders) < 1;
+            })->all();
+
+        return DataTables::of($quotations)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                return $button;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    public function datatablesQuotationsUnfiltered(Request $request)
+    {
+        $customerId = $request->query('customer_id');
+        // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
+        $quotations = Quotation::with(['estimations', 'salesOrders'])
+            ->where('customer_id', $customerId)
+            ->get()
+            ->filter(function ($quotation) {
+                return count($quotation->salesOrders) < 1;
+            })->all();
+
+        return DataTables::of($quotations)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
                 $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';

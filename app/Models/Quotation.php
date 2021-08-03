@@ -39,4 +39,19 @@ class Quotation extends Model
     {
         return $this->belongsToMany(Invoice::class);
     }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function selectedEstimation()
+    {
+        return $this->belongsTo(Estimation::class, 'estimation_id');
+    }
+
+    public function selectedEstimationData()
+    {
+        return $this->belongsTo(Estimation::class, 'estimation_id');
+    }
 }

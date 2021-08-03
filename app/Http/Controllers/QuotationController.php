@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Estimation;
 use App\Models\Quotation;
+use Barryvdh\DomPDF\Facade as PDF;
 use Exception;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -61,8 +63,11 @@ class QuotationController extends Controller
         // return $estimationsByCurrentDateCount;
         $quotationNumber = 'QO-' . date('d') . date('m') . date("y") . sprintf('%04d', $quotationsByCurrentDateCount + 1);
 
+        $customers = Customer::all();
+
         return view('quotation.create', [
-            'quotation_number' => $quotationNumber
+            'quotation_number' => $quotationNumber,
+            'customers' => $customers,
         ]);
     }
 
@@ -77,6 +82,7 @@ class QuotationController extends Controller
         $quotation = new Quotation;
         $quotation->number = $request->number;
         $quotation->date = $request->date;
+        $quotation->customer_id = $request->customer_id;
         $quotation->up = $request->up;
         $quotation->title = $request->title;
         $quotation->note = $request->note;
@@ -148,9 +154,12 @@ class QuotationController extends Controller
     public function edit($id)
     {
         $quotation = Quotation::with(['estimations.picPo', 'picPo'])->findOrFail($id);
+
+        $customers = Customer::all();
         // return $quotation;
         return view('quotation.edit', [
             'quotation' => $quotation,
+            'customers' => $customers,
         ]);
     }
 
@@ -166,6 +175,7 @@ class QuotationController extends Controller
         $quotation = Quotation::find($id);
         $quotation->number = $request->number;
         $quotation->date = $request->date;
+        $quotation->customer_id = $request->customer_id;
         $quotation->up = $request->up;
         $quotation->title = $request->title;
         $quotation->note = $request->note;
@@ -246,11 +256,36 @@ class QuotationController extends Controller
         }
     }
 
-    // GET Datatables Estimation Data
-    public function datatablesEstimations()
+    public function print($id)
     {
+        $quotation = Quotation::with(['estimations.picPo.customer'])->findOrFail($id);
+
+        $customerExist = collect($quotation->estimations)->filter(function ($item) {
+            return $item->picPo->customer !== null;
+        })->first();
+
+        $customer = [
+            'name' => '-',
+        ];
+
+        if ($customerExist !== null) {
+            $customer = $customerExist->picPo->customer;
+        }
+
+        $pdf = PDF::loadView('quotation.print', [
+            'quotation' => $quotation,
+            'customer' => $customer,
+        ]);
+        return $pdf->stream($quotation->number . '.pdf');
+    }
+
+    // GET Datatables Estimation Data
+    public function datatablesEstimations(Request $request)
+    {
+        $customerId = $request->query('customer_id');
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $estimations = Estimation::with(['picPo']);
+        $estimations = Estimation::with(['picPo'])->where('customer_id', $customerId);
+
         return DataTables::of($estimations)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DeliveryOrder;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -60,7 +61,7 @@ class DeliveryOrderController extends Controller
     public function create(Request $request)
     {
         $salesOrderId = $request->query('so');
-        $salesOrder = SalesOrder::with(['quotations.estimations.picPo.customer'])->find($salesOrderId);
+        $salesOrder = SalesOrder::with(['quotations.selectedEstimation', 'customer'])->find($salesOrderId);
 
         if ($salesOrderId == null || $salesOrder == null) {
             // abort(404);
@@ -72,25 +73,25 @@ class DeliveryOrderController extends Controller
 
         // return 
 
-        $customerExist = $salesOrder->quotations->filter(function ($item) {
-            return $item->estimations !== null && count($item->estimations) > 0;
-        })->flatMap(function ($item) {
-            return $item->estimations;
-        })->filter(function ($item) {
-            return $item->picPo->customer !== null;
-        })->first();
+        // $customerExist = $salesOrder->quotations->filter(function ($item) {
+        //     return $item->estimations !== null && count($item->estimations) > 0;
+        // })->flatMap(function ($item) {
+        //     return $item->estimations;
+        // })->filter(function ($item) {
+        //     return $item->picPo->customer !== null;
+        // })->first();
 
-        $customer = null;
+        // $customer = null;
 
-        if ($customerExist !== null) {
-            $customer = $customerExist->picPo->customer;
-        }
+        // if ($customerExist !== null) {
+        //     $customer = $customerExist->picPo->customer;
+        // }
 
         if ($salesOrder->quotations !== null) {
             if (count($salesOrder->quotations) > 0) {
                 foreach ($salesOrder->quotations as $quotation) {
                     $quotation['shipping_code'] = 'D002';
-                    $quotation['shipping_description'] = $quotation['description'];
+                    $quotation['shipping_description'] = strip_tags($quotation['description']);
                     $quotation['shipping_information'] = '';
                     $quotation['shipping_amount'] = 0;
                     $quotation['shipping_unit'] = 'Pcs';
@@ -109,7 +110,7 @@ class DeliveryOrderController extends Controller
         // return $salesOrder;
 
         return view('delivery-order.create', [
-            'customer' => $customer,
+            // 'customer' => $customer,
             'sales_order' => $salesOrder,
             'delivery_order_number' => $deliveryOrderNumber,
         ]);
@@ -128,6 +129,7 @@ class DeliveryOrderController extends Controller
         $deliveryOrder = new DeliveryOrder;
         $deliveryOrder->number = $request->number;
         $deliveryOrder->date = $request->date;
+        $deliveryOrder->customer_id = $request->customer_id;
         $deliveryOrder->warehouse = $request->warehouse;
         $deliveryOrder->shipper = $request->shipper;
         $deliveryOrder->number_of_vehicle = $request->number_of_vehicle;
@@ -221,7 +223,7 @@ class DeliveryOrderController extends Controller
      */
     public function edit($id)
     {
-        $deliveryOrder = DeliveryOrder::with(['quotations', 'salesOrder'])->findOrFail($id);
+        $deliveryOrder = DeliveryOrder::with(['quotations', 'salesOrder', 'customer'])->findOrFail($id);
 
         $checkedQuotations = collect($deliveryOrder->quotations)->pluck('id')->all();
 
@@ -238,19 +240,19 @@ class DeliveryOrderController extends Controller
 
         // return 
 
-        $customerExist = $salesOrder->quotations->filter(function ($item) {
-            return $item->estimations !== null && count($item->estimations) > 0;
-        })->flatMap(function ($item) {
-            return $item->estimations;
-        })->filter(function ($item) {
-            return $item->picPo->customer !== null;
-        })->first();
+        // $customerExist = $salesOrder->quotations->filter(function ($item) {
+        //     return $item->estimations !== null && count($item->estimations) > 0;
+        // })->flatMap(function ($item) {
+        //     return $item->estimations;
+        // })->filter(function ($item) {
+        //     return $item->picPo->customer !== null;
+        // })->first();
 
-        $customer = null;
+        // $customer = null;
 
-        if ($customerExist !== null) {
-            $customer = $customerExist->picPo->customer;
-        }
+        // if ($customerExist !== null) {
+        //     $customer = $customerExist->picPo->customer;
+        // }
 
         if ($deliveryOrder->quotations !== null) {
             if (count($deliveryOrder->quotations) > 0) {
@@ -269,7 +271,7 @@ class DeliveryOrderController extends Controller
         return view('delivery-order.edit', [
             'checked_quotations' => $checkedQuotations,
             'delivery_order' => $deliveryOrder,
-            'customer' => $customer,
+            // 'customer' => $customer,
             'sales_order' => $salesOrder,
         ]);
     }
@@ -417,5 +419,15 @@ class DeliveryOrderController extends Controller
                 'errors' => $e,
             ];
         }
+    }
+
+    public function print($id)
+    {
+        $deliveryOrder = DeliveryOrder::with(['quotations'])->findOrFail($id);
+
+        $pdf = PDF::loadView('delivery-order.print', [
+            'delivery_order' => $deliveryOrder,
+        ]);
+        return $pdf->stream($deliveryOrder->number . '.pdf');
     }
 }

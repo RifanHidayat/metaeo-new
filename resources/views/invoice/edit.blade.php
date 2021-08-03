@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Delivery Order</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Edit Faktur</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Delivery Order</a>
+                        <a href="" class="text-muted">Faktur</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Add</a>
@@ -44,7 +44,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Add Delivery Order</h3>
+                <h3 class="card-title">Edit Faktur</h3>
             </div>
 
             <!--begin::Form-->
@@ -163,8 +163,8 @@
                                     <div class="d-flex flex-column text-dark-50">
                                         <span class="font-weight-bolder font-size-sm">Customer</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            @if($customer !== null)
-                                            {{ $customer->name }}
+                                            @if($invoice->customer !== null)
+                                            {{ $invoice->customer->name }}
                                             @else
                                             -
                                             @endif
@@ -181,8 +181,8 @@
                                     <div class="d-flex flex-column text-dark-50">
                                         <span class="font-weight-bolder font-size-sm">Alamat Customer</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            @if($customer !== null)
-                                            {{ $customer->address }}
+                                            @if($invoice->customer !== null)
+                                            {{ $invoice->customer->address }}
                                             @else
                                             -
                                             @endif
@@ -199,8 +199,8 @@
                                     <div class="d-flex flex-column text-dark-50">
                                         <span class="font-weight-bolder font-size-sm">NPWP Customer</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            @if($customer !== null)
-                                            {{ $customer->npwp }}
+                                            @if($invoice->customer !== null)
+                                            {{ $invoice->customer->npwp }}
                                             @else
                                             -
                                             @endif
@@ -250,7 +250,7 @@
                                         <!--begin::Body-->
                                         <div class="card-body pt-4">
                                             <!--begin::User-->
-                                            <span v-if="quotation.paid == 1" class="label label-inline label-light-success label-lg  font-weight-bolder">Dibayarkan</span>
+                                            <!-- <span v-if="quotation.paid == 1" class="label label-inline label-light-success label-lg  font-weight-bolder">Dibayarkan</span> -->
                                             <div class="d-flex align-items-center my-7">
                                                 <!--begin::Title-->
                                                 <div class="d-flex flex-column">
@@ -369,7 +369,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || checkedQuotationsIds.length < 1">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -393,7 +393,7 @@
     let app = new Vue({
         el: '#app',
         data: {
-            quotations: JSON.parse('{!! $sales_order->quotations !!}'),
+            quotations: JSON.parse(String.raw `{!! $sales_order->quotations !!}`),
             checkedQuotationsIds: JSON.parse('{!! json_encode($checked_invoices) !!}'),
             number: '{{ $invoice->number }}',
             date: '{{ $invoice->date }}',

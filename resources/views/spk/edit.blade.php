@@ -315,7 +315,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || checkedQuotationsIds.length < 1">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -345,7 +345,7 @@
     let app = new Vue({
         el: '#app',
         data: {
-            quotations: JSON.parse('{!! $job_order->quotations !!}'),
+            quotations: JSON.parse(String.raw `{!! $job_order->quotations !!}`),
             checkedQuotationsIds: JSON.parse('{!! json_encode($checked_quotations) !!}'),
             number: '{{ $job_order->number }}',
             date: '{{ $job_order->date }}',

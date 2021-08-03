@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Invoice;
+use App\Models\Transaction;
+use App\Models\Warehouse;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -15,7 +18,14 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $customers = Customer::all();
+        $customers = Customer::with(['invoices.payments'])->get()
+            ->each(function ($customer) {
+                $customer['unpaid'] = collect($customer->invoices)->flatMap(function ($invoice) {
+                    return $invoice->payments;
+                })->sum('amount');
+            })->all();
+
+        // return $customers;
         return view('customer.index', ['customers' => $customers]);
     }
 
@@ -166,5 +176,46 @@ class CustomerController extends Controller
                 'errors' => $e,
             ];
         }
+    }
+
+    public function payment($id)
+    {
+        $customer = Customer::findOrFail($id);
+        $invoices = Invoice::with(['payments'])
+            ->where('customer_id', $id)
+            ->orderBy('date', 'DESC')
+            // ->where('paid', 0)
+            ->get()
+            ->each(function ($invoice) {
+                $invoice['total_payment'] = collect($invoice->payments)->sum('amount');
+            })
+            ->filter(function ($invoice) {
+                return $invoice->total_payment < $invoice->total;
+            })
+            // ->map(function ($invoice) {
+            //     return $invoice->total_payment;
+            // })
+            ->all();
+
+        // return $invoices;
+
+        $transactionsByCurrentDateCount = Transaction::query()->where('date', date("Y-m-d"))->get()->count();
+        // return $estimationsByCurrentDateCount;
+        $transactionNumber = 'TR-' . date('d') . date('m') . date("y") . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+
+        return view('customer.payment', [
+            'transaction_number' => $transactionNumber,
+            'customer' => $customer,
+            'invoices' => $invoices,
+        ]);
+    }
+
+    public function warehouse($id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        return view('customer.warehouse', [
+            'customer' => $customer,
+        ]);
     }
 }

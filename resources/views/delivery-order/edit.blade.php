@@ -163,8 +163,8 @@
                                     <div class="d-flex flex-column text-dark-50">
                                         <span class="font-weight-bolder font-size-sm">Customer</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            @if($customer !== null)
-                                            {{ $customer->name }}
+                                            @if($delivery_order->customer !== null)
+                                            {{ $delivery_order->customer->name }}
                                             @else
                                             -
                                             @endif
@@ -181,8 +181,8 @@
                                     <div class="d-flex flex-column text-dark-50">
                                         <span class="font-weight-bolder font-size-sm">Alamat Customer</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            @if($customer !== null)
-                                            {{ $customer->address }}
+                                            @if($delivery_order->customer !== null)
+                                            {{ $delivery_order->customer->address }}
                                             @else
                                             -
                                             @endif
@@ -245,7 +245,7 @@
                                             <div class="mb-7">
                                                 <div class="d-flex justify-content-between align-items-center my-1">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Quantity:</span>
-                                                    <a href="#" class="text-muted text-hover-primary">@{{ Intl.NumberFormat('de-DE').format(quotation.quantity) }}</a>
+                                                    <a href="#" class="text-muted text-hover-primary">@{{ Intl.NumberFormat('de-DE').format(quotation.selected_estimation.quantity) }}</a>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center my-1">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Quantity Sudah Diproduksi:</span>
@@ -395,7 +395,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || checkedQuotationsIds.length < 1">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -418,7 +418,7 @@
     let app = new Vue({
         el: '#app',
         data: {
-            quotations: JSON.parse('{!! $delivery_order->quotations !!}'),
+            quotations: JSON.parse(String.raw `{!! $delivery_order->quotations !!}`),
             checkedQuotationsIds: JSON.parse('{!! json_encode($checked_quotations) !!}'),
             number: '{{ $delivery_order->number }}',
             date: '{{ $delivery_order->date }}',
@@ -503,7 +503,7 @@
                 return this.quotations.filter(quotation => this.checkedQuotationsIds.indexOf(quotation.id) > -1);
             },
             totalQuantity: function() {
-                return this.checkedQuotations.map(quotation => quotation.quantity).reduce((acc, cur) => {
+                return this.checkedQuotations.map(quotation => quotation.selected_estimation.quantity).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0);
             },

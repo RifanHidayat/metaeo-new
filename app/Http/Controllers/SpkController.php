@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JobOrder;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -61,15 +62,19 @@ class SpkController extends Controller
     public function create(Request $request)
     {
         $salesOrderId = $request->query('so');
-        $salesOrder = SalesOrder::with(['quotations'])->find($salesOrderId);
+        $salesOrder = SalesOrder::with(['customer', 'quotations.selectedEstimation'])->find($salesOrderId);
 
         if ($salesOrderId == null || $salesOrder == null) {
             abort(404);
         }
 
+        // return $salesOrder;
+
         $jobOrdersByCurrentDateCount = JobOrder::query()->where('date', date("Y-m-d"))->get()->count();
         // return $estimationsByCurrentDateCount;
         $jobOrderNumber = 'JO-' . date('d') . date('m') . date("y") . sprintf('%04d', $jobOrdersByCurrentDateCount + 1);
+
+        // return $salesOrder;
 
         // return $salesOrder;
 
@@ -90,6 +95,7 @@ class SpkController extends Controller
         $jobOrder = new JobOrder;
         $jobOrder->number = $request->number;
         $jobOrder->date = $request->date;
+        $jobOrder->customer_id = $request->customer_id;
         $jobOrder->finish_date = $request->finish_date;
         $jobOrder->delivery_date = $request->delivery_date;
         $jobOrder->designer = $request->designer;
@@ -221,6 +227,7 @@ class SpkController extends Controller
         $jobOrder = JobOrder::find($id);
         $jobOrder->number = $request->number;
         $jobOrder->date = $request->date;
+        // $jobOrder->customer_id = $request->customer_id;
         $jobOrder->finish_date = $request->finish_date;
         $jobOrder->delivery_date = $request->delivery_date;
         $jobOrder->designer = $request->designer;
@@ -355,5 +362,27 @@ class SpkController extends Controller
                 'errors' => $e,
             ];
         }
+    }
+
+    public function print($id)
+    {
+        $jobOrder = JobOrder::with(['salesOrder', 'quotations', 'customer'])->findOrFail($id);
+
+        // if ($jobOrder->salesOrder->quotations !== null) {
+        //     if (count($jobOrder->salesOrder->quotations) > 0) {
+        //         foreach ($jobOrder->salesOrder->quotations as $quotation) {
+        //             $quotation->pivot->estimation->offsetItems;
+        //             $quotation->pivot->estimation->digitalItems;
+        //         }
+        //     }
+        // }
+
+        // return $jobOrder->$quotation->pivot->estimation->offset_items;
+        // return $jobOrder->salesOrder->quotations[0]->pivot->estimation;
+        $pdf = PDF::loadView('spk.print', [
+            'job_order' => $jobOrder,
+            // 'estimation' => $jobOrder->
+        ]);
+        return $pdf->stream($jobOrder->number . '.pdf');
     }
 }

@@ -12,7 +12,10 @@ class UserController extends Controller
 {
     public function index()
     {
-        return view('user.index');
+        $users = User::with(['group'])->get();
+        return view('user.index', [
+            'users' => $users,
+        ]);
     }
 
     public function create()

@@ -10,8 +10,11 @@ use App\Http\Controllers\PicPoController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SpkController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WarehouseController;
 use App\Models\DeliveryOrder;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -51,6 +54,9 @@ Route::prefix('/customer')->group(function () {
     Route::get('/', [CustomerController::class, 'index']);
     Route::get('/create', [CustomerController::class, 'create']);
     Route::get('/edit/{id}', [CustomerController::class, 'edit']);
+    Route::get('/payment/{id}', [CustomerController::class, 'payment']);
+    Route::get('/warehouse/{id}', [CustomerController::class, 'warehouse']);
+    Route::get('/transaction/{id}/create', [CustomerController::class, 'createTransaction']);
     Route::post('/', [CustomerController::class, 'store']);
     Route::patch('/{id}', [CustomerController::class, 'update']);
     Route::delete('/{id}', [CustomerController::class, 'destroy']);
@@ -79,6 +85,7 @@ Route::prefix('/quotation')->group(function () {
     Route::get('/', [QuotationController::class, 'index']);
     Route::get('/create', [QuotationController::class, 'create']);
     Route::get('/edit/{id}', [QuotationController::class, 'edit']);
+    Route::get('/print/{id}', [QuotationController::class, 'print']);
     Route::post('/', [QuotationController::class, 'store']);
     Route::patch('/{id}', [QuotationController::class, 'update']);
     Route::delete('/{id}', [QuotationController::class, 'destroy']);
@@ -97,6 +104,7 @@ Route::prefix('/spk')->group(function () {
     Route::get('/', [SpkController::class, 'index']);
     Route::get('/create', [SpkController::class, 'create']);
     Route::get('/edit/{id}', [SpkController::class, 'edit']);
+    Route::get('/print/{id}', [SpkController::class, 'print']);
     Route::post('/', [SpkController::class, 'store']);
     Route::patch('/{id}', [SpkController::class, 'update']);
     Route::delete('/{id}', [SpkController::class, 'destroy']);
@@ -106,6 +114,7 @@ Route::prefix('/delivery-order')->group(function () {
     Route::get('/', [DeliveryOrderController::class, 'index']);
     Route::get('/create', [DeliveryOrderController::class, 'create']);
     Route::get('/edit/{id}', [DeliveryOrderController::class, 'edit']);
+    Route::get('/print/{id}', [DeliveryOrderController::class, 'print']);
     Route::post('/', [DeliveryOrderController::class, 'store']);
     Route::patch('/{id}', [DeliveryOrderController::class, 'update']);
     Route::delete('/{id}', [DeliveryOrderController::class, 'destroy']);
@@ -115,6 +124,7 @@ Route::prefix('/invoice')->group(function () {
     Route::get('/', [InvoiceController::class, 'index']);
     Route::get('/create', [InvoiceController::class, 'create']);
     Route::get('/edit/{id}', [InvoiceController::class, 'edit']);
+    Route::get('/print/{id}', [InvoiceController::class, 'print']);
     Route::post('/', [InvoiceController::class, 'store']);
     Route::patch('/{id}', [InvoiceController::class, 'update']);
     Route::delete('/{id}', [InvoiceController::class, 'destroy']);
@@ -129,6 +139,26 @@ Route::prefix('/finance-account')->group(function () {
     Route::delete('/{id}', [FinanceAccountController::class, 'destroy']);
 });
 
+Route::prefix('/transaction')->group(function () {
+    Route::get('/', [TransactionController::class, 'index']);
+    Route::get('/create', [TransactionController::class, 'create']);
+    Route::get('/detail/{id}', [TransactionController::class, 'show']);
+    Route::get('/edit/{id}', [TransactionController::class, 'edit']);
+    Route::post('/', [TransactionController::class, 'store']);
+    Route::patch('/{id}', [TransactionController::class, 'update']);
+    Route::delete('/{id}', [TransactionController::class, 'destroy']);
+});
+
+Route::prefix('/warehouse')->group(function () {
+    Route::get('/', [WarehouseController::class, 'index']);
+    Route::get('/create', [WarehouseController::class, 'create']);
+    // Route::get('/detail/{id}', [WarehouseController::class, 'show']);
+    Route::get('/edit/{id}', [WarehouseController::class, 'edit']);
+    Route::post('/', [WarehouseController::class, 'store']);
+    Route::patch('/{id}', [WarehouseController::class, 'update']);
+    Route::delete('/{id}', [WarehouseController::class, 'destroy']);
+});
+
 Route::prefix('/datatables')->group(function () {
     Route::prefix('/estimations')->group(function () {
         Route::get('/', [EstimationController::class, 'indexData']);
@@ -140,6 +170,7 @@ Route::prefix('/datatables')->group(function () {
     Route::prefix('/sales-orders')->group(function () {
         Route::get('/', [SalesOrderController::class, 'indexData']);
         Route::get('/quotations', [SalesOrderController::class, 'datatablesQuotations']);
+        Route::get('/quotations-unfiltered', [SalesOrderController::class, 'datatablesQuotationsUnfiltered']);
     });
     Route::prefix('/spk')->group(function () {
         Route::get('/', [SpkController::class, 'indexData']);

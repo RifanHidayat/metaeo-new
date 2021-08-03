@@ -189,7 +189,7 @@
                     data: 'quantity',
                     className: 'text-right',
                     render: function(data, type) {
-                        return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                        return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${Intl.NumberFormat('de-DE').format(data)}</div>`;
                     }
                 },
                 {

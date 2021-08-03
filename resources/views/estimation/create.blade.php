@@ -360,7 +360,7 @@
               <td>
                 <select v-model="item.machineType" @input="calculate(item)" class="form-control" style="width: 150px;">
                   <option value="GTO">GTO</option>
-                  <option value="SM 74">GTO</option>
+                  <option value="SM 74">SM 74</option>
                   <option value="SM 102">SM102</option>
                 </select>
               </td>
@@ -812,6 +812,7 @@
         const data = {
           number: this.number,
           date: this.date,
+          customer_id: this.customerId,
           pic_po_id: this.picId,
           work: this.work,
           quantity: this.totalQuantity,
@@ -983,7 +984,7 @@
         // ------ Printing ------
         // Calculate Total Quantity
         let printingType = item.printingType;
-        let printingQuantity = (printingType == 'BBS') ? parseInt(this.clearCurrencyMask(paperQuantity)) * 2 : this.clearCurrencyMask(paperQuantity);
+        let printingQuantity = (printingType == 'BBS') ? Number(this.clearCurrencyMask(paperQuantity)) * 2 : this.clearCurrencyMask(paperQuantity);
         item.printingQuantity = this.toThousandFormat(printingQuantity);
 
         let printingMinPrice = item.printingMinPrice;

@@ -29,4 +29,9 @@ class Estimation extends Model
     {
         return $this->belongsTo(PicPo::class);
     }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }

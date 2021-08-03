@@ -823,6 +823,7 @@
                 const data = {
                     number: this.number,
                     date: this.date,
+                    customer_id: this.customerId,
                     pic_po_id: this.picId,
                     work: this.work,
                     quantity: this.totalQuantity,

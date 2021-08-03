@@ -225,7 +225,7 @@
                                             <div class="mb-7">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Quantity:</span>
-                                                    <a href="#" class="text-muted text-hover-primary">@{{ Intl.NumberFormat('de-DE').format(quotation.quantity) }}</a>
+                                                    <a href="#" class="text-muted text-hover-primary">@{{ Intl.NumberFormat('de-DE').format(quotation.selected_estimation.quantity) }}</a>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Quantity Sudah Diproduksi:</span>
@@ -233,11 +233,11 @@
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-cente my-1">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Unit Price:</span>
-                                                    <a href="#" class="text-muted text-hover-primary">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.price_per_unit) }}</a>
+                                                    <a href="#" class="text-muted text-hover-primary">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.selected_estimation.price_per_unit) }}</a>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Total Piutang:</span>
-                                                    <span class="text-muted font-weight-bold">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.total_bill) }}</span>
+                                                    <span class="text-muted font-weight-bold">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.selected_estimation.total_bill) }}</span>
                                                 </div>
 
                                                 <div class="d-flex justify-content-between align-items-center mt-5">
@@ -248,7 +248,7 @@
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center mt-5">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Quantity Sisa:</span>
-                                                    <span class="text-muted font-weight-bold">@{{ Intl.NumberFormat('de-DE').format(remainingQuantity(quotation.quantity, quotation.produced, quotation.production)) }}</span>
+                                                    <span class="text-muted font-weight-bold">@{{ Intl.NumberFormat('de-DE').format(remainingQuantity(quotation.selected_estimation.quantity, quotation.produced, quotation.production)) }}</span>
                                                 </div>
 
                                             </div>
@@ -315,7 +315,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || checkedQuotationsIds.length < 1">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -345,10 +345,11 @@
     let app = new Vue({
         el: '#app',
         data: {
-            quotations: JSON.parse('{!! $sales_order->quotations !!}'),
+            quotations: JSON.parse(String.raw `{!! $sales_order->quotations !!}`),
             checkedQuotationsIds: [],
             number: '{{ $job_order_number }}',
             date: '',
+            customer: '{{ $sales_order->customer->id }}',
             finishDate: '',
             deliveryDate: '',
             designer: '',
@@ -371,6 +372,7 @@
                 const data = {
                     number: vm.number,
                     date: vm.date,
+                    customer_id: vm.customer,
                     finish_date: vm.finishDate,
                     delivery_date: vm.deliveryDate,
                     designer: vm.designer,
@@ -410,9 +412,9 @@
                     });
             },
             validateProducedQuantity: function(quotation) {
-                const remainingQuantity = this.remainingQuantity(quotation.quantity, quotation.produced, quotation.production);
+                const remainingQuantity = this.remainingQuantity(quotation.selected_estimation.quantity, quotation.produced, quotation.production);
                 if (remainingQuantity < 0) {
-                    quotation.production = quotation.quantity - quotation.produced;
+                    quotation.production = quotation.selected_estimation.quantity - quotation.produced;
                 }
             },
             remainingQuantity: function(quantity, produced, production) {
@@ -425,7 +427,7 @@
                 return this.quotations.filter(quotation => this.checkedQuotationsIds.indexOf(quotation.id) > -1);
             },
             totalQuantity: function() {
-                return this.checkedQuotations.map(quotation => quotation.quantity).reduce((acc, cur) => {
+                return this.checkedQuotations.map(quotation => quotation.selected_estimation.quantity).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0);
             },

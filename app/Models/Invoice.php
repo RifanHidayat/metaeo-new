@@ -19,4 +19,19 @@ class Invoice extends Model
     {
         return $this->belongsTo(SalesOrder::class);
     }
+
+    public function transactions()
+    {
+        return $this->belongsToMany(Transaction::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
 }

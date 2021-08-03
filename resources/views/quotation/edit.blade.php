@@ -215,10 +215,10 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || selectedEstimations.length < 1"">
                                 Save
                             </button>
-                            <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
+                            <!-- <button type=" reset" class="btn btn-secondary">Cancel</button> -->
                         </div>
                     </div>
                 </div>
@@ -226,37 +226,45 @@
             <!--end::Form-->
         </div>
     </div>
-</div>
 
-<!-- Modal-->
-<div class="modal fade" id="estimationModal" tabindex="-1" role="dialog" aria-labelledby="estimationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="estimationModalLabel">Modal Title</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <i aria-hidden="true" class="ki ki-close"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <table class="table" id="estimation-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tanggal Estimasi</th>
-                            <th>Pekerjaan</th>
-                            <th>Customer</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+    <!-- Modal-->
+    <div class="modal fade" id="estimationModal" tabindex="-1" role="dialog" aria-labelledby="estimationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="estimationModalLabel">Pilih Estimasi</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <select v-model="customer" class="form-control" id="customer">
+                            <option value="">Pilih Customer</option>
+                            @foreach($customers as $customer)
+                            <option value="{{ $customer->id }}">{{ $customer->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <table class="table" id="estimation-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tanggal Estimasi</th>
+                                <th>Pekerjaan</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Close</button>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -368,6 +376,7 @@
         data: {
             number: '{{ $quotation->number }}',
             up: '{{ $quotation->picPo->id }}',
+            customer: '{{ $quotation->customer_id }}',
             date: '{{ $quotation->date }}',
             title: '{{ $quotation->title }}',
             note: '',
@@ -403,6 +412,7 @@
                     number: vm.number,
                     up: vm.up,
                     date: vm.date,
+                    customer_id: vm.customer,
                     title: vm.title,
                     note: note,
                     description: itemDescription,
@@ -457,13 +467,26 @@
         },
         computed: {
             totalQuantity: function() {
-                return this.totalEstimation(this.selectedEstimations[0]?.quantity);
+                const totalQuantity = this.selectedEstimations
+                    .map(estimation => Number(estimation.quantity))
+                    .reduce((acc, cur) => {
+                        return acc + cur;
+                    }, 0);
+
+                return totalQuantity;
             },
             totalUnitPrice: function() {
-                return this.totalEstimation(this.selectedEstimations[0]?.price_per_unit);
+                const totalUnitPrice = this.selectedEstimations
+                    .map(estimation => Number(estimation.price_per_unit))
+                    .reduce((acc, cur) => {
+                        return acc + cur;
+                    }, 0);
+
+                return totalUnitPrice;
             },
             amount: function() {
-                return this.totalEstimation(this.selectedEstimations[0]?.quantity * this.selectedEstimations[0]?.price_per_unit);
+                const amount = this.totalQuantity * this.totalUnitPrice;
+                return amount;
             },
             totalNetto: function() {
                 return this.totalEstimation(this.selectedEstimations[0]?.production);
@@ -488,59 +511,137 @@
 </script>
 <script>
     $(function() {
-        const estimationsTable = $('#estimation-table').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: '/datatables/quotations/estimations',
-            columns: [{
-                    data: 'number',
-                    render: function(data, type) {
-                        return `<a href="#" @click.prevent="onClick">${data}</a>`;
-                    }
-                },
-                {
-                    data: 'date'
-                },
-                {
-                    data: 'work',
-                },
-                {
-                    data: 'pic_po_id',
-                },
-                {
-                    data: 'status',
-                    render: function(data, type) {
-                        const label = function(text, type) {
-                            return `<span class="label label-${type} label-pill label-inline text-capitalized">${text}</span>`;
-                        }
+        let estimationsTable = null;
 
-                        switch (data) {
-                            case 'open':
-                                return label(data, 'warning');
-                                break;
-                            case 'closed':
-                                return label(data, 'success');
-                                break;
-                            case 'rejected':
-                                return label(data, 'danger');
-                                break;
-                            case 'final':
-                                return label(data, 'primart');
-                                break;
-                            default:
-                                return label('unknown', 'light');
-                        }
-                    }
-                },
-                {
-                    data: 'action',
-                    name: 'action',
-                    orderable: false,
-                    searchable: false
-                },
+        $('#customer').select2();
 
-            ]
-        });
+        const customer_id = app.$data.customer;
+
+        if (customer_id !== "" || customer_id !== null) {
+            estimationsTable = $('#estimation-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                // pageLength: 2,
+                ajax: {
+                    url: '/datatables/quotations/estimations?customer_id=' + customer_id,
+                    type: 'GET',
+                    // length: 2,
+                },
+                columns: [{
+                        data: 'number',
+                        render: function(data, type) {
+                            return `<a href="#" @click.prevent="onClick">${data}</a>`;
+                        }
+                    },
+                    {
+                        data: 'date'
+                    },
+                    {
+                        data: 'work',
+                    },
+                    {
+                        data: 'pic_po_id',
+                    },
+                    {
+                        data: 'status',
+                        render: function(data, type) {
+                            const label = function(text, type) {
+                                return `<span class="label label-${type} label-pill label-inline text-capitalized">${text}</span>`;
+                            }
+
+                            switch (data) {
+                                case 'open':
+                                    return label(data, 'warning');
+                                    break;
+                                case 'closed':
+                                    return label(data, 'success');
+                                    break;
+                                case 'rejected':
+                                    return label(data, 'danger');
+                                    break;
+                                case 'final':
+                                    return label(data, 'primart');
+                                    break;
+                                default:
+                                    return label('unknown', 'light');
+                            }
+                        }
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    },
+
+                ]
+            });
+        }
+
+        $('#customer').on('change', function(e) {
+            const customer = $(this).val();
+            app.$data.customer = customer;
+            estimationsTable = $('#estimation-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                // pageLength: 2,
+                ajax: {
+                    url: '/datatables/quotations/estimations?customer_id=' + customer,
+                    type: 'GET',
+                    // length: 2,
+                },
+                columns: [{
+                        data: 'number',
+                        render: function(data, type) {
+                            return `<a href="#" @click.prevent="onClick">${data}</a>`;
+                        }
+                    },
+                    {
+                        data: 'date'
+                    },
+                    {
+                        data: 'work',
+                    },
+                    {
+                        data: 'pic_po_id',
+                    },
+                    {
+                        data: 'status',
+                        render: function(data, type) {
+                            const label = function(text, type) {
+                                return `<span class="label label-${type} label-pill label-inline text-capitalized">${text}</span>`;
+                            }
+
+                            switch (data) {
+                                case 'open':
+                                    return label(data, 'warning');
+                                    break;
+                                case 'closed':
+                                    return label(data, 'success');
+                                    break;
+                                case 'rejected':
+                                    return label(data, 'danger');
+                                    break;
+                                case 'final':
+                                    return label(data, 'primart');
+                                    break;
+                                default:
+                                    return label('unknown', 'light');
+                            }
+                        }
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    },
+
+                ]
+            });
+        })
 
         $('#estimation-table tbody').on('click', '.btn-choose', function() {
             const data = estimationsTable.row($(this).parents('tr')).data();

@@ -127,7 +127,7 @@
                                     <div class="d-flex flex-column text-dark-75">
                                         <span class="font-weight-bolder font-size-sm">Quantity</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            @{{ totalQuantity }}
+                                            @{{ Intl.NumberFormat('de-DE').format(totalQuantity) }}
                                             <span class="text-dark-50 font-weight-bold">Pcs</span></span>
                                     </div>
                                 </div>
@@ -140,7 +140,7 @@
                                     <div class="d-flex flex-column text-dark-75">
                                         <span class="font-weight-bolder font-size-sm">Unit Price</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            <span class="text-dark-50 font-weight-bold">Rp</span> @{{ totalUnitPrice }}</span>
+                                            <span class="text-dark-50 font-weight-bold">Rp</span> @{{ Intl.NumberFormat('de-DE').format(totalUnitPrice) }}</span>
                                     </div>
                                 </div>
                                 <!--end: Item-->
@@ -152,7 +152,7 @@
                                     <div class="d-flex flex-column text-dark-75">
                                         <span class="font-weight-bolder font-size-sm">Amount</span>
                                         <span class="font-weight-bolder font-size-h5">
-                                            <span class="text-dark-50 font-weight-bold">Rp</span> @{{ amount }}</span>
+                                            <span class="text-dark-50 font-weight-bold">Rp</span> @{{ Intl.NumberFormat('de-DE').format(amount) }}</span>
                                     </div>
                                 </div>
                                 <!--end: Item-->
@@ -215,7 +215,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || selectedEstimations.length < 1">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -233,12 +233,20 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="estimationModalLabel">Modal Title</h5>
+                <h5 class="modal-title" id="estimationModalLabel">Pilih Estimasi</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
             </div>
             <div class="modal-body">
+                <div class="mb-3">
+                    <select class="form-control" id="customer">
+                        <option value="">Pilih Customer</option>
+                        @foreach($customers as $customer)
+                        <option value="{{ $customer->id }}">{{ $customer->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <table class="table" id="estimation-table">
                     <thead>
                         <tr>
@@ -254,6 +262,10 @@
 
                     </tbody>
                 </table>
+                <!-- <div class="text-center">
+                    <i class="flaticon-users icon-3x"></i>
+                    <p>Pilih Customer</p>
+                </div> -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Close</button>
@@ -365,6 +377,7 @@
         el: '#app',
         data: {
             number: '{{ $quotation_number }}',
+            customer: '',
             up: '',
             date: '',
             title: '',
@@ -399,6 +412,7 @@
 
                 const data = {
                     number: vm.number,
+                    customer_id: vm.customer,
                     up: vm.up,
                     date: vm.date,
                     title: vm.title,
@@ -455,13 +469,26 @@
         },
         computed: {
             totalQuantity: function() {
-                return this.totalEstimation(this.selectedEstimations[0]?.quantity);
+                const totalQuantity = this.selectedEstimations
+                    .map(estimation => Number(estimation.quantity))
+                    .reduce((acc, cur) => {
+                        return acc + cur;
+                    }, 0);
+
+                return totalQuantity;
             },
             totalUnitPrice: function() {
-                return this.totalEstimation(this.selectedEstimations[0]?.price_per_unit);
+                const totalUnitPrice = this.selectedEstimations
+                    .map(estimation => Number(estimation.price_per_unit))
+                    .reduce((acc, cur) => {
+                        return acc + cur;
+                    }, 0);
+
+                return totalUnitPrice;
             },
             amount: function() {
-                return this.totalEstimation(this.selectedEstimations[0]?.quantity * this.selectedEstimations[0]?.price_per_unit);
+                const amount = this.totalQuantity * this.totalUnitPrice;
+                return amount;
             },
             totalNetto: function() {
                 return this.totalEstimation(this.selectedEstimations[0]?.production);
@@ -486,59 +513,128 @@
 </script>
 <script>
     $(function() {
-        const estimationsTable = $('#estimation-table').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: '/datatables/quotations/estimations',
-            columns: [{
-                    data: 'number',
-                    render: function(data, type) {
-                        return `<a href="#" @click.prevent="onClick">${data}</a>`;
-                    }
-                },
-                {
-                    data: 'date'
-                },
-                {
-                    data: 'work',
-                },
-                {
-                    data: 'pic_po_id',
-                },
-                {
-                    data: 'status',
-                    render: function(data, type) {
-                        const label = function(text, type) {
-                            return `<span class="label label-${type} label-pill label-inline text-capitalized">${text}</span>`;
-                        }
+        // let estimationsTable = $('#estimation-table').DataTable({
+        //     processing: true,
+        //     serverSide: true,
+        //     destroy: true,
+        //     ajax: '/datatables/quotations/estimations?customer_id=1',
+        //     columns: [{
+        //             data: 'number',
+        //             render: function(data, type) {
+        //                 return `<a href="#" @click.prevent="onClick">${data}</a>`;
+        //             }
+        //         },
+        //         {
+        //             data: 'date'
+        //         },
+        //         {
+        //             data: 'work',
+        //         },
+        //         {
+        //             data: 'pic_po_id',
+        //         },
+        //         {
+        //             data: 'status',
+        //             render: function(data, type) {
+        //                 const label = function(text, type) {
+        //                     return `<span class="label label-${type} label-pill label-inline text-capitalized">${text}</span>`;
+        //                 }
 
-                        switch (data) {
-                            case 'open':
-                                return label(data, 'warning');
-                                break;
-                            case 'closed':
-                                return label(data, 'success');
-                                break;
-                            case 'rejected':
-                                return label(data, 'danger');
-                                break;
-                            case 'final':
-                                return label(data, 'primart');
-                                break;
-                            default:
-                                return label('unknown', 'light');
-                        }
-                    }
-                },
-                {
-                    data: 'action',
-                    name: 'action',
-                    orderable: false,
-                    searchable: false
-                },
+        //                 switch (data) {
+        //                     case 'open':
+        //                         return label(data, 'warning');
+        //                         break;
+        //                     case 'closed':
+        //                         return label(data, 'success');
+        //                         break;
+        //                     case 'rejected':
+        //                         return label(data, 'danger');
+        //                         break;
+        //                     case 'final':
+        //                         return label(data, 'primart');
+        //                         break;
+        //                     default:
+        //                         return label('unknown', 'light');
+        //                 }
+        //             }
+        //         },
+        //         {
+        //             data: 'action',
+        //             name: 'action',
+        //             orderable: false,
+        //             searchable: false
+        //         },
 
-            ]
-        });
+        //     ]
+        // });
+
+        let estimationsTable = null;
+
+        $('#customer').select2();
+
+        $('#customer').on('change', function(e) {
+            const customer = $(this).val();
+            app.$data.customer = customer;
+            estimationsTable = $('#estimation-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                // pageLength: 2,
+                ajax: {
+                    url: '/datatables/quotations/estimations?customer_id=' + customer,
+                    type: 'GET',
+                    // length: 2,
+                },
+                columns: [{
+                        data: 'number',
+                        render: function(data, type) {
+                            return `<a href="#" @click.prevent="onClick">${data}</a>`;
+                        }
+                    },
+                    {
+                        data: 'date'
+                    },
+                    {
+                        data: 'work',
+                    },
+                    {
+                        data: 'pic_po_id',
+                    },
+                    {
+                        data: 'status',
+                        render: function(data, type) {
+                            const label = function(text, type) {
+                                return `<span class="label label-${type} label-pill label-inline text-capitalized">${text}</span>`;
+                            }
+
+                            switch (data) {
+                                case 'open':
+                                    return label(data, 'warning');
+                                    break;
+                                case 'closed':
+                                    return label(data, 'success');
+                                    break;
+                                case 'rejected':
+                                    return label(data, 'danger');
+                                    break;
+                                case 'final':
+                                    return label(data, 'primart');
+                                    break;
+                                default:
+                                    return label('unknown', 'light');
+                            }
+                        }
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    },
+
+                ]
+            });
+        })
 
         $('#estimation-table tbody').on('click', '.btn-choose', function() {
             const data = estimationsTable.row($(this).parents('tr')).data();
@@ -551,9 +647,15 @@
             const selectedEstimationsIds = app.$data.selectedEstimations.map(estimation => estimation.id);
             // const upsIds = ups.map(up => up.id);
 
+            if (selectedEstimations.length === 0) {
+                let itemDescription = data.work;
+                tinymce.get("item-description").setContent(`<p>${itemDescription}</p>`);
+            }
+
             if (selectedEstimationsIds.indexOf(data.id) < 0) {
                 selectedEstimations.push(data);
             }
+
 
             // if (data.pic_po !== null) {
             //     if (upsIds.indexOf(data.pic_po.id) < 0) {

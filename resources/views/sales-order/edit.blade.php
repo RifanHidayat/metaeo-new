@@ -172,7 +172,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || selectedQuotations.length < 1">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -183,36 +183,43 @@
             <!--end::Form-->
         </div>
     </div>
-</div>
+    <!-- Modal-->
+    <div class="modal fade" id="quotationModal" tabindex="-1" role="dialog" aria-labelledby="quotationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="quotationModalLabel">Pilih Quotation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <select v-model="customer" class="form-control" id="customer">
+                            <option value="">Pilih Customer</option>
+                            @foreach($customers as $customer)
+                            <option value="{{ $customer->id }}">{{ $customer->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <table class="table" id="quotation-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tanggal Quotation</th>
+                                <th>Title</th>
+                                <th>UP</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
-<!-- Modal-->
-<div class="modal fade" id="quotationModal" tabindex="-1" role="dialog" aria-labelledby="quotationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="quotationModalLabel">Modal Title</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <i aria-hidden="true" class="ki ki-close"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <table class="table" id="quotation-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tanggal Quotation</th>
-                            <th>Title</th>
-                            <th>UP</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Close</button>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -228,6 +235,21 @@
 <script>
     Vue.component('selected-quotation', {
         props: ['quotation', 'ondelete', 'index'],
+        methods: {
+            estimationData: function(id, estimations) {
+                if (id == null || typeof(id) == 'undefined') {
+                    return null;
+                }
+
+                const estimation = estimations.filter(est => est.id == id)[0];
+
+                return estimation;
+
+            },
+            toCurrency: function(number) {
+                return Intl.NumberFormat('de-DE').format(number);
+            }
+        },
         template: `
         <div class="card card-custom gutter-b card-stretch card-border ribbon ribbon-top">
             <!-- <div :class="'ribbon-target bg-primary text-capitalize'" style="top: -2px; left: 20px;">Closed</div> -->
@@ -257,15 +279,18 @@
                 <div class="mb-7">
                     <div class="d-flex justify-content-between align-items-center my-1">
                         <span class="text-dark-75 font-weight-bolder mr-2">Quantity:</span>
-                        <a href="#" class="text-muted text-hover-primary">@{{ Intl.NumberFormat('de-DE').format(quotation.quantity) }}</a>
+                        <span v-if="typeof(quotation.selected_estimation) !== 'undefined'" class="text-muted text-hover-primary">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.quantity) }}</span>
+                        <span v-else class="text-muted text-hover-primary">Pilih Estimasi</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-cente my-1">
                         <span class="text-dark-75 font-weight-bolder mr-2">Unit Price:</span>
-                        <a href="#" class="text-muted text-hover-primary">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.price_per_unit) }}</a>
+                        <span v-if="typeof(quotation.selected_estimation) !== 'undefined'" class="text-muted text-hover-primary">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.price_per_unit) }}</span>
+                        <span v-else class="text-muted text-hover-primary">Pilih Estimasi</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center my-1">
                         <span class="text-dark-75 font-weight-bolder mr-2">Total Piutang:</span>
-                        <span class="text-muted font-weight-bold">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.total_bill) }}</span>
+                        <span v-if="typeof(quotation.selected_estimation) !== 'undefined'" class="text-muted text-hover-primary">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation. estimations)?.total_bill) }}</span>
+                        <span v-else class="text-muted text-hover-primary">Pilih Estimasi</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-5">
                         <span class="text-dark-75 font-weight-bolder mr-2">Estimasi yang Digunakan:</span>
@@ -273,6 +298,88 @@
                             <select v-model="quotation['selected_estimation']" class="form-control" required>
                                 <option v-for="estimation in quotation.estimations" :key="estimation.id" :value="estimation.id">@{{ estimation.number }}</option>
                             </select>
+                        </div>
+                    </div>
+                    <a v-if="typeof(quotation.selected_estimation) !== 'undefined'" data-toggle="collapse" :href="'#collapseEstmationDetail' + quotation.id" role="button" aria-expanded="false" :aria-controls="'collapseEstmationDetail' + quotation.id">
+                        Detail Estimasi <i class="flaticon2-down icon-sm text-primary"></i>
+                    </a>
+                    <div class="p-3"></div>
+                    <div class="collapse" :id="'collapseEstmationDetail' + quotation.id">
+                        <div class="card card-body bg-gray-100">
+                            <div class="row">
+                                <div class="col-lg-6 col-md-12">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Number</th>
+                                                    <td class="text-right">@{{ estimationData(quotation.selected_estimation, quotation.estimations)?.number }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Tanggal</th>
+                                                    <td class="text-right">@{{ estimationData(quotation.selected_estimation, quotation.estimations)?.date }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Tanggal Pengiriman</th>
+                                                    <td class="text-right">@{{ estimationData(quotation.selected_estimation, quotation.estimations)?.delivery_date }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Pekerjaan</th>
+                                                    <td class="text-right">@{{ estimationData(quotation.selected_estimation, quotation.estimations)?.work }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Quantity</th>
+                                                    <td class="text-right">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.quantity) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Produksi</th>
+                                                    <td class="text-right">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.production) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>HPP</th>
+                                                    <td class="text-right">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.hpp) }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-md-12">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <th>HPP / Unit</th>
+                                                    <td class="text-right">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.hpp_per_unit) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Price / Unit</th>
+                                                    <td class="text-right">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.price_per_unit) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Margin</th>
+                                                    <td class="text-right">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.margin) }} %</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Total</th>
+                                                    <td class="text-right">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.total_price) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>PPN</th>
+                                                    <td class="text-right">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.ppn) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>PPH</th>
+                                                    <td class="text-right">(@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.pph) }})</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Total Piutang</th>
+                                                    <td class="text-right">@{{ toCurrency(estimationData(quotation.selected_estimation, quotation.estimations)?.total_bill) }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -289,9 +396,10 @@
         data: {
             number: '{{ $sales_order->number }}',
             date: '{{ $sales_order->date }}',
+            customer: '{{ $sales_order->customer_id }}',
             poNumber: '{{ $sales_order->po_number }}',
             poDate: '{{ $sales_order->po_date }}',
-            selectedQuotations: JSON.parse('{!! $sales_order->quotations !!}'),
+            selectedQuotations: JSON.parse(String.raw `{!! $sales_order->quotations !!}`),
             loading: false,
         },
         methods: {
@@ -306,6 +414,7 @@
                 const data = {
                     number: vm.number,
                     date: vm.date,
+                    customer_id: vm.customer,
                     po_number: vm.poNumber,
                     po_date: vm.poDate,
                     selected_quotations: vm.selectedQuotations,
@@ -365,34 +474,105 @@
 <script>
     $(function() {
 
-        const quotationsTable = $('#quotation-table').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: '/datatables/sales-orders/quotations',
-            columns: [{
-                    data: 'number',
-                    render: function(data, type) {
-                        return `<a href="#">${data}</a>`;
-                    }
-                },
-                {
-                    data: 'date'
-                },
-                {
-                    data: 'title',
-                },
-                {
-                    data: 'up',
-                },
-                {
-                    data: 'action',
-                    name: 'action',
-                    orderable: false,
-                    searchable: false
-                },
+        let quotationsTable = null;
 
-            ]
-        });
+        const customer_id = app.$data.customer;
+        if (customer_id !== "" || customer_id !== null) {
+            quotationsTable = $('#quotation-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: '/datatables/sales-orders/quotations?customer_id=' + customer_id,
+                columns: [{
+                        data: 'number',
+                        render: function(data, type) {
+                            return `<a href="#">${data}</a>`;
+                        }
+                    },
+                    {
+                        data: 'date'
+                    },
+                    {
+                        data: 'title',
+                    },
+                    {
+                        data: 'up',
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    },
+
+                ]
+            });
+        }
+
+        $('#customer').select2();
+
+        $('#customer').on('change', function(e) {
+            const customer = $(this).val();
+            app.$data.customer = customer;
+            quotationsTable = $('#quotation-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: '/datatables/sales-orders/quotations?customer_id=' + customer,
+                columns: [{
+                        data: 'number',
+                        render: function(data, type) {
+                            return `<a href="#">${data}</a>`;
+                        }
+                    },
+                    {
+                        data: 'date'
+                    },
+                    {
+                        data: 'title',
+                    },
+                    {
+                        data: 'up',
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    },
+
+                ]
+            });
+        })
+
+        // const quotationsTable = $('#quotation-table').DataTable({
+        //     processing: true,
+        //     serverSide: true,
+        //     ajax: '/datatables/sales-orders/quotations',
+        //     columns: [{
+        //             data: 'number',
+        //             render: function(data, type) {
+        //                 return `<a href="#">${data}</a>`;
+        //             }
+        //         },
+        //         {
+        //             data: 'date'
+        //         },
+        //         {
+        //             data: 'title',
+        //         },
+        //         {
+        //             data: 'up',
+        //         },
+        //         {
+        //             data: 'action',
+        //             name: 'action',
+        //             orderable: false,
+        //             searchable: false
+        //         },
+
+        //     ]
+        // });
 
         $('#quotation-table tbody').on('click', '.btn-choose', function() {
             const data = quotationsTable.row($(this).parents('tr')).data();

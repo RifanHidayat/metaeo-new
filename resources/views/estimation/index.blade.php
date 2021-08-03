@@ -187,21 +187,21 @@
           data: 'quantity',
           className: 'text-right',
           render: function(data, type) {
-            return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${data}</span>`;
+            return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
           }
         },
         {
           data: 'price_per_unit',
           className: 'text-right',
           render: function(data, type) {
-            return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${data}</span>`;
+            return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
           }
         },
         {
           data: 'total_bill',
           className: 'text-right',
           render: function(data, type) {
-            return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${data}</span>`;
+            return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
           }
         },
         {

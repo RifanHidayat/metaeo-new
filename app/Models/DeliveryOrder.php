@@ -19,4 +19,9 @@ class DeliveryOrder extends Model
     {
         return $this->belongsToMany(Quotation::class)->withPivot('code', 'amount', 'unit', 'description', 'information');
     }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }

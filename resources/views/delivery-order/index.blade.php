@@ -181,7 +181,7 @@
                     name: 'number',
                     className: 'text-right',
                     render: function(data, type) {
-                        return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${data.length > 0 && data.map(item => Number(item.pivot.amount)).reduce((acc, cur) => { return acc + cur }, 0)}</div>`;
+                        return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${data.length > 0 && Intl.NumberFormat('de-DE').format(data.map(item => Number(item.pivot.amount)).reduce((acc, cur) => { return acc + cur }, 0))}</div>`;
                     },
                 },
                 {

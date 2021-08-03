@@ -112,6 +112,7 @@ class EstimationController extends Controller
         $estimation = new Estimation;
         $estimation->number = $request->number;
         $estimation->date = $request->date;
+        $estimation->customer_id = $request->customer_id;
         $estimation->pic_po_id = $request->pic_po_id;
         $estimation->work = $request->work;
         $estimation->quantity = $this->clearThousandFormat($request->quantity);
@@ -501,6 +502,7 @@ class EstimationController extends Controller
         $estimation = Estimation::find($id);
         $estimation->number = $request->number;
         $estimation->date = $request->date;
+        $estimation->customer_id = $request->customer_id;
         $estimation->pic_po_id = $request->pic_po_id;
         $estimation->work = $request->work;
         $estimation->quantity = $this->clearThousandFormat($request->quantity);

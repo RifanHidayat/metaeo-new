@@ -19,4 +19,9 @@ class JobOrder extends Model
     {
         return $this->belongsTo(SalesOrder::class);
     }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -60,7 +61,7 @@ class InvoiceController extends Controller
     public function create(Request $request)
     {
         $salesOrderId = $request->query('so');
-        $salesOrder = SalesOrder::with(['quotations.estimations.picPo.customer'])->find($salesOrderId);
+        $salesOrder = SalesOrder::with(['quotations.selectedEstimation', 'customer'])->find($salesOrderId);
 
         if ($salesOrderId == null || $salesOrder == null) {
             // abort(404);
@@ -74,19 +75,19 @@ class InvoiceController extends Controller
 
         // return 
 
-        $customerExist = $salesOrder->quotations->filter(function ($item) {
-            return $item->estimations !== null && count($item->estimations) > 0;
-        })->flatMap(function ($item) {
-            return $item->estimations;
-        })->filter(function ($item) {
-            return $item->picPo->customer !== null;
-        })->first();
+        // $customerExist = $salesOrder->quotations->filter(function ($item) {
+        //     return $item->estimations !== null && count($item->estimations) > 0;
+        // })->flatMap(function ($item) {
+        //     return $item->estimations;
+        // })->filter(function ($item) {
+        //     return $item->picPo->customer !== null;
+        // })->first();
 
-        $customer = null;
+        // $customer = null;
 
-        if ($customerExist !== null) {
-            $customer = $customerExist->picPo->customer;
-        }
+        // if ($customerExist !== null) {
+        //     $customer = $customerExist->picPo->customer;
+        // }
 
         if ($salesOrder->quotations !== null) {
             if (count($salesOrder->quotations) > 0) {
@@ -109,7 +110,7 @@ class InvoiceController extends Controller
         // return $salesOrder;
 
         return view('invoice.create', [
-            'customer' => $customer,
+            // 'customer' => $customer,
             'sales_order' => $salesOrder,
             'invoice_number' => $invoiceNumber,
         ]);
@@ -137,6 +138,7 @@ class InvoiceController extends Controller
         $invoice->total = $request->total;
         $invoice->terbilang = $request->terbilang;
         $invoice->sales_order_id = $request->sales_order_id;
+        $invoice->customer_id = $request->customer_id;
 
 
         $quotations = $request->selected_quotations;
@@ -229,7 +231,7 @@ class InvoiceController extends Controller
         $checkedInvoices = collect($invoice->quotations)->pluck('id')->all();
 
         $salesOrderId = $invoice->sales_order_id;
-        $salesOrder = SalesOrder::with(['quotations.estimations.picPo.customer'])->find($salesOrderId);
+        $salesOrder = SalesOrder::with(['quotations', 'customer'])->find($salesOrderId);
 
         if ($salesOrderId == null || $salesOrder == null) {
             // abort(404);
@@ -243,19 +245,19 @@ class InvoiceController extends Controller
 
         // return 
 
-        $customerExist = $salesOrder->quotations->filter(function ($item) {
-            return $item->estimations !== null && count($item->estimations) > 0;
-        })->flatMap(function ($item) {
-            return $item->estimations;
-        })->filter(function ($item) {
-            return $item->picPo->customer !== null;
-        })->first();
+        // $customerExist = $salesOrder->quotations->filter(function ($item) {
+        //     return $item->estimations !== null && count($item->estimations) > 0;
+        // })->flatMap(function ($item) {
+        //     return $item->estimations;
+        // })->filter(function ($item) {
+        //     return $item->picPo->customer !== null;
+        // })->first();
 
-        $customer = null;
+        // $customer = null;
 
-        if ($customerExist !== null) {
-            $customer = $customerExist->picPo->customer;
-        }
+        // if ($customerExist !== null) {
+        //     $customer = $customerExist->picPo->customer;
+        // }
 
         // if ($invoice->quotations !== null) {
         //     if (count($invoice->quotations) > 0) {
@@ -276,7 +278,7 @@ class InvoiceController extends Controller
         return view('invoice.edit', [
             'checked_invoices' => $checkedInvoices,
             'invoice' => $invoice,
-            'customer' => $customer,
+            // 'customer' => $customer,
             'sales_order' => $salesOrder,
         ]);
     }
@@ -304,6 +306,7 @@ class InvoiceController extends Controller
         $invoice->total = $request->total;
         $invoice->terbilang = $request->terbilang;
         $invoice->sales_order_id = $request->sales_order_id;
+        // $invoice->customer_id = $request->customer_id;
 
         $quotations = $request->selected_quotations;
 
@@ -391,5 +394,15 @@ class InvoiceController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function print($id)
+    {
+        $invoice = Invoice::with(['quotations'])->findOrFail($id);
+
+        $pdf = PDF::loadView('invoice.print', [
+            'invoice' => $invoice,
+        ]);
+        return $pdf->stream($invoice->number . '.pdf');
     }
 }
