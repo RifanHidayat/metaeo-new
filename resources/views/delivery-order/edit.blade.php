@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Delivery Order</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Edit Delivery Order</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +25,10 @@
                         <a href="" class="text-muted">Delivery Order</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">{{ $delivery_order->number }}</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="" class="text-muted">Edit</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -44,7 +47,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Add Delivery Order</h3>
+                <h3 class="card-title">Form Delivery Order</h3>
             </div>
 
             <!--begin::Form-->
@@ -91,6 +94,7 @@
                             <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Kirim Ke:</label>
                                 <div class="col-lg-8">
+                                    <button type="button" class="btn btn-light-primary w-100 mb-3" data-toggle="modal" data-target="#modalWarehouse"><i class="flaticon2-pin-1"></i> Pilih Alamat</button>
                                     <textarea rows="5" v-model="shippingAddress" class="form-control" placeholder="Masukkan alamat pengiriman"></textarea>
                                 </div>
                             </div>
@@ -406,6 +410,81 @@
             <!--end::Form-->
         </div>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="modalWarehouse" tabindex="-1" role="dialog" aria-labelledby="modalWarehouseTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Pilih Alamat</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <a href="#" @click.prevent="selectCustomerAddress">
+                        <div class="d-flex align-items-center bg-light rounded p-5 mb-3">
+                            <!--begin::Icon-->
+                            <span class="svg-icon svg-icon-secondary mr-5">
+                                <span class="svg-icon svg-icon-lg">
+                                    <!--begin::Svg Icon | path:/metronic/theme/html/demo1/dist/assets/media/svg/icons/General/Attachment2.svg-->
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <rect x="0" y="0" width="24" height="24" />
+                                            <path d="M19,11 L21,11 C21.5522847,11 22,11.4477153 22,12 C22,12.5522847 21.5522847,13 21,13 L19,13 C18.4477153,13 18,12.5522847 18,12 C18,11.4477153 18.4477153,11 19,11 Z M3,11 L5,11 C5.55228475,11 6,11.4477153 6,12 C6,12.5522847 5.55228475,13 5,13 L3,13 C2.44771525,13 2,12.5522847 2,12 C2,11.4477153 2.44771525,11 3,11 Z M12,2 C12.5522847,2 13,2.44771525 13,3 L13,5 C13,5.55228475 12.5522847,6 12,6 C11.4477153,6 11,5.55228475 11,5 L11,3 C11,2.44771525 11.4477153,2 12,2 Z M12,18 C12.5522847,18 13,18.4477153 13,19 L13,21 C13,21.5522847 12.5522847,22 12,22 C11.4477153,22 11,21.5522847 11,21 L11,19 C11,18.4477153 11.4477153,18 12,18 Z" fill="#000000" fill-rule="nonzero" opacity="0.3" />
+                                            <circle fill="#000000" opacity="0.3" cx="12" cy="12" r="2" />
+                                            <path d="M12,17 C14.7614237,17 17,14.7614237 17,12 C17,9.23857625 14.7614237,7 12,7 C9.23857625,7 7,9.23857625 7,12 C7,14.7614237 9.23857625,17 12,17 Z M12,19 C8.13400675,19 5,15.8659932 5,12 C5,8.13400675 8.13400675,5 12,5 C15.8659932,5 19,8.13400675 19,12 C19,15.8659932 15.8659932,19 12,19 Z" fill="#000000" fill-rule="nonzero" />
+                                        </g>
+                                    </svg>
+                                    <!--end::Svg Icon-->
+                                </span>
+                            </span>
+                            <!--end::Icon-->
+                            <!--begin::Title-->
+                            <div class="d-flex flex-column flex-grow-1 mr-2">
+                                <span class="font-weight-bold text-dark-75 font-size-lg mb-1">Alamat Customer</span>
+                                <span class="text-dark-50 font-weight-bold">{{ $sales_order->customer->address }}</span>
+                            </div>
+                            <!--end::Title-->
+                            <!--begin::Lable-->
+                            <!-- <span class="font-weight-bolder text-secondary py-1 font-size-lg">+8%</span> -->
+                            <!--end::Lable-->
+                        </div>
+                    </a>
+                    <a v-for="(warehouse, index) in warehouses" href="#" @click.prevent="selectWarehouseAddress(index)">
+                        <div class="d-flex align-items-center bg-light rounded p-5 mb-3">
+                            <!--begin::Icon-->
+                            <span class="svg-icon svg-icon-secondary mr-5">
+                                <span class="svg-icon svg-icon-lg">
+                                    <!--begin::Svg Icon | path:/metronic/theme/html/demo1/dist/assets/media/svg/icons/General/Attachment2.svg-->
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <rect x="0" y="0" width="24" height="24" />
+                                            <path d="M20.4061385,6.73606154 C20.7672665,6.89656288 21,7.25468437 21,7.64987309 L21,16.4115967 C21,16.7747638 20.8031081,17.1093844 20.4856429,17.2857539 L12.4856429,21.7301984 C12.1836204,21.8979887 11.8163796,21.8979887 11.5143571,21.7301984 L3.51435707,17.2857539 C3.19689188,17.1093844 3,16.7747638 3,16.4115967 L3,7.64987309 C3,7.25468437 3.23273352,6.89656288 3.59386153,6.73606154 L11.5938615,3.18050598 C11.8524269,3.06558805 12.1475731,3.06558805 12.4061385,3.18050598 L20.4061385,6.73606154 Z" fill="#000000" opacity="0.3" />
+                                            <polygon fill="#000000" points="14.9671522 4.22441676 7.5999999 8.31727912 7.5999999 12.9056825 9.5999999 13.9056825 9.5999999 9.49408582 17.25507 5.24126912" />
+                                        </g>
+                                    </svg>
+                                    <!--end::Svg Icon-->
+                                </span>
+                            </span>
+                            <!--end::Icon-->
+                            <!--begin::Title-->
+                            <div class="d-flex flex-column flex-grow-1 mr-2">
+                                <span class="font-weight-bold text-dark-75 font-size-lg mb-1">Alamat Gudang @{{ ' - ' + warehouse.name }}</span>
+                                <span class="text-dark-50 font-weight-bold">@{{ warehouse.address }}</span>
+                            </div>
+                            <!--end::Title-->
+                            <!--begin::Lable-->
+                            <!-- <span class="font-weight-bolder text-secondary py-1 font-size-lg">+8%</span> -->
+                            <!--end::Lable-->
+                        </div>
+                    </a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -428,6 +507,7 @@
             billingAddress: '{{ $delivery_order->billing_address }}',
             shippingAddress: '{{ $delivery_order->shipping_address }}',
             salesOrderId: '{{ $sales_order->id }}',
+            warehouses: JSON.parse(String.raw `{!! $sales_order->customer->warehouses !!}`),
             loading: false,
         },
         methods: {
@@ -496,7 +576,24 @@
             // remainingQuantity: function(quantity, produced, production) {
             //     const newProduction = isNaN(production) ? 0 : production;
             //     return Number(quantity) - Number(produced) - Number(newProduction);
-            // }
+            // },
+
+            selectCustomerAddress: function() {
+                this.shippingAddress = this.billingAddress;
+                this.closeWarehouseModal();
+            },
+            selectWarehouseAddress: function(index) {
+                const warehouseAddress = this.warehouses[index].address;
+                if (typeof warehouseAddress == "undefined") {
+                    this.shippingAddress = this.billingAddress;
+                } else {
+                    this.shippingAddress = warehouseAddress;
+                }
+                this.closeWarehouseModal();
+            },
+            closeWarehouseModal: function() {
+                $('#modalWarehouse').modal('hide');
+            },
         },
         computed: {
             checkedQuotations: function() {
@@ -537,8 +634,9 @@
     $(function() {
         $('.delivery-order-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.date = e.format(0, 'yyyy-mm-dd');

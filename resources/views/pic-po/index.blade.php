@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
   <div class="card-header flex-wrap py-3">
     <div class="card-title">
-      <h3 class="card-label">List All PIC PO
+      <h3 class="card-label">List PIC PO
         <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
       </h3>
     </div>
@@ -72,10 +72,10 @@
     <table class="table table-bordered" id="basic-table">
       <thead>
         <tr>
-          <td>Name</td>
-          <td>Phone</td>
+          <td>Nama</td>
+          <td>Telepon</td>
           <td>Email</td>
-          <td>Company</td>
+          <td>Perusahaan</td>
           <td>Action</td>
         </tr>
       </thead>

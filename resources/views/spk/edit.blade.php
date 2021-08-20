@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add SPK</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Edit SPK</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +25,10 @@
                         <a href="" class="text-muted">SPK</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">{{ $job_order->number }}</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="" class="text-muted">Edit</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -44,7 +47,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Add SPK</h3>
+                <h3 class="card-title">Form SPK</h3>
             </div>
 
             <!--begin::Form-->
@@ -211,7 +214,7 @@
                                                 <!--begin::Title-->
                                                 <div class="d-flex flex-column">
                                                     <a href="#" class="text-dark font-weight-bold text-hover-primary font-size-h4 mb-0">@{{ quotation.number }} - @{{ quotation.title }}</a>
-                                                    <span class="text-muted font-weight-bold">PT Kalbe Farma | @{{ quotation.date }}</span>
+                                                    <span class="text-muted font-weight-bold">@{{ quotation.customer.name }} | @{{ quotation.date }}</span>
                                                 </div>
                                                 <!--end::Title-->
                                             </div>
@@ -283,7 +286,7 @@
                                         <i class="flaticon2-reload icon-2x text-muted font-weight-bold"></i>
                                     </span>
                                     <div class="d-flex flex-column text-dark-75">
-                                        <span class="font-weight-bolder font-size-sm">Quantity Produksi</span>
+                                        <span class="font-weight-bolder font-size-sm">Quantity Akan Diproduksi</span>
                                         <span class="font-weight-bolder font-size-h5">
                                             @{{ Intl.NumberFormat('de-DE').format(totalProduced) }}
                                             <span class="text-dark-50 font-weight-bold">Pcs</span></span>
@@ -449,8 +452,9 @@
     $(function() {
         $('.job-order-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.date = e.format(0, 'yyyy-mm-dd');
@@ -458,8 +462,9 @@
 
         $('.finish-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.finishDate = e.format(0, 'yyyy-mm-dd');
@@ -467,8 +472,9 @@
 
         $('.delivery-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.deliveryDate = e.format(0, 'yyyy-mm-dd');

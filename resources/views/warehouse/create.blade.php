@@ -28,7 +28,7 @@
                         <a href="" class="text-muted">Warehouse</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">Tambah</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -47,7 +47,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Customer Form</h3>
+                <h3 class="card-title">Form Gudang Customer</h3>
 
             </div>
             <!--begin::Form-->

@@ -30,9 +30,9 @@
         }
 
         .footer ul li {
-            width: 120px;
+            width: 60px;
             float: right;
-            margin: 0 10px;
+            margin: 0 15px;
         }
 
         .footer ul li p {
@@ -48,10 +48,9 @@
         <div style="width: 50%; float: left;">
             <img src="https://karir-production.nos.jkt-1.neo.id/logos/11/1029111/unilabel_magenta.png" alt="Logo" width="150" height="60">
             <div style="margin-top: 10px">
-                <span>PT. Magenta Mediatama</span><br>
-                <span>Jl. Raya Kebayoran Lama No. 15 RT.04 RW.03 Grogol Utara,</span><br>
-                <span>Kebayoran Lama, Jakarta Selatan DKI Jakarta-12210</span><br>
-                <span>Phone (021)53660077 - 88; Fax (021)5366099</span>
+                <span style="display: block;">{{ $company->name }}</span>
+                <span style="display: block;">{{ $company->address }}</span>
+                <span style="display: block;">Phone {{ $company->phone }}; Fax {{ $company->fax }}</span>
             </div>
         </div>
         <div style="width: 36.5%; float: right">
@@ -84,32 +83,34 @@
                     <tr>
                         <td style="padding: 3px">PO No.</td>
                         <td style="padding: 3px">:</td>
-                        <td style="padding: 3px"><?= $delivery_order->po_number ?></td>
+                        <td style="padding: 3px"><?= $delivery_order->salesOrder->po_number ?></td>
                     </tr>
                 </table>
             </div>
         </div>
     </div>
-    <div style="margin-top: 100px; clear: both">
-        <!-- <div style="float: left; width: 300px;"> -->
-        <table class="bordered-table" style="width: 100%">
-            <tr>
-                <th>Tagihan Ke</th>
-            </tr>
-            <tr>
-                <td style="white-space: pre"><?= $delivery_order->billing_address ?></td>
-            </tr>
-        </table>
-        <!-- </div> -->
-        <!-- <div style="float: left; width: 300px; margin-left: 20px;"> -->
-        <table class="bordered-table" style="width: 100%">
-            <tr>
-                <th>Kirim Ke</th>
-            </tr>
-            <tr>
-                <td style="white-space: pre"><?= $delivery_order->shipping_address ?></td>
-            </tr>
-        </table>
+    <div style="margin-top: 100px; clear: both" style="width: 100%;">
+        <!-- <div style="float: left; width: 45%;"> -->
+        <div style="width: 100%;">
+            <table class="bordered-table" style="float: left; width: 45%; margin: 50px 0;">
+                <tr>
+                    <th>Tagihan Ke</th>
+                </tr>
+                <tr>
+                    <td><?= $delivery_order->billing_address ?></td>
+                </tr>
+            </table>
+            <!-- </div> -->
+            <!-- <div style="float: right; width: 45%; margin-left: 20px;"> -->
+            <table class="bordered-table" style="float: right; width: 45%; position:absolute; right: 0;">
+                <tr>
+                    <th>Kirim Ke</th>
+                </tr>
+                <tr>
+                    <td><?= $delivery_order->shipping_address ?></td>
+                </tr>
+            </table>
+        </div>
         <!-- </div> -->
     </div>
     <div style="margin-top: 30px; clear: both">
@@ -138,16 +139,16 @@
     <div class="footer">
         <ul>
             <li>
-                <p>Prepared By</p>
-            </li>
-            <li>
-                <p>Approved By</p>
+                <p>Received By</p>
             </li>
             <li>
                 <p>Shipped By</p>
             </li>
             <li>
-                <p>Received By</p>
+                <p>Approved By</p>
+            </li>
+            <li>
+                <p>Prepared By</p>
             </li>
         </ul>
     </div>

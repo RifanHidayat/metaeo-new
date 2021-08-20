@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Customers</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Akun</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Customers</a>
+                        <a href="" class="text-muted">Akun</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Manage</a>
@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
     <div class="card-header flex-wrap py-3">
         <div class="card-title">
-            <h3 class="card-label">List All Customers
+            <h3 class="card-label">List Akun
                 <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
             </h3>
         </div>
@@ -52,7 +52,7 @@
 
             <!--end::Dropdown-->
             <!--begin::Button-->
-            <a href="/finance-account/create" class="btn btn-primary font-weight-bolder">
+            <a href="/finance/account/create" class="btn btn-primary font-weight-bolder">
                 <span class="svg-icon svg-icon-md">
                     <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -82,7 +82,7 @@
                     <td class="text-center">@{{ account.bank_name }}</td>
                     <td class="text-center">@{{ account.account_number }}</td>
                     <td class="text-center">
-                        <a :href="'/customer/edit/' + account.id" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                        <a :href="'/finance/account/edit/' + account.id" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                                     <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                         <rect x="0" y="0" width="24" height="24"></rect>
                                         <path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "></path>

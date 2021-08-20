@@ -6,6 +6,10 @@
 <link href="{{ asset('plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css">
 @endsection
 
+@section('pagestyle')
+
+@endsection
+
 @section('subheader')
 <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
     <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
@@ -14,7 +18,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Sales Order</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Sales Order</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +29,7 @@
                         <a href="" class="text-muted">Sales Order</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">Tambah</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -44,21 +48,15 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Add Sales Order</h3>
+                <h3 class="card-title">Form Sales Order</h3>
 
             </div>
             <!--begin::Form-->
-            <form class="form" autocomplete="off" @submit.prevent="submitForm">
+            <form class="form" autocomplete="off" enctype="multipart/form-data" @submit.prevent="submitForm">
                 <div class="card-body">
 
-                    <div class="row justify-content-between">
+                    <div class="row justify-content-between pb-3">
                         <div class="col-lg-6">
-                            <div class="form-group row">
-                                <label class="col-lg-4 col-form-label text-lg-right">Sales Order Number:<span class="text-danger">*</span></label>
-                                <div class="col-lg-8">
-                                    <input type="text" v-model="number" class="form-control" readonly required />
-                                </div>
-                            </div>
                             <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Tanggal Sales Order:<span class="text-danger">*</span></label>
                                 <div class="col-lg-8">
@@ -77,30 +75,28 @@
                                     <input type="text" v-model="poDate" class="form-control po-date" placeholder="Masukkan tanggal PO" />
                                 </div>
                             </div>
-                            <!-- <div class="form-group row">
-                                    <label class="col-lg-4 col-form-label text-lg-right">Total Piutang:</label>
-                                    <div class="col-lg-8">
-                                        <input type="email" class="form-control" placeholder="Enter full name" />
-                                        <span class="form-text text-muted">Please enter your full name</span>
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <label class="col-lg-4 col-form-label text-lg-right">Quantity:</label>
-                                    <div class="col-lg-8">
-                                        <input type="email" class="form-control" placeholder="Enter full name" />
-                                        <span class="form-text text-muted">Please enter your full name</span>
-                                    </div>
-                                </div> -->
                         </div>
                         <div class="col-lg-5">
                             <div class="form-group">
-                                <label class="col-form-label text-lg-right">File:</label>
-                                <div>
-                                    <div class="dropzone dropzone-default" id="kt_dropzone_1">
-                                        <div class="dropzone-msg dz-message needsclick">
-                                            <h3 class="dropzone-msg-title">Drop files here or click to upload.</h3>
-                                            <!-- <span class="dropzone-msg-desc">This is just a demo dropzone. Selected files are
-                                                    <strong>not</strong>actually uploaded.</span> -->
+                                <label>File (Max. 2MB)</label>
+                                <div></div>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="customFile" ref="fileUpload" v-on:change="handleFileUpload" accept=".jpg, .jpeg, .png, .pdf, .doc, .xls, .xlsx">
+                                    <label ref="fileUploadLabel" id="file-upload-label" class="custom-file-label" for="customFile">Choose file</label>
+                                </div>
+                                <p v-if="previewFile.size !== '' && previewFile.size > (2048 * 1000)"><i class="flaticon-warning text-warning"></i> Ukuran file max. 2 MB. File tidak akan terkirim</p>
+                            </div>
+                            <div v-if="file">
+                                <div class="card card-custom gutter-b card-stretch">
+                                    <div class="card-body">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <!--begin: Icon-->
+                                            <img alt="" class="max-h-100px" :src="fileTypeImage">
+                                            <!--end: Icon-->
+                                            <!--begin: Tite-->
+                                            <span href="#" class="text-dark-75 font-weight-bold mt-5 font-size-lg">@{{ previewFile.name }}</span>
+                                            <a href="#" @click.prevent="removeFile" class="d-block text-danger font-weight-bold">Remove</a>
+                                            <!--end: Tite-->
                                         </div>
                                     </div>
                                 </div>
@@ -400,10 +396,57 @@
             customer: '',
             poNumber: '',
             poDate: '',
+            file: '',
+            previewFile: {
+                name: '',
+                size: '',
+                type: '',
+            },
             selectedQuotations: [],
             loading: false,
         },
         methods: {
+            handleFileUpload: function() {
+                let file = this.$refs.fileUpload.files[0];
+
+                if (!file) {
+                    this.$refs.fileUpload.value = '';
+                    // this.resetFileUploadLabel();
+                    return;
+                }
+
+                const MAX_SIZE = 2.048;
+                const MULTIPLIER = 1000000;
+
+                console.log(file);
+                if (file.size > MAX_SIZE * MULTIPLIER) {
+                    this.$refs.fileUpload.value = '';
+                    this.resetFileUploadLabel();
+                    // document.getElementById('file-upload-label').innerHTML = 'Choose file';
+                    toastr.warning("Ukuran file max. 2MB");
+                    return;
+                }
+
+                this.$refs.fileUploadLabel.innerHTML = file.name;
+
+                this.previewFile.name = file.name;
+                this.previewFile.size = file.size;
+                let splittedFileName = file.name.split('.');
+                this.previewFile.type = splittedFileName[splittedFileName.length - 1];
+                this.file = file;
+            },
+            removeFile: function() {
+                this.file = '';
+                this.$refs.fileUpload.value = '';
+                this.resetFileUploadLabel();
+                // Object.keys(this.previewFile).forEach(function(index) {
+                //     this.previewFile[index] = '';
+                // });
+            },
+            resetFileUploadLabel: function() {
+                this.$refs.fileUploadLabel.classList.remove('selected');
+                this.$refs.fileUploadLabel.innerHTML = 'Choose file';
+            },
             submitForm: function() {
                 this.sendData();
             },
@@ -418,10 +461,16 @@
                     date: vm.date,
                     po_number: vm.poNumber,
                     po_date: vm.poDate,
-                    selected_quotations: vm.selectedQuotations,
+                    file: vm.file,
+                    selected_quotations: JSON.stringify(vm.selectedQuotations),
                 };
 
-                axios.post('/sales-order', data)
+                let formData = new FormData();
+                for (var key in data) {
+                    formData.append(key, data[key]);
+                }
+
+                axios.post('/sales-order', formData)
                     .then(function(response) {
                         vm.loading = false;
                         Swal.fire({
@@ -438,10 +487,13 @@
                     })
                     .catch(function(error) {
                         vm.loading = false;
-                        console.log(error);
+                        // console.log(error);
+                        const {
+                            data
+                        } = error.response.data;
                         Swal.fire(
                             'Oops!',
-                            'Something wrong',
+                            data.message,
                             'error'
                         )
                     });
@@ -463,21 +515,58 @@
         computed: {
             totalQuantity: function() {
                 if (this.selectedQuotations.length > 0) {
-                    return this.selectedQuotations.map(quotation => quotation.quantity).reduce((acc, cur) => {
+                    let totalQuantity = this.selectedQuotations.map(quotation => {
+                        let quantity = this.estimationData(quotation.selected_estimation, quotation.estimations)?.quantity;
+                        if (typeof quantity == "undefined" || quantity == null) {
+                            return 0;
+                        }
+                        return quantity;
+                    }).reduce((acc, cur) => {
                         return acc + cur;
                     }, 0)
+
+                    // if (isNaN(totalQuantity)) {
+                    //     return 0;
+                    // }
+
+                    return totalQuantity;
                 }
 
                 return 0;
             },
             grandTotalBill: function() {
                 if (this.selectedQuotations.length > 0) {
-                    return this.selectedQuotations.map(quotation => quotation.total_bill).reduce((acc, cur) => {
+                    return this.selectedQuotations.map(quotation => {
+                        let totalBill = this.estimationData(quotation.selected_estimation, quotation.estimations)?.total_bill;
+                        if (typeof totalBill == "undefined" || totalBill == null) {
+                            return 0;
+                        }
+                        return totalBill;
+                    }).reduce((acc, cur) => {
                         return acc + cur;
                     }, 0)
                 }
 
                 return 0;
+            },
+            fileTypeImage: function() {
+                const path = '/media/svg/files/';
+                switch (this.previewFile.type) {
+                    case 'pdf':
+                        return path + 'pdf.svg';
+                    case 'xls':
+                    case 'xlsx':
+                        return path + 'csv.svg';
+                    case 'jpg':
+                    case 'png':
+                    case 'jpeg':
+                        return path + 'jpg.svg';
+                    case 'doc':
+                    case 'docx':
+                        return path + 'doc.svg';
+                    default:
+                        return path + 'jpg.svg';
+                }
             }
         }
     })
@@ -499,18 +588,22 @@
                 ajax: '/datatables/sales-orders/quotations?customer_id=' + customer,
                 columns: [{
                         data: 'number',
+                        name: 'number',
                         render: function(data, type) {
                             return `<a href="#">${data}</a>`;
                         }
                     },
                     {
-                        data: 'date'
+                        data: 'date',
+                        name: 'date'
                     },
                     {
                         data: 'title',
+                        name: 'title'
                     },
                     {
-                        data: 'up',
+                        data: 'pic_po.name',
+                        name: 'pic_po.name'
                     },
                     {
                         data: 'action',
@@ -543,35 +636,24 @@
 
         });
 
-        $('#kt_dropzone_1').dropzone({
-            url: "https://keenthemes.com/scripts/void.php", // Set the url for your upload script location
-            paramName: "file", // The name that will be used to transfer the file
-            maxFiles: 1,
-            maxFilesize: 5, // MB
-            addRemoveLinks: true,
-            accept: function(file, done) {
-                if (file.name == "justinbieber.jpg") {
-                    done("Naha, you don't.");
-                } else {
-                    done();
-                }
-            }
-        });
+        // const dropzoneFile = Dropzone.forElement("#file");
 
         $('.so-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
             orientation: "bottom left",
+            todayHighlight: true
         }).on('changeDate', function(e) {
             app.$data.date = e.format(0, 'yyyy-mm-dd');
         });
 
         $('.po-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
             orientation: "bottom left",
+            todayHighlight: true
         }).on('changeDate', function(e) {
             app.$data.poDate = e.format(0, 'yyyy-mm-dd');
         });

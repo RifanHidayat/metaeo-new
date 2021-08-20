@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Sales Order</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Edit Sales Order</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +25,10 @@
                         <a href="" class="text-muted">Sales Order</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">{{ $sales_order->number }}</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="" class="text-muted">Edit</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -44,13 +47,12 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Add Sales Order</h3>
+                <h3 class="card-title">Form Sales Order</h3>
 
             </div>
             <!--begin::Form-->
-            <form class="form" autocomplete="off" @submit.prevent="submitForm">
+            <form class="form" autocomplete="off" enctype="multipart/form-data" @submit.prevent="submitForm">
                 <div class="card-body">
-
                     <div class="row justify-content-between">
                         <div class="col-lg-6">
                             <div class="form-group row">
@@ -77,30 +79,45 @@
                                     <input type="text" v-model="poDate" class="form-control po-date" placeholder="Masukkan tanggal PO" />
                                 </div>
                             </div>
-                            <!-- <div class="form-group row">
-                                    <label class="col-lg-4 col-form-label text-lg-right">Total Piutang:</label>
-                                    <div class="col-lg-8">
-                                        <input type="email" class="form-control" placeholder="Enter full name" />
-                                        <span class="form-text text-muted">Please enter your full name</span>
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <label class="col-lg-4 col-form-label text-lg-right">Quantity:</label>
-                                    <div class="col-lg-8">
-                                        <input type="email" class="form-control" placeholder="Enter full name" />
-                                        <span class="form-text text-muted">Please enter your full name</span>
-                                    </div>
-                                </div> -->
                         </div>
                         <div class="col-lg-5">
                             <div class="form-group">
-                                <label class="col-form-label text-lg-right">File:</label>
-                                <div>
-                                    <div class="dropzone dropzone-default" id="kt_dropzone_1">
-                                        <div class="dropzone-msg dz-message needsclick">
-                                            <h3 class="dropzone-msg-title">Drop files here or click to upload.</h3>
-                                            <!-- <span class="dropzone-msg-desc">This is just a demo dropzone. Selected files are
-                                                    <strong>not</strong>actually uploaded.</span> -->
+                                <label>File (Max. 2MB)</label>
+                                <div></div>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="customFile" ref="fileUpload" v-on:change="handleFileUpload" accept=".jpg, .jpeg, .png, .pdf, .doc, .xls, .xlsx">
+                                    <label ref="fileUploadLabel" id="file-upload-label" class="custom-file-label" for="customFile">Choose file</label>
+                                </div>
+                                <p v-if="previewFile.size !== '' && previewFile.size > (2048 * 1000)"><i class="flaticon-warning text-warning"></i> Ukuran file max. 2 MB. File tidak akan terkirim</p>
+                            </div>
+                            <div v-if="file">
+                                <div class="card card-custom gutter-b card-stretch">
+                                    <div class="card-body">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <!--begin: Icon-->
+                                            <img alt="" class="max-h-100px" :src="fileTypeImage">
+                                            <!--end: Icon-->
+                                            <!--begin: Tite-->
+                                            <span href="#" class="text-dark-75 font-weight-bold mt-5 font-size-lg">@{{ previewFile.name }}</span>
+                                            <a href="#" @click.prevent="removeFile" class="d-block text-danger font-weight-bold">Remove</a>
+                                            <!--end: Tite-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="oldFile && !file">
+                                <div class="card card-custom gutter-b card-stretch">
+                                    <div class="card-body">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <!--begin: Icon-->
+                                            <img alt="" class="max-h-100px" :src="oldFileTypeImage">
+                                            <!--end: Icon-->
+                                            <!--begin: Tite-->
+                                            <a href="{{ $sales_order->file ? Storage::disk('s3')->url($sales_order->file) : '/media/svg/files/jpg.svg' }}" target="_blank" class=" mt-5">
+                                                <span href="#" class="text-dark-75 font-weight-bold font-size-lg">@{{ oldFile }}</span>
+                                            </a>
+                                            <a href="#" @click.prevent="removeOldFile" class="d-block text-danger font-weight-bold">Remove</a>
+                                            <!--end: Tite-->
                                         </div>
                                     </div>
                                 </div>
@@ -399,10 +416,67 @@
             customer: '{{ $sales_order->customer_id }}',
             poNumber: '{{ $sales_order->po_number }}',
             poDate: '{{ $sales_order->po_date }}',
+            file: '',
+            previewFile: {
+                name: '',
+                size: '',
+                type: '',
+            },
+            oldFile: '{{ $sales_order->file }}',
+            // oldPreviewFile: {
+            //     name: '{{ $sales_order->file }}',
+            //     url: '',
+            //     type: '',
+            // },
             selectedQuotations: JSON.parse(String.raw `{!! $sales_order->quotations !!}`),
             loading: false,
         },
         methods: {
+            handleFileUpload: function() {
+                let file = this.$refs.fileUpload.files[0];
+
+                if (!file) {
+                    this.$refs.fileUpload.value = '';
+                    // this.resetFileUploadLabel();
+                    return;
+                }
+
+                const MAX_SIZE = 2.048;
+                const MULTIPLIER = 1000000;
+
+                console.log(file);
+                if (file.size > MAX_SIZE * MULTIPLIER) {
+                    this.$refs.fileUpload.value = '';
+                    this.resetFileUploadLabel();
+                    // document.getElementById('file-upload-label').innerHTML = 'Choose file';
+                    toastr.warning("Ukuran file max. 2MB");
+                    return;
+                }
+
+                this.$refs.fileUploadLabel.innerHTML = file.name;
+
+                this.previewFile.name = file.name;
+                this.previewFile.size = file.size;
+                let splittedFileName = file.name.split('.');
+                this.previewFile.type = splittedFileName[splittedFileName.length - 1];
+                this.file = file;
+                this.oldFile = '';
+            },
+            removeFile: function() {
+                this.file = '';
+                this.$refs.fileUpload.value = '';
+                this.resetFileUploadLabel();
+                // Object.keys(this.previewFile).forEach(function(index) {
+                //     this.previewFile[index] = '';
+                // });
+            },
+            removeOldFile: function() {
+                this.oldFile = '';
+            },
+            resetFileUploadLabel: function() {
+                this.$refs.fileUploadLabel.classList.remove('selected');
+                this.$refs.fileUploadLabel.innerHTML = 'Choose file';
+            },
             submitForm: function() {
                 this.sendData();
             },
@@ -417,10 +491,17 @@
                     customer_id: vm.customer,
                     po_number: vm.poNumber,
                     po_date: vm.poDate,
-                    selected_quotations: vm.selectedQuotations,
+                    file: vm.file,
+                    old_file: vm.oldFile,
+                    selected_quotations: JSON.stringify(vm.selectedQuotations),
                 };
 
-                axios.patch('/sales-order/{{ $sales_order->id }}', data)
+                let formData = new FormData();
+                for (var key in data) {
+                    formData.append(key, data[key]);
+                }
+
+                axios.post('/sales-order/{{ $sales_order->id }}', formData)
                     .then(function(response) {
                         vm.loading = false;
                         Swal.fire({
@@ -448,25 +529,111 @@
             unselectQuotation: function(index) {
                 this.selectedQuotations.splice(index, 1);
             },
+            estimationData: function(id, estimations) {
+                if (id == null || typeof(id) == 'undefined') {
+                    return null;
+                }
+
+                const estimation = estimations.filter(est => est.id == id)[0];
+
+                return estimation;
+
+            }
         },
         computed: {
+            // totalQuantity: function() {
+            //     if (this.selectedQuotations.length > 0) {
+            //         return this.selectedQuotations.map(quotation => quotation.quantity).reduce((acc, cur) => {
+            //             return acc + cur;
+            //         }, 0)
+            //     }
+
+            //     return 0;
+            // },
+            // grandTotalBill: function() {
+            //     if (this.selectedQuotations.length > 0) {
+            //         return this.selectedQuotations.map(quotation => quotation.total_bill).reduce((acc, cur) => {
+            //             return acc + cur;
+            //         }, 0)
+            //     }
+
+            //     return 0;
+            // }
             totalQuantity: function() {
                 if (this.selectedQuotations.length > 0) {
-                    return this.selectedQuotations.map(quotation => quotation.quantity).reduce((acc, cur) => {
+                    let totalQuantity = this.selectedQuotations.map(quotation => {
+                        let quantity = this.estimationData(quotation.selected_estimation, quotation.estimations)?.quantity;
+                        if (typeof quantity == "undefined" || quantity == null) {
+                            return 0;
+                        }
+                        return quantity;
+                    }).reduce((acc, cur) => {
                         return acc + cur;
                     }, 0)
+
+                    // if (isNaN(totalQuantity)) {
+                    //     return 0;
+                    // }
+
+                    return totalQuantity;
                 }
 
                 return 0;
             },
             grandTotalBill: function() {
                 if (this.selectedQuotations.length > 0) {
-                    return this.selectedQuotations.map(quotation => quotation.total_bill).reduce((acc, cur) => {
+                    return this.selectedQuotations.map(quotation => {
+                        let totalBill = this.estimationData(quotation.selected_estimation, quotation.estimations)?.total_bill;
+                        if (typeof totalBill == "undefined" || totalBill == null) {
+                            return 0;
+                        }
+                        return totalBill;
+                    }).reduce((acc, cur) => {
                         return acc + cur;
                     }, 0)
                 }
 
                 return 0;
+            },
+            fileTypeImage: function() {
+                const path = '/media/svg/files/';
+                switch (this.previewFile.type) {
+                    case 'pdf':
+                        return path + 'pdf.svg';
+                    case 'xls':
+                    case 'xlsx':
+                        return path + 'csv.svg';
+                    case 'jpg':
+                    case 'png':
+                    case 'jpeg':
+                        return path + 'jpg.svg';
+                    case 'doc':
+                    case 'docx':
+                        return path + 'doc.svg';
+                    default:
+                        return path + 'jpg.svg';
+                }
+            },
+            oldFileTypeImage: function() {
+                const path = '/media/svg/files/';
+                let splittedOldFile = this.oldFile.split('.');
+                const type = splittedOldFile[splittedOldFile.length - 1];
+                switch (type) {
+                    case 'pdf':
+                        return path + 'pdf.svg';
+                    case 'xls':
+                    case 'xlsx':
+                        return path + 'csv.svg';
+                    case 'jpg':
+                    case 'png':
+                    case 'jpeg':
+                        return path + 'jpg.svg';
+                    case 'doc':
+                    case 'docx':
+                        return path + 'doc.svg';
+                    default:
+                        return path + 'jpg.svg';
+                }
             }
         }
     })
@@ -482,21 +649,25 @@
                 processing: true,
                 serverSide: true,
                 destroy: true,
-                ajax: '/datatables/sales-orders/quotations?customer_id=' + customer_id,
+                ajax: '/datatables/sales-orders/quotations-unfiltered?customer_id=' + customer_id + '&sales_order_id={{ $sales_order->id }}',
                 columns: [{
                         data: 'number',
+                        name: 'number',
                         render: function(data, type) {
                             return `<a href="#">${data}</a>`;
                         }
                     },
                     {
-                        data: 'date'
+                        data: 'date',
+                        name: 'date'
                     },
                     {
                         data: 'title',
+                        name: 'title'
                     },
                     {
-                        data: 'up',
+                        data: 'pic_po.name',
+                        name: 'pic_po.name'
                     },
                     {
                         data: 'action',
@@ -518,21 +689,25 @@
                 processing: true,
                 serverSide: true,
                 destroy: true,
-                ajax: '/datatables/sales-orders/quotations?customer_id=' + customer,
+                ajax: '/datatables/sales-orders/quotations-unfiltered?customer_id=' + customer + '&sales_order_id={{ $sales_order->id }}',
                 columns: [{
                         data: 'number',
+                        name: 'number',
                         render: function(data, type) {
                             return `<a href="#">${data}</a>`;
                         }
                     },
                     {
-                        data: 'date'
+                        data: 'date',
+                        name: 'date'
                     },
                     {
                         data: 'title',
+                        name: 'title'
                     },
                     {
-                        data: 'up',
+                        data: 'pic_po.name',
+                        name: 'pic_po.name'
                     },
                     {
                         data: 'action',
@@ -594,26 +769,12 @@
 
         });
 
-        $('#kt_dropzone_1').dropzone({
-            url: "https://keenthemes.com/scripts/void.php", // Set the url for your upload script location
-            paramName: "file", // The name that will be used to transfer the file
-            maxFiles: 1,
-            maxFilesize: 5, // MB
-            addRemoveLinks: true,
-            accept: function(file, done) {
-                if (file.name == "justinbieber.jpg") {
-                    done("Naha, you don't.");
-                } else {
-                    done();
-                }
-            }
-        });
-
         $('.so-date').datepicker({
             format: 'yyyy-mm-dd',
             todayBtn: true,
             clearBtn: true,
             orientation: "bottom left",
+            todayHighlight: true
         }).on('changeDate', function(e) {
             app.$data.date = e.format(0, 'yyyy-mm-dd');
         });
@@ -623,6 +784,7 @@
             todayBtn: true,
             clearBtn: true,
             orientation: "bottom left",
+            todayHighlight: true
         }).on('changeDate', function(e) {
             app.$data.poDate = e.format(0, 'yyyy-mm-dd');
         });

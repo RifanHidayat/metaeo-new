@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Customers</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Faktur</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Customers</a>
+                        <a href="" class="text-muted">Invoice</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Manage</a>
@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
     <div class="card-header flex-wrap py-3">
         <div class="card-title">
-            <h3 class="card-label">List Job Order
+            <h3 class="card-label">List Faktur
                 <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
             </h3>
         </div>
@@ -69,18 +69,18 @@
     </div>
     <div class="card-body">
         <!--begin: Datatable-->
-        <table class="table datatable datatable-bordered datatable-head-custom" id="delivery-order-table">
+        <table class="table datatable datatable-bordered datatable-head-custom" id="invoice-table">
             <thead>
                 <tr class="text-center">
                     <th>Nomor Faktur</th>
                     <th>Tanggal Faktur</th>
                     <th>Nomor SO</th>
-                    <th>Nomor PO</th>
+                    <th>Unpaid</th>
                     <th>Quotation</th>
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody class="text-center"></tbody>
         </table>
         <!--end: Datatable-->
     </div>
@@ -146,42 +146,57 @@
 </script>
 <script>
     $(function() {
-        const deliveryOrdersTable = $('#delivery-order-table').DataTable({
+        const invoicesTable = $('#invoice-table').DataTable({
             processing: true,
             serverSide: true,
             ajax: '/datatables/invoices',
+            order: [
+                [1, 'desc']
+            ],
             columns: [{
                     data: 'number',
+                    name: 'invoices.number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                 {
                     data: 'date',
+                    name: 'invoices.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
                 {
                     data: 'sales_order.number',
-                    name: 'number',
+                    name: 'salesOrder.number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                 {
-                    data: 'sales_order.po_number',
+                    data: 'payments',
                     name: 'number',
-                    render: function(data, type) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    render: function(data, type, row) {
+                        const totalPayment = data.map(payment => payment.amount).reduce((acc, cur) => {
+                            return acc + cur;
+                        }, 0);
+
+                        const unpaid = row.total - totalPayment;
+
+                        if (unpaid > 0) {
+                            return `<div class="text-success font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
+                        }
+
+                        return `<span class="label label-light-success label-pill label-inline text-capitalize">Lunas</span>`;
                     }
                 },
                 {
-                    data: 'quotations',
-                    name: 'number',
-                    render: function(data, type) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data.length > 0 && data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('')}</div>`;
-                    },
+                    data: 'quotation_number',
+                    name: 'quotations.number',
+                    // render: function(data, type) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data.length > 0 && data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('')}</div>`;
+                    // },
                 },
                 {
                     data: 'action',
@@ -192,6 +207,52 @@
 
             ]
         });
+
+        $('#invoice-table').on('click', 'tr .btn-delete', function(e) {
+            e.preventDefault();
+            // alert('click');
+            const id = $(this).attr('data-id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "The data will be deleted",
+                icon: 'warning',
+                reverseButtons: true,
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return axios.delete('/invoice/' + id)
+                        .then(function(response) {
+                            console.log(response.data);
+                        })
+                        .catch(function(error) {
+                            console.log(error.data);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops',
+                                text: 'Something wrong',
+                            })
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Data has been deleted',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // window.location.reload();
+                            invoicesTable.ajax.reload();
+                        }
+                    })
+                }
+            })
+        })
     })
 </script>
 @endsection

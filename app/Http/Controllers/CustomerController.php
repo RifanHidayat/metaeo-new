@@ -20,9 +20,12 @@ class CustomerController extends Controller
     {
         $customers = Customer::with(['invoices.payments'])->get()
             ->each(function ($customer) {
-                $customer['unpaid'] = collect($customer->invoices)->flatMap(function ($invoice) {
+                $customer['paid'] = collect($customer->invoices)->flatMap(function ($invoice) {
                     return $invoice->payments;
                 })->sum('amount');
+                $customer['total_invoice'] = collect($customer->invoices)->sum('total');
+
+                $customer['unpaid'] = $customer->total_invoice - $customer->paid;
             })->all();
 
         // return $customers;
@@ -195,7 +198,7 @@ class CustomerController extends Controller
             // ->map(function ($invoice) {
             //     return $invoice->total_payment;
             // })
-            ->all();
+            ->values()->all();
 
         // return $invoices;
 

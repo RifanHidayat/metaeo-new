@@ -56,12 +56,12 @@
         <form @submit.prevent="submitForm">
             <div class="row justify-content-between mb-10">
                 <div class="col-lg-6 col-sm-12">
-                    <div class="form-group row">
+                    <!-- <div class="form-group row">
                         <label class="col-lg-4 col-form-label text-lg-right">Nomor Transaksi:</label>
                         <div class="col-lg-8">
                             <span class="label label-xl label-info label-inline ">@{{ number }}</span>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="form-group row">
                         <label class="col-lg-4 col-form-label text-lg-right">Tanggal Transaksi:</label>
                         <div class="col-lg-8">
@@ -116,7 +116,7 @@
                         <!--begin: Item-->
                         <div class="d-flex align-items-center flex-lg-fill mb-4">
                             <span class="mr-4">
-                                <i class="flaticon2-correct icon-2x text-muted font-weight-bold"></i>
+                                <i class="flaticon2-list-2 icon-2x text-muted font-weight-bold"></i>
                             </span>
                             <div class="d-flex flex-column text-dark-50">
                                 <span class="font-weight-bolder font-size-sm">Total Faktur</span>
@@ -129,17 +129,17 @@
                         <!--end: Item-->
                         <hr>
                         <!--begin: Item-->
-                        <!-- <div class="d-flex align-items-center flex-lg-fill mb-4">
+                        <div class="d-flex align-items-center flex-lg-fill mb-4">
                             <span class="mr-4">
-                                <i class="flaticon2-correct icon-2x text-muted font-weight-bold"></i>
+                                <i class="flaticon2-check-mark icon-2x text-muted font-weight-bold"></i>
                             </span>
                             <div class="d-flex flex-column text-dark-50">
-                                <span class="font-weight-bolder font-size-sm">Total Pembayaran</span>
+                                <span class="font-weight-bolder font-size-sm">Total Faktur Yang Dipilih</span>
                                 <span class="font-weight-bolder font-size-h5">
                                     Rp @{{ Intl.NumberFormat('de-DE').format(totalCheckedInvoices) }}
                                 </span>
                             </div>
-                        </div> -->
+                        </div>
                         <!--end: Item-->
                     </div>
                 </div>
@@ -147,12 +147,13 @@
         </form>
         <hr>
         <!--begin: Datatable-->
+        <h5 class="text-dark font-weight-bold mt-1 mr-5 mb-10">List Faktur yang Belum Lunas</h5>
         <table class="table table-bordered" id="basic-table">
             <thead>
                 <tr class="text-center">
                     <th>Nomor</th>
                     <th>Tanggal</th>
-                    <th>Total Invoice</th>
+                    <th>Total Faktur</th>
                     <th>Sisa Pembayaran</th>
                     <th>Action</th>
                 </tr>
@@ -166,15 +167,16 @@
                     <?php $remainingPayment = $invoice->total - $invoice->total_payment; ?>
                     @if($remainingPayment > 0)
                     <td class="text-right">{{ number_format($remainingPayment) }}</td>
-                    @else
-                    <td class="text-center"><span class="label label label-success label-inline ">Lunas</span></td>
-                    @endif
                     <td class="text-center">
                         <label class="checkbox justify-content-center">
                             <input type="checkbox" v-model="checkedInvoicesIds" :value="{{ $invoice->id }}" />
                             <span></span>
                         </label>
                     </td>
+                    @else
+                    <td class="text-center"><span class="label label-lg label-success label-inline ">Lunas</span></td>
+                    <td></td>
+                    @endif
                 </tr>
                 @endforeach
             </tbody>
@@ -351,8 +353,10 @@
         $(function() {
             $('.transaction-date').datepicker({
                 format: 'yyyy-mm-dd',
-                todayBtn: true,
+                todayBtn: false,
                 clearBtn: true,
+                clearBtn: true,
+                todayHighlight: true,
                 orientation: "bottom left",
             }).on('changeDate', function(e) {
                 app.$data.date = e.format(0, 'yyyy-mm-dd');

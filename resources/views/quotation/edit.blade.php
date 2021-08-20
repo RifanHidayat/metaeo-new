@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Quotation</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Edit Quotation</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +25,10 @@
                         <a href="" class="text-muted">Quotation</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">{{ $quotation->number }}</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="" class="text-muted">Edit</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -44,7 +47,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Quotation Form</h3>
+                <h3 class="card-title">Form Quotation</h3>
             </div>
             <!--begin::Form-->
             <form class="form" autocomplete="off" @submit.prevent="submitForm">
@@ -215,7 +218,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || selectedEstimations.length < 1"">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || selectedEstimations.length < 1">
                                 Save
                             </button>
                             <!-- <button type=" reset" class="btn btn-secondary">Cancel</button> -->
@@ -530,21 +533,26 @@
                 },
                 columns: [{
                         data: 'number',
+                        name: 'estimations.number',
                         render: function(data, type) {
                             return `<a href="#" @click.prevent="onClick">${data}</a>`;
                         }
                     },
                     {
-                        data: 'date'
+                        data: 'date',
+                        name: 'estimations.date'
                     },
                     {
                         data: 'work',
+                        name: 'estimations.work'
                     },
                     {
-                        data: 'pic_po_id',
+                        data: 'pic_po.name',
+                        name: 'picPo.name',
                     },
                     {
                         data: 'status',
+                        name: 'estimations.status',
                         render: function(data, type) {
                             const label = function(text, type) {
                                 return `<span class="label label-${type} label-pill label-inline text-capitalized">${text}</span>`;

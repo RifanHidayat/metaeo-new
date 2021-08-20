@@ -81,4 +81,11 @@ class FinanceAccountController extends Controller
     {
         //
     }
+
+    public function transaction($id)
+    {
+        return view('finance-account.transaction', [
+            'id' => $id
+        ]);
+    }
 }

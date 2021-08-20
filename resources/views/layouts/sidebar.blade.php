@@ -52,7 +52,7 @@
                     </a>
                 </li>
 
-                <li class="menu-item" aria-haspopup="true">
+                <li class="menu-item {{ request()->is('user*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                     <a href="/user" class="menu-link">
                         <span class="svg-icon menu-icon">
                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
@@ -68,7 +68,7 @@
                         <span class="menu-text">Users</span>
                     </a>
                 </li>
-                <li class="menu-item" aria-haspopup="true">
+                <li class="menu-item {{ request()->is('group*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                     <a href="/group" class="menu-link">
                         <span class="svg-icon menu-icon">
                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
@@ -85,7 +85,7 @@
                         <span class="menu-text">Groups</span>
                     </a>
                 </li>
-                <li class="menu-item {{ request()->is('customer*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                <li class="menu-item {{ request()->is('customer*') || request()->is('warehouse*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                     <a href="/customer" class="menu-link">
                         <span class="svg-icon menu-icon">
                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
@@ -219,9 +219,8 @@
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                     <rect x="0" y="0" width="24" height="24" />
-                                    <path d="M4,4 L20,4 C21.1045695,4 22,4.8954305 22,6 L22,18 C22,19.1045695 21.1045695,20 20,20 L4,20 C2.8954305,20 2,19.1045695 2,18 L2,6 C2,4.8954305 2.8954305,4 4,4 Z" fill="#000000" opacity="0.3" />
-                                    <path d="M18.5,11 L5.5,11 C4.67157288,11 4,11.6715729 4,12.5 L4,13 L8.58578644,13 C8.85100293,13 9.10535684,13.1053568 9.29289322,13.2928932 L10.2928932,14.2928932 C10.7456461,14.7456461 11.3597108,15 12,15 C12.6402892,15 13.2543539,14.7456461 13.7071068,14.2928932 L14.7071068,13.2928932 C14.8946432,13.1053568 15.1489971,13 15.4142136,13 L20,13 L20,12.5 C20,11.6715729 19.3284271,11 18.5,11 Z" fill="#000000" />
-                                    <path d="M5.5,6 C4.67157288,6 4,6.67157288 4,7.5 L4,8 L20,8 L20,7.5 C20,6.67157288 19.3284271,6 18.5,6 L5.5,6 Z" fill="#000000" />
+                                    <path d="M12,8 L8,8 C5.790861,8 4,9.790861 4,12 L4,13 C4,14.6568542 5.34314575,16 7,16 L7,18 C4.23857625,18 2,15.7614237 2,13 L2,12 C2,8.6862915 4.6862915,6 8,6 L12,6 L12,4.72799742 C12,4.62015048 12.0348702,4.51519416 12.0994077,4.42878885 C12.264656,4.2075478 12.5779675,4.16215674 12.7992086,4.32740507 L15.656242,6.46136716 C15.6951359,6.49041758 15.7295917,6.52497737 15.7585249,6.56395854 C15.9231063,6.78569617 15.876772,7.09886961 15.6550344,7.263451 L12.798001,9.3840407 C12.7118152,9.44801079 12.607332,9.48254921 12.5,9.48254921 C12.2238576,9.48254921 12,9.25869158 12,8.98254921 L12,8 Z" fill="#000000" />
+                                    <path d="M12.0583175,16 L16,16 C18.209139,16 20,14.209139 20,12 L20,11 C20,9.34314575 18.6568542,8 17,8 L17,6 C19.7614237,6 22,8.23857625 22,11 L22,12 C22,15.3137085 19.3137085,18 16,18 L12.0583175,18 L12.0583175,18.9825492 C12.0583175,19.2586916 11.8344599,19.4825492 11.5583175,19.4825492 C11.4509855,19.4825492 11.3465023,19.4480108 11.2603165,19.3840407 L8.40328311,17.263451 C8.18154548,17.0988696 8.13521119,16.7856962 8.29979258,16.5639585 C8.32872576,16.5249774 8.36318164,16.4904176 8.40207551,16.4613672 L11.2591089,14.3274051 C11.48035,14.1621567 11.7936615,14.2075478 11.9589099,14.4287888 C12.0234473,14.5151942 12.0583175,14.6201505 12.0583175,14.7279974 L12.0583175,16 Z" fill="#000000" opacity="0.3" />
                                 </g>
                             </svg>
                             <!--end::Svg Icon-->
@@ -229,7 +228,7 @@
                         <span class="menu-text">Transaksi</span>
                     </a>
                 </li>
-                <li class="menu-item menu-item-submenu {{ request()->is('finance-account*') ? 'menu-item-open menu-item-here' : '' }}" aria-haspopup="true" data-menu-toggle="hover">
+                <li class="menu-item menu-item-submenu {{ request()->is('finance*') ? 'menu-item-open menu-item-here' : '' }}" aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
                         <span class="svg-icon menu-icon">
                             <!--begin::Svg Icon | path:/metronic/theme/html/demo1/dist/assets/media/svg/icons/General/Attachment2.svg-->
@@ -250,16 +249,16 @@
                     <div class="menu-submenu">
                         <i class="menu-arrow"></i>
                         <ul class="menu-subnav">
-                            <li class="menu-item {{ request()->is('finance-flow*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
-                                <a href="/finance/flow" class="menu-link">
+                            <li class="menu-item {{ request()->is('finance/transaction*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/finance/transaction" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot">
                                         <span></span>
                                     </i>
                                     <span class="menu-text">In Out</span>
                                 </a>
                             </li>
-                            <li class="menu-item {{ request()->is('finance-account*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
-                                <a href="/finance-account" class="menu-link">
+                            <li class="menu-item {{ request()->is('finance/account*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/finance/account" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot">
                                         <span></span>
                                     </i>
@@ -268,6 +267,44 @@
                             </li>
                         </ul>
                     </div>
+                </li>
+                <li class="menu-item {{ request()->is('setting*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                    <a href="/setting/account" class="menu-link">
+                        <span class="svg-icon menu-icon">
+                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <rect opacity="0.200000003" x="0" y="0" width="24" height="24" />
+                                    <path d="M4.5,7 L9.5,7 C10.3284271,7 11,7.67157288 11,8.5 C11,9.32842712 10.3284271,10 9.5,10 L4.5,10 C3.67157288,10 3,9.32842712 3,8.5 C3,7.67157288 3.67157288,7 4.5,7 Z M13.5,15 L18.5,15 C19.3284271,15 20,15.6715729 20,16.5 C20,17.3284271 19.3284271,18 18.5,18 L13.5,18 C12.6715729,18 12,17.3284271 12,16.5 C12,15.6715729 12.6715729,15 13.5,15 Z" fill="#000000" opacity="0.3" />
+                                    <path d="M17,11 C15.3431458,11 14,9.65685425 14,8 C14,6.34314575 15.3431458,5 17,5 C18.6568542,5 20,6.34314575 20,8 C20,9.65685425 18.6568542,11 17,11 Z M6,19 C4.34314575,19 3,17.6568542 3,16 C3,14.3431458 4.34314575,13 6,13 C7.65685425,13 9,14.3431458 9,16 C9,17.6568542 7.65685425,19 6,19 Z" fill="#000000" />
+                                </g>
+                            </svg>
+                            <!--end::Svg Icon-->
+                        </span>
+                        <span class="menu-text">Pengaturan</span>
+                    </a>
+                </li>
+                <li class="menu-item {{ request()->is('report*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                    <a href="/report" class="menu-link">
+                        <span class="svg-icon menu-icon">
+                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <rect x="0" y="0" width="24" height="24" />
+                                    <path d="M8,3 L8,3.5 C8,4.32842712 8.67157288,5 9.5,5 L14.5,5 C15.3284271,5 16,4.32842712 16,3.5 L16,3 L18,3 C19.1045695,3 20,3.8954305 20,5 L20,21 C20,22.1045695 19.1045695,23 18,23 L6,23 C4.8954305,23 4,22.1045695 4,21 L4,5 C4,3.8954305 4.8954305,3 6,3 L8,3 Z" fill="#000000" opacity="0.3" />
+                                    <path d="M11,2 C11,1.44771525 11.4477153,1 12,1 C12.5522847,1 13,1.44771525 13,2 L14.5,2 C14.7761424,2 15,2.22385763 15,2.5 L15,3.5 C15,3.77614237 14.7761424,4 14.5,4 L9.5,4 C9.22385763,4 9,3.77614237 9,3.5 L9,2.5 C9,2.22385763 9.22385763,2 9.5,2 L11,2 Z" fill="#000000" />
+                                    <rect fill="#000000" opacity="0.3" x="10" y="9" width="7" height="2" rx="1" />
+                                    <rect fill="#000000" opacity="0.3" x="7" y="9" width="2" height="2" rx="1" />
+                                    <rect fill="#000000" opacity="0.3" x="7" y="13" width="2" height="2" rx="1" />
+                                    <rect fill="#000000" opacity="0.3" x="10" y="13" width="7" height="2" rx="1" />
+                                    <rect fill="#000000" opacity="0.3" x="7" y="17" width="2" height="2" rx="1" />
+                                    <rect fill="#000000" opacity="0.3" x="10" y="17" width="7" height="2" rx="1" />
+                                </g>
+                            </svg>
+                            <!--end::Svg Icon-->
+                        </span>
+                        <span class="menu-text">Laporan</span>
+                    </a>
                 </li>
             </ul>
             <!--end::Menu Nav-->

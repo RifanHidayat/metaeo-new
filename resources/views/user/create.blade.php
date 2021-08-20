@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add User</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah User</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +25,7 @@
                         <a href="" class="text-muted">User</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">Tambah</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -44,12 +44,20 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">User Form</h3>
-
+                <h3 class="card-title">Form User</h3>
             </div>
             <!--begin::Form-->
             <form class="form" autocomplete="off" @submit.prevent="submitForm">
                 <div class="card-body">
+                    <div class="alert alert-custom alert-light-primary fade show mb-5" role="alert">
+                        <div class="alert-icon"><i class="flaticon-warning"></i></div>
+                        <div class="alert-text">Password akan dienkripsi dan tidak dapat dilihat setelah user tersimpan</div>
+                        <div class="alert-close">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true"><i class="ki ki-close"></i></span>
+                            </button>
+                        </div>
+                    </div>
                     <div class="form-group row">
                         <div class="col-lg-6">
                             <label>Nama:<span class="text-danger">*</span></label>
@@ -80,7 +88,7 @@
                     <div class="form-group row">
                         <div class="col-lg-6">
                             <label>Username:<span class="text-danger">*</span></label>
-                            <input v-model="username" type="text" class="form-control" placeholder="Enter username">
+                            <input v-model="username" type="text" class="form-control" placeholder="Enter username" required>
 
                         </div>
                         <div class="col-lg-6">
@@ -92,17 +100,29 @@
                     <div class="form-group row">
                         <div class="col-lg-6">
                             <label>Password:<span class="text-danger">*</span></label>
-                            <input v-model="password" type="password" class="form-control" placeholder="Enter password">
+                            <div class="input-group mb-3">
+                                <input v-model="password" :type="passwordVisible ? 'text' : 'password'" class="form-control" placeholder="Enter password" required>
+                                <div class="input-group-append">
+                                    <button type="button" @click="togglePasswordVisibility('passwordVisible')" class="btn btn-outline-secondary" type="button"><i :class="'fas ' + (passwordVisible ? 'fa-eye-slash' : 'fa-eye')"></i></button>
+                                </div>
+                            </div>
+
                         </div>
                         <div class="col-lg-6">
                             <label>Konfirmasi Password:<span class="text-danger">*</span></label>
-                            <input v-model="confirmPassword" type="password" class="form-control" placeholder="Confirm password">
+                            <div class="input-group mb-3">
+                                <input v-model="confirmPassword" :type="confirmPasswordVisible ? 'text' : 'password'" class="form-control" placeholder="Confirm password" required>
+                                <div class="input-group-append">
+                                    <button type="button" @click="togglePasswordVisibility('confirmPasswordVisible')" class="btn btn-outline-secondary" type="button"><i :class="'fas ' + (confirmPasswordVisible ? 'fa-eye-slash' : 'fa-eye')"></i></button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-lg-6">
                             <label>Group:<span class="text-danger">*</span></label>
-                            <select class="form-control" v-model="group">
+                            <select class="form-control" v-model="group" required>
                                 <option value="">Pilih Group</option>
                                 @foreach($groups as $group)
                                 <option value="{{ $group->id }}">{{ $group->name }}</option>
@@ -149,6 +169,8 @@
             password: '',
             confirmPassword: '',
             group: '',
+            passwordVisible: false,
+            confirmPasswordVisible: false,
             loading: false,
         },
         methods: {
@@ -158,6 +180,15 @@
             sendData: function() {
                 // console.log('submitted');
                 let vm = this;
+
+                if (vm.password !== vm.confirmPassword) {
+                    return Swal.fire(
+                        'Oops!',
+                        'Konfirmasi pasword tidak sesuai',
+                        'warning'
+                    )
+                }
+
                 vm.loading = true;
                 axios.post('/user', {
                         name: vm.name,
@@ -185,14 +216,28 @@
                     })
                     .catch(function(error) {
                         vm.loading = false;
+                        const {
+                            data
+                        } = error.response;
+                        if (data.error_type == 'validation') {
+                            Swal.fire(
+                                'Oops!',
+                                data.message,
+                                'warning'
+                            )
+                        } else {
+                            Swal.fire(
+                                'Oops!',
+                                'Something wrong',
+                                'error'
+                            )
+                        }
                         console.log(error);
-                        Swal.fire(
-                            'Oops!',
-                            'Something wrong',
-                            'error'
-                        )
                     });
-            }
+            },
+            togglePasswordVisibility: function(data) {
+                this[data] = !this[data];
+            },
         }
     })
 </script>

@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Customers</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Quotation</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Customers</a>
+                        <a href="" class="text-muted">Quotation</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Manage</a>
@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
     <div class="card-header flex-wrap py-3">
         <div class="card-title">
-            <h3 class="card-label">List All Estimations
+            <h3 class="card-label">List Quotation
                 <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
             </h3>
         </div>
@@ -151,42 +151,48 @@
             processing: true,
             serverSide: true,
             ajax: '/datatables/quotations',
+            order: [
+                [1, 'desc']
+            ],
             columns: [{
                     data: 'number',
+                    name: 'quotations.number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div><span  class="text-muted font-weight-bold text-hover-primary">${row.title}</span>`;
                     }
                 },
                 {
                     data: 'date',
+                    name: 'quotations.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
                 {
                     data: 'pic_po.name',
-                    name: 'up',
+                    name: 'picPo.name',
                     render: function(data, type) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                 {
                     data: 'title',
-                    name: 'title',
+                    name: 'quotations.title',
                     render: function(data, type) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     },
                     visible: false,
                 },
                 {
-                    data: 'estimations',
-                    name: 'title',
+                    data: 'estimation_number',
+                    name: 'estimations.number',
                     render: function(data, type) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data.length > 0 && data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('')}</div>`;
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     },
                 },
                 {
                     data: 'quantity',
+                    name: 'quotations.quantity',
                     className: 'text-right',
                     render: function(data, type) {
                         return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${Intl.NumberFormat('de-DE').format(data)}</div>`;

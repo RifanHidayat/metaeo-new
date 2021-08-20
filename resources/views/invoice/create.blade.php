@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Faktur</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Faktur</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +25,7 @@
                         <a href="" class="text-muted">Faktur</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">Tambah</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -44,7 +44,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Add Faktur</h3>
+                <h3 class="card-title">Form Faktur</h3>
             </div>
 
             <!--begin::Form-->
@@ -52,12 +52,12 @@
                 <div class="card-body">
                     <div class="row justify-content-between">
                         <div class="col-lg-6 col-sm-12">
-                            <div class="form-group row">
+                            <!-- <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Nomor Faktur:</label>
                                 <div class="col-lg-8">
                                     <span class="label label-xl label-info label-inline ">@{{ number }}</span>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Tanggal Faktur:</label>
                                 <div class="col-lg-8">
@@ -65,9 +65,29 @@
                                 </div>
                             </div>
                             <div class="form-group row">
+                                <label class="col-lg-4 col-form-label text-lg-right">Tenggat Waktu:</label>
+                                <div class="col-lg-8">
+                                    <input type="text" v-model="dueDate" class="form-control due-date" placeholder="Masukkan tanggal faktur" required />
+                                </div>
+                                <!-- <div class="col-lg-4">
+                                    <div class="input-group">
+                                        <input type="text" @input="onInputDueDayAmount($event)" :value="dueDayAmount" class="form-control text-right placeholder-left" required />
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">Hari</span>
+                                        </div>
+                                    </div>
+                                </div> -->
+                            </div>
+                            <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Seri Faktur Pajak:</label>
                                 <div class="col-lg-8">
                                     <input type="text" v-model="taxInvoiceSeries" class="form-control" placeholder="Masukkan seri faktur pajak" />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-lg-4 col-form-label text-lg-right">Nomor GR:</label>
+                                <div class="col-lg-8">
+                                    <input type="text" v-model="grNumber" class="form-control" placeholder="Masukkan nomor GR" />
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -77,6 +97,17 @@
                                 </div>
                             </div>
                             <div class="form-group row">
+                                <label class="col-lg-4 col-form-label text-lg-right">Diskon:</label>
+                                <div class="col-lg-8">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp</span>
+                                        </div>
+                                        <input type="text" v-model="discount" v-cleave="cleaveCurrency" class="form-control text-right placeholder-left" placeholder="Masukkan diskon" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">PIC PO:</label>
                                 <div class="col-lg-8">
                                     <input type="text" v-model="picPo" class="form-control" placeholder="Masukkan nama PIC PO" />
@@ -87,7 +118,7 @@
                                 <div class="col-lg-8">
                                     <input type="text" v-model="picPoPosition" class="form-control" placeholder="Masukkan jabatan PIC PO" />
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Note:</label>
                                 <div class="col-lg-8">
@@ -255,7 +286,7 @@
                                                 <!--begin::Title-->
                                                 <div class="d-flex flex-column">
                                                     <a href="#" class="text-dark font-weight-bold text-hover-primary font-size-h4 mb-0">@{{ quotation.number }} - @{{ quotation.title }}</a>
-                                                    <span class="text-muted font-weight-bold">PT Kalbe Farma | @{{ quotation.date }}</span>
+                                                    <span class="text-muted font-weight-bold">@{{ quotation.customer.name }} | @{{ quotation.date }}</span>
                                                 </div>
                                                 <!--end::Title-->
                                             </div>
@@ -310,6 +341,20 @@
                                         <span class="font-weight-bolder font-size-h5">
                                             <span class="text-dark-50 font-weight-bold">Rp </span>
                                             @{{ Intl.NumberFormat('de-DE').format(netto) }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <!--end: Item-->
+                                <!--begin: Item-->
+                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                    <span class="mr-4">
+                                        <i class="flaticon2-pie-chart-4 icon-2x text-muted font-weight-bold"></i>
+                                    </span>
+                                    <div class="d-flex flex-column text-dark-75">
+                                        <span class="font-weight-bolder font-size-sm">Diskon</span>
+                                        <span class="font-weight-bolder font-size-h5">
+                                            <span class="text-dark-50 font-weight-bold">Rp </span>
+                                            @{{ Intl.NumberFormat('de-DE').format(clearCurrencyMask(discount)) }}
                                         </span>
                                     </div>
                                 </div>
@@ -386,10 +431,26 @@
 @section('script')
 <script src="{{ asset('js/pages/features/miscellaneous/sweetalert2.js') }}"></script>
 <script src="{{ asset('js/terbilang.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
 @endsection
 
 @section('pagescript')
 <script>
+    Vue.directive('cleave', {
+        inserted: (el, binding) => {
+            el.cleave = new Cleave(el, binding.value || {})
+        },
+        update: (el) => {
+            const event = new Event('input', {
+                bubbles: true
+            });
+            setTimeout(function() {
+                el.value = el.cleave.properties.result
+                el.dispatchEvent(event)
+            }, 100);
+        }
+    })
+
     let app = new Vue({
         el: '#app',
         data: {
@@ -397,14 +458,23 @@
             checkedQuotationsIds: [],
             number: '{{ $invoice_number }}',
             date: '',
+            dueDate: '',
             customer: '{{ $sales_order->customer->id }}',
             taxInvoiceSeries: '',
             termsOfPayment: '',
+            grNumber: '',
+            discount: 0,
             picPo: '',
             picPoPosition: '',
             note: '',
             salesOrderId: '{{ $sales_order->id }}',
             loading: false,
+            cleaveCurrency: {
+                delimiter: '.',
+                numeralDecimalMark: ',',
+                numeral: true,
+                numeralThousandsGroupStyle: 'thousand'
+            },
         },
         methods: {
             submitForm: function() {
@@ -418,9 +488,12 @@
                 const data = {
                     number: vm.number,
                     date: vm.date,
+                    due_date: vm.dueDate,
                     customer_id: vm.customer,
                     tax_invoice_series: vm.taxInvoiceSeries,
                     terms_of_payment: vm.termsOfPayment,
+                    gr_number: vm.grNumber,
+                    discount: vm.discount,
                     pic_po: vm.picPo,
                     pic_po_position: vm.picPoPosition,
                     note: vm.note,
@@ -470,6 +543,34 @@
                 // return Number(quantity) - Number(produced) - Number(newProduction);
                 return Number(produced) - Number(shipped) - Number(ship);
             },
+            clearCurrencyMask: function(masked) {
+                if (masked == '' || masked == 0 || typeof(masked) == 'undefined') {
+                    return 0;
+                }
+                return masked.toString().replaceAll('.', '');
+            },
+            // dateDiffInDays: function(a, b) {
+            //     const _MS_PER_DAY = 1000 * 60 * 60 * 24;
+            //     // Discard the time and time-zone information.
+            //     const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+            //     const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+            //     return Math.floor((utc2 - utc1) / _MS_PER_DAY);
+            // },
+            // addDays: function(date, days) {
+            //     var result = new Date(date);
+            //     result.setDate(result.getDate() + days);
+            //     return result;
+            // },
+            // onInputDueDayAmount: function(event) {
+            //     console.log(event.target.value);
+            //     if (this.date == '') {
+            //         return;
+            //     }
+            //     const days = event.target.value;
+            //     const newDate = this.addDays(this.date, days);
+            //     this.dueDate = newDate.getFullYear() + '-' + (newDate.getMonth() + 1) + '-' + newDate.getDate();
+            // }
             // validateProducedQuantity: function(quotation) {
             //     const remainingQuantity = this.remainingQuantity(quotation.quantity, quotation.produced, quotation.production);
             //     if (remainingQuantity < 0) {
@@ -486,12 +587,13 @@
                 return this.quotations.filter(quotation => this.checkedQuotationsIds.indexOf(quotation.id) > -1);
             },
             netto: function() {
+                let vm = this;
                 return this.checkedQuotations.map(quotation => {
                     if (quotation.pivot.estimation == null || typeof quotation.pivot.estimation == 'undefined') {
                         return 0;
                     }
 
-                    const netto = Number(quotation.pivot.estimation.quantity) * Number(quotation.pivot.estimation.price_per_unit);
+                    const netto = (Number(quotation.pivot.estimation.quantity) * Number(quotation.pivot.estimation.price_per_unit));
 
                     return netto;
                 }).reduce((acc, cur) => {
@@ -500,18 +602,18 @@
             },
             ppn: function() {
                 const PERCENTAGE = 10;
-                const netto = isNaN(this.netto) ? 0 : this.netto;
+                const netto = isNaN(this.netto) ? 0 : (this.netto - Number(this.clearCurrencyMask(this.discount)));
                 const ppn = netto * (PERCENTAGE / 100);
                 return ppn;
             },
             pph: function() {
                 const PERCENTAGE = 2;
-                const netto = isNaN(this.netto) ? 0 : this.netto;
+                const netto = isNaN(this.netto) ? 0 : (this.netto - Number(this.clearCurrencyMask(this.discount)));
                 const pph = netto * (PERCENTAGE / 100);
                 return pph;
             },
             total: function() {
-                const total = this.netto + this.ppn - this.pph;
+                const total = (this.netto - Number(this.clearCurrencyMask(this.discount))) + this.ppn - this.pph;
                 return total;
             },
             terbilang: function() {
@@ -548,7 +650,16 @@
                 }).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0);
-            }
+            },
+            // dueDayAmount: function() {
+            //     if (this.date == '' || this.dueDate == '') {
+            //         return 0;
+            //     }
+            //     const a = new Date(this.date)
+            //     const b = new Date(this.dueDate);
+            //     const difference = this.dateDiffInDays(a, b);
+            //     return difference;
+            // }
             // totalRemainingQuantity: function() {
             //     return this.totalQuantity - this.totalProduced;
             // },
@@ -559,11 +670,22 @@
     $(function() {
         $('.invoice-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.date = e.format(0, 'yyyy-mm-dd');
+        });
+
+        $('.due-date').datepicker({
+            format: 'yyyy-mm-dd',
+            todayBtn: false,
+            clearBtn: true,
+            todayHighlight: true,
+            orientation: "bottom left",
+        }).on('changeDate', function(e) {
+            app.$data.dueDate = e.format(0, 'yyyy-mm-dd');
         });
     })
 </script>

@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Group</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Edit Grup</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +25,7 @@
                         <a href="" class="text-muted">Group</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">Edit</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -44,7 +44,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Group Form</h3>
+                <h3 class="card-title">Form Grup</h3>
 
             </div>
             <!--begin::Form-->

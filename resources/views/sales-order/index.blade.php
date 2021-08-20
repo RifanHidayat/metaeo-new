@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Customers</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Sales Order</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Customers</a>
+                        <a href="" class="text-muted">Sales Order</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Manage</a>
@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
     <div class="card-header flex-wrap py-3">
         <div class="card-title">
-            <h3 class="card-label">List All Estimations
+            <h3 class="card-label">List Sales Order
                 <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
             </h3>
         </div>
@@ -156,41 +156,45 @@
             ajax: '/datatables/sales-orders',
             columns: [{
                     data: 'number',
+                    name: 'sales_orders.number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                 {
                     data: 'date',
+                    name: 'sales_orders.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
                 {
                     data: 'po_number',
+                    name: 'sales_orders.po_number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                 {
                     data: 'po_date',
+                    name: 'sales_orders.po_date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
                 {
-                    data: 'quotations',
-                    name: 'number',
-                    render: function(data, type) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${(data.length > 0) ? data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('') : ''}</div>`;
-                    },
+                    data: 'quotation_number',
+                    name: 'quotations.number',
+                    // render: function(data, type) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${(data.length > 0) ? data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('') : ''}</div>`;
+                    // },
                 },
                 {
                     data: 'quotations',
                     name: 'number',
                     className: 'text-right',
                     render: function(data, type) {
-                        return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${(data.length > 0) ? Intl.NumberFormat('de-DE').format(data.map(item => Number(item.quantity)).reduce((acc, cur) => { return acc + cur }, 0)) : ''}</div>`;
+                        return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${(data.length > 0) ? Intl.NumberFormat('de-DE').format(data.map(item => Number(item.selected_estimation.quantity)).reduce((acc, cur) => { return acc + cur }, 0)) : ''}</div>`;
                     },
                 },
                 {

@@ -10,8 +10,13 @@
             font-size: 10px;
         }
 
-        .header {
+        .header-right {
             float: right;
+            width: 25%;
+        }
+
+        .header-left {
+            float: left;
             width: 25%;
         }
 
@@ -46,12 +51,12 @@
         }
 
         .finishing-left {
-            width: 50%;
+            width: 45%;
             float: left;
         }
 
         .finishing-right {
-            width: 50%;
+            width: 45%;
             float: right;
         }
 
@@ -79,25 +84,38 @@
             height: 3px;
             border-top: 1px solid #000;
             border-bottom: 1px solid #000;
-            margin-bottom: 30px;
+            margin: 30px 0;
         }
     </style>
 </head>
+<?php
+function inverseDate($date)
+{
+    return date_format(date_create($date), "d-m-Y");
+}
+?>
 
 <body>
     <div class="header">
-        <p>Job Order Number <strong>#<?= $job_order->number ?></strong></p>
-        <p>SO Number <strong>#<?= $job_order->salesOrder->number ?></strong></p>
-        <p>PO Number <strong>#<?= $job_order->salesOrder->po_number ?></strong></p>
-        <p>Customer <strong>#<?= $job_order->customer->name ?></strong></p>
-        <p>Designer <strong>#<?= $job_order->designer ?></strong></p>
+        <div class="header-left">
+            <p>Tanggal Job Order<strong>: <?= inverseDate($job_order->date) ?></strong></p>
+            <p>Tanggal Finish<strong>: <?= inverseDate($job_order->finish_date) ?></strong></p>
+            <p>Tanggal Kirim<strong>: <?= inverseDate($job_order->delivery_date) ?></strong></p>
+        </div>
+        <div class="header-right">
+            <p>Job Order Number<strong>: <?= $job_order->number ?></strong></p>
+            <p>SO Number<strong>: <?= $job_order->salesOrder->number ?></strong></p>
+            <p>PO Number<strong>: <?= $job_order->salesOrder->po_number ?></strong></p>
+            <p>Customer<strong>: <?= $job_order->customer->name ?></strong></p>
+            <p>Designer<strong>: <?= $job_order->designer ?></strong></p>
+        </div>
     </div>
     <div class="content">
         @foreach($job_order->quotations as $quotation)
         @if($loop->first)
         <div>
             @else
-            <div style="margin-top: 30px;">
+            <div style="margin-top: 80px;">
                 <div class="divider"></div>
                 @endif
                 <table class="table-info">
@@ -124,6 +142,8 @@
                         </tr>
                     </tbody>
                 </table>
+
+                @if(count($quotation->selectedEstimation->offsetItems) > 0)
                 <table>
                     <thead>
                         <tr>
@@ -180,14 +200,21 @@
                             @foreach($quotation->selectedEstimation->offsetItems as $offsetItem)
                             <li><?= $offsetItem->finishing_item ?></li>
                             @endforeach
+                            @foreach($quotation->selectedEstimation->offsetItems as $offsetItem)
+                            @foreach($offsetItem->subItems as $offsetSubItem)
+                            <li><?= $offsetSubItem->finishing_item ?></li>
+                            @endforeach
+                            @endforeach
                         </ul>
                     </div>
                     <div class="finishing-right">
                         <span><strong>Cutting Pola :</strong></span><br><br>
-
+                        <div style="width: 70%; height: 60px; border: 1px solid #000;"></div>
                     </div>
                 </div>
+                @endif
 
+                @if(count($quotation->selectedEstimation->digitalItems) > 0)
                 <div style="margin-top: 100px; clear: both;">
                     <table>
                         <thead>
@@ -242,20 +269,21 @@
                             @endforeach
                         </div> -->
                         <ul style="margin: 0; margin-bottom: 30px;">
-                            @foreach($quotation->selectedEstimation->offsetItems as $offsetItem)
-                            <li><?= $offsetItem->finishing_item ?></li>
+                            @foreach($quotation->selectedEstimation->digitalItems as $digitalItem)
+                            <li><?= $digitalItem->finishing_item ?></li>
                             @endforeach
                         </ul>
                     </div>
                     <div class="finishing-right">
                         <span><strong>Cutting Pola :</strong></span><br><br>
-
+                        <div style="width: 70%; height: 60px; border: 1px solid #000;"></div>
                     </div>
                 </div>
+                @endif
             </div>
             @endforeach
         </div>
-        <div class="summary">
+        <div class="summary" style="clear: both;">
             <table>
                 <thead>
                     <tr>

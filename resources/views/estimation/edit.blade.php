@@ -16,7 +16,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add Estimation</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Edit Estimasi</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -27,7 +27,10 @@
                         <a href="" class="text-muted">Estimation</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">{{ $estimation->number }}</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="" class="text-muted">Edit</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -47,7 +50,7 @@
         <div class="card card-custom card-sticky gutter-b">
             <div class="card-header ribbon ribbon-top">
                 <div class="card-title">
-                    <h3 class="card-label">Estimation Form</h3>
+                    <h3 class="card-label">Form Estimasi</h3>
                 </div>
                 <div class="ribbon-target bg-warning" style="top: -2px; right: 20px;">Open</div>
                 <!-- <div class="card-toolbar">
@@ -165,15 +168,54 @@
                             <textarea v-model="note" class="form-control" rows="3"></textarea>
                         </div>
                         <div class="col-lg-6">
-                            <label>Upload File:</label>
-                            <input type="file">
+                            <div class="form-group">
+                                <label>File (Max. 2MB)</label>
+                                <div></div>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="customFile" ref="fileUpload" v-on:change="handleFileUpload" accept=".jpg, .jpeg, .png, .pdf, .doc, .xls, .xlsx">
+                                    <label ref="fileUploadLabel" id="file-upload-label" class="custom-file-label" for="customFile">Choose file</label>
+                                </div>
+                                <p v-if="previewFile.size !== '' && previewFile.size > (2048 * 1000)"><i class="flaticon-warning text-warning"></i> Ukuran file max. 2 MB. File tidak akan terkirim</p>
+                            </div>
+                            <div v-if="file">
+                                <div class="card card-custom gutter-b card-stretch">
+                                    <div class="card-body">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <!--begin: Icon-->
+                                            <img alt="" class="max-h-100px" :src="fileTypeImage">
+                                            <!--end: Icon-->
+                                            <!--begin: Tite-->
+                                            <span href="#" class="text-dark-75 font-weight-bold mt-5 font-size-lg">@{{ previewFile.name }}</span>
+                                            <a href="#" @click.prevent="removeFile" class="d-block text-danger font-weight-bold">Remove</a>
+                                            <!--end: Tite-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="oldFile && !file">
+                                <div class="card card-custom gutter-b card-stretch">
+                                    <div class="card-body">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <!--begin: Icon-->
+                                            <img alt="" class="max-h-100px" :src="oldFileTypeImage">
+                                            <!--end: Icon-->
+                                            <!--begin: Tite-->
+                                            <a href="{{ $estimation->file ? Storage::disk('s3')->url($estimation->file) : '/media/svg/files/jpg.svg' }}" target="_blank" class=" mt-5">
+                                                <span href="#" class="text-dark-75 font-weight-bold font-size-lg">@{{ oldFile }}</span>
+                                            </a>
+                                            <a href="#" @click.prevent="removeOldFile" class="d-block text-danger font-weight-bold">Remove</a>
+                                            <!--end: Tite-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="separator separator-dashed my-10"></div>
                     <div class="d-flex justify-content-between mb-10">
                         <div class="">
-                            <h3 class="text-dark font-weight-bold">Estimation Items</h3>
+                            <h3 class="text-dark font-weight-bold">Item Estimasi</h3>
                         </div>
                         <div class="">
                             <div class="btn-group">
@@ -373,9 +415,10 @@
                     <td><input v-model="item.color2" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
                     <!-- Paper -->
                     <td>
-                        <select v-model="item.paperType" @input="calculate(item)" class="form-control" style="width: 150px;">
-                        <option value="0">HVS</option>
-                        </select>
+                        <!-- <select v-model="item.paperType" @input="calculate(item)" class="form-control" style="width: 150px;">
+                        <option value="0">HVS</option> 
+                        </select> -->
+                        <input v-model="item.paperType" type="text" class="form-control" style="width: 250px;" placeholder="Enter Paper">
                     </td>
                     <td><input v-model="item.paperSizePlanoP" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
                     <td><input v-model="item.paperSizePlanoL" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
@@ -545,11 +588,7 @@
                     <tr :key="item.id">
                     <td><input v-model="item.item" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
                     <td>
-                        <select v-model="item.paper" class="form-control" style="width: 150px;">
-                        <option value="0">Fancy</option>
-                        <option value="1">Biasa</option>
-                        <option value="2">Sticker</option>
-                        </select>
+                        <input v-model="item.paper" type="text" class="form-control" style="width: 250px;" placeholder="Enter Paper">
                     </td>
                     <td><input v-model="item.printingType" type="text" class="form-control bg-light" style="width: 250px;" value="BBL"></td>
                     <!-- Color -->
@@ -667,6 +706,13 @@
             // pph: 0,
             // totalDebt: 0,
             note: '',
+            file: '',
+            previewFile: {
+                name: '',
+                size: '',
+                type: '',
+            },
+            oldFile: '{{ $estimation->file }}',
             offsetItems: JSON.parse('{!! json_encode($estimation->offset_items) !!}'),
             // offsetItems: [{
             //     id: 0,
@@ -735,8 +781,8 @@
                 finishing: 0,
                 total: 0,
             },
-            customers: JSON.parse('{!! $customers !!}'),
-            customersAll: JSON.parse('{!! $customers_all !!}'),
+            customers: JSON.parse(String.raw `{!! $customers !!}`),
+            customersAll: JSON.parse(String.raw `{!! $customers_all !!}`),
             picPos: [],
             // picPosOptions: [{
             //     id: '',
@@ -809,9 +855,94 @@
             totalDebt: function() {
                 const totalDebt = Number(this.clearCurrencyMask(this.totalSellPrice)) + Number(this.clearCurrencyMask(this.ppn)) - Number(this.clearCurrencyMask(this.pph))
                 return this.toThousandFormat(totalDebt);
+            },
+            fileTypeImage: function() {
+                const path = '/media/svg/files/';
+                switch (this.previewFile.type) {
+                    case 'pdf':
+                        return path + 'pdf.svg';
+                    case 'xls':
+                    case 'xlsx':
+                        return path + 'csv.svg';
+                    case 'jpg':
+                    case 'png':
+                    case 'jpeg':
+                        return path + 'jpg.svg';
+                    case 'doc':
+                    case 'docx':
+                        return path + 'doc.svg';
+                    default:
+                        return path + 'jpg.svg';
+                }
+            },
+            oldFileTypeImage: function() {
+                const path = '/media/svg/files/';
+                let splittedOldFile = this.oldFile.split('.');
+                const type = splittedOldFile[splittedOldFile.length - 1];
+                switch (type) {
+                    case 'pdf':
+                        return path + 'pdf.svg';
+                    case 'xls':
+                    case 'xlsx':
+                        return path + 'csv.svg';
+                    case 'jpg':
+                    case 'png':
+                    case 'jpeg':
+                        return path + 'jpg.svg';
+                    case 'doc':
+                    case 'docx':
+                        return path + 'doc.svg';
+                    default:
+                        return path + 'jpg.svg';
+                }
             }
         },
         methods: {
+            handleFileUpload: function() {
+                let file = this.$refs.fileUpload.files[0];
+
+                if (!file) {
+                    this.$refs.fileUpload.value = '';
+                    // this.resetFileUploadLabel();
+                    return;
+                }
+
+                const MAX_SIZE = 2.048;
+                const MULTIPLIER = 1000000;
+
+                console.log(file);
+                if (file.size > MAX_SIZE * MULTIPLIER) {
+                    this.$refs.fileUpload.value = '';
+                    this.resetFileUploadLabel();
+                    // document.getElementById('file-upload-label').innerHTML = 'Choose file';
+                    toastr.warning("Ukuran file max. 2MB");
+                    return;
+                }
+
+                this.$refs.fileUploadLabel.innerHTML = file.name;
+
+                this.previewFile.name = file.name;
+                this.previewFile.size = file.size;
+                let splittedFileName = file.name.split('.');
+                this.previewFile.type = splittedFileName[splittedFileName.length - 1];
+                this.file = file;
+                this.oldFile = '';
+            },
+            removeFile: function() {
+                this.file = '';
+                this.$refs.fileUpload.value = '';
+                this.resetFileUploadLabel();
+                // Object.keys(this.previewFile).forEach(function(index) {
+                //     this.previewFile[index] = '';
+                // });
+            },
+            removeOldFile: function() {
+                this.oldFile = '';
+            },
+            resetFileUploadLabel: function() {
+                this.$refs.fileUploadLabel.classList.remove('selected');
+                this.$refs.fileUploadLabel.innerHTML = 'Choose file';
+            },
             submitForm: function() {
                 this.sendData();
             },
@@ -839,11 +970,18 @@
                     delivery_date: this.deliveryDate,
                     status: this.status,
                     note: this.note,
-                    offsetItems: this.offsetItems,
-                    digitalItems: this.digitalItems,
+                    file: this.file,
+                    old_file: this.oldFile,
+                    offsetItems: JSON.stringify(this.offsetItems),
+                    digitalItems: JSON.stringify(this.digitalItems),
                 }
 
-                axios.patch('/estimation/{{ $estimation->id }}', data)
+                let formData = new FormData();
+                for (var key in data) {
+                    formData.append(key, data[key]);
+                }
+
+                axios.post('/estimation/{{ $estimation->id }}', formData)
                     .then(function(response) {
                         vm.loading = false;
                         Swal.fire({
@@ -1204,6 +1342,7 @@
             format: 'yyyy-mm-dd',
             todayBtn: true,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.date = e.format(0, 'yyyy-mm-dd');
@@ -1213,6 +1352,7 @@
             format: 'yyyy-mm-dd',
             todayBtn: true,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.deliveryDate = e.format(0, 'yyyy-mm-dd');
@@ -1232,10 +1372,6 @@
         //     numeralThousandsGroupStyle: 'thousand'
         //   });
         // })
-
-        FilePond.registerPlugin(FilePondPluginImagePreview);
-        const inputElement = document.querySelector('input[type="file"]');
-        const pond = FilePond.create(inputElement);
     });
 </script>
 @endsection

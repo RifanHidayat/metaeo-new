@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
@@ -25,9 +26,14 @@ class InvoiceController extends Controller
 
     public function indexData()
     {
-        $invoices = Invoice::with(['quotations', 'salesOrder']);
+        $invoices = Invoice::with(['quotations', 'salesOrder', 'payments'])->select('invoices.*');
         return DataTables::of($invoices)
             ->addIndexColumn()
+            ->addColumn('quotation_number', function (Invoice $invoice) {
+                return $invoice->quotations->map(function ($quotation) {
+                    return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
+                })->implode("");
+            })
             ->addColumn('action', function ($row) {
                 $button = '
                 <div class="text-center">
@@ -45,11 +51,46 @@ class InvoiceController extends Controller
                   <path d="M14,4.5 L14,4 C14,3.44771525 13.5522847,3 13,3 L11,3 C10.4477153,3 10,3.44771525 10,4 L10,4.5 L5.5,4.5 C5.22385763,4.5 5,4.72385763 5,5 L5,5.5 C5,5.77614237 5.22385763,6 5.5,6 L18.5,6 C18.7761424,6 19,5.77614237 19,5.5 L19,5 C19,4.72385763 18.7761424,4.5 18.5,4.5 L14,4.5 Z" fill="#000000" opacity="0.3"></path>
                 </g>
               </svg> </span> </a>
+              <div class="dropdown dropdown-inline" data-toggle="tooltip" title="" data-placement="left" data-original-title="Quick actions">
+                        <a href="#" class="btn btn-clean btn-hover-light-primary btn-sm btn-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="ki ki-bold-more-hor"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                            <!--begin::Navigation-->
+                            <ul class="navi navi-hover">
+                                <li class="navi-item">
+                                    <a href="/invoice/detail/' . $row->id . '" class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon-interface-4"></i>
+                                        </span>
+                                        <span class="navi-text">Detail</span>
+                                    </a>
+                                </li>
+                                <li class="navi-item">
+                                    <a href="/invoice/print/' . $row->id . '" target="_blank" class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon2-print"></i>
+                                        </span>
+                                        <span class="navi-text">Cetak</span>
+                                    </a>
+                                </li>
+                                <li class="navi-item">
+                                    <a href="/invoice/print-v2/' . $row->id . '" target="_blank" class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon2-print"></i>
+                                        </span>
+                                        <span class="navi-text">Cetak Berdasarkan Delivery Order</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            <!--end::Navigation-->
+                        </div>
+                    </div>
                 </div>
                 ';
                 return $button;
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['quotation_number', 'action'])
             ->make(true);
     }
 
@@ -60,8 +101,10 @@ class InvoiceController extends Controller
      */
     public function create(Request $request)
     {
+        // return printTest();
+
         $salesOrderId = $request->query('so');
-        $salesOrder = SalesOrder::with(['quotations.selectedEstimation', 'customer'])->find($salesOrderId);
+        $salesOrder = SalesOrder::with(['quotations.selectedEstimation', 'customer', 'quotations.customer'])->find($salesOrderId);
 
         if ($salesOrderId == null || $salesOrder == null) {
             // abort(404);
@@ -125,10 +168,14 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $invoice = new Invoice;
-        $invoice->number = $request->number;
+        // $invoice->number = $request->number;
+        $invoice->number = getRecordNumber(new Invoice, 'INV');
         $invoice->date = $request->date;
+        $invoice->due_date = $request->due_date;
         $invoice->tax_invoice_series = $request->tax_invoice_series;
         $invoice->terms_of_payment = $request->terms_of_payment;
+        $invoice->gr_number = $request->gr_number;
+        $invoice->discount = $this->clearThousandFormat($request->discount);
         $invoice->pic_po = $request->pic_po;
         $invoice->pic_po_position = $request->pic_po_position;
         $invoice->note = $request->note;
@@ -215,7 +262,40 @@ class InvoiceController extends Controller
      */
     public function show($id)
     {
-        //
+        $invoice = Invoice::with(['quotations.selectedEstimation', 'payments.transaction' => function ($q) {
+            $q->orderBy('date', 'DESC');
+        }, 'customer'])->findOrFail($id);
+
+        $totalPaid = collect($invoice->payments)->sum('amount');
+        $totalUnpaid = $invoice->total - $totalPaid;
+
+        $summary = [
+            [
+                'title' => 'TOTAL INVOICE',
+                'amount' => $invoice->total,
+            ],
+            [
+                'title' => 'TOTAL PAID',
+                'amount' => $totalPaid,
+            ],
+            [
+                'title' => 'TOTAL UNPAID',
+                'amount' => $totalUnpaid,
+            ],
+        ];
+
+        $status = 'incomplete';
+
+        if ($totalUnpaid <= 0) {
+            $status = 'complete';
+        }
+
+        // return $invoice;
+        return view('invoice.detail', [
+            'invoice' => $invoice,
+            'summary' => $summary,
+            'status' => $status,
+        ]);
     }
 
     /**
@@ -295,8 +375,11 @@ class InvoiceController extends Controller
         $invoice = Invoice::find($id);
         $invoice->number = $request->number;
         $invoice->date = $request->date;
+        $invoice->due_date = $request->due_date;
         $invoice->tax_invoice_series = $request->tax_invoice_series;
         $invoice->terms_of_payment = $request->terms_of_payment;
+        $invoice->gr_number = $request->gr_number;
+        $invoice->discount = $this->clearThousandFormat($request->discount);
         $invoice->pic_po = $request->pic_po;
         $invoice->pic_po_position = $request->pic_po_position;
         $invoice->note = $request->note;
@@ -393,16 +476,88 @@ class InvoiceController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $invoice = Invoice::find($id);
+        $quotations = $invoice->quotations;
+
+        try {
+            foreach ($quotations as $quotation) {
+                $quotationRow = Quotation::find($quotation->id);
+                if ($quotationRow == null) {
+                    continue;
+                }
+                // DIfferent formula with store
+                $quotationRow->paid = 0;
+                $quotationRow->save();
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
+
+        try {
+            $invoice->quotations()->detach();
+            $invoice->delete();
+            return [
+                'message' => 'data has been deleted',
+                'error' => false,
+                'code' => 200,
+            ];
+        } catch (Exception $e) {
+            return [
+                'message' => 'internal error',
+                'error' => true,
+                'code' => 500,
+                'errors' => $e,
+            ];
+        }
     }
 
     public function print($id)
     {
-        $invoice = Invoice::with(['quotations'])->findOrFail($id);
+        $invoice = Invoice::with(['quotations', 'customer', 'salesOrder'])->findOrFail($id);
+
+        $company = Company::all()->first();
+
+        if ($company == null) {
+            $newCompany = new Company;
+            $newCompany->save();
+            $company = Company::all()->first();
+        }
 
         $pdf = PDF::loadView('invoice.print', [
             'invoice' => $invoice,
+            'company' => $company,
         ]);
         return $pdf->stream($invoice->number . '.pdf');
+    }
+
+    public function printByDeliveryOrder($id)
+    {
+        $invoice = Invoice::with(['quotations', 'customer', 'salesOrder.deliveryOrders.quotations'])->findOrFail($id);
+
+        // return $invoice;
+        $company = Company::all()->first();
+
+        if ($company == null) {
+            $newCompany = new Company;
+            $newCompany->save();
+            $company = Company::all()->first();
+        }
+
+        $pdf = PDF::loadView('invoice.printv2', [
+            'invoice' => $invoice,
+            'company' => $company,
+        ]);
+        // $pdf->setPaper('a5', 'landscape');
+        return $pdf->stream($invoice->number . '.pdf');
+    }
+
+    private function clearThousandFormat($number)
+    {
+        return str_replace(".", "", $number);
     }
 }

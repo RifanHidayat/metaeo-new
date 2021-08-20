@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Customers</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Grup</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Customers</a>
+                        <a href="" class="text-muted">Group</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Manage</a>
@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
     <div class="card-header flex-wrap py-3">
         <div class="card-title">
-            <h3 class="card-label">List All Customers
+            <h3 class="card-label">List Grup
                 <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
             </h3>
         </div>
@@ -73,7 +73,7 @@
             <thead>
                 <tr class="text-center">
                     <th>No</th>
-                    <th>Name</th>
+                    <th>Nama</th>
                     <th>Action</th>
                 </tr>
             </thead>

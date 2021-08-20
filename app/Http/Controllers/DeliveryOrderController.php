@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\DeliveryOrder;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
@@ -25,9 +26,14 @@ class DeliveryOrderController extends Controller
 
     public function indexData()
     {
-        $deliveryOrders = DeliveryOrder::with(['quotations', 'salesOrder']);
-        return DataTables::of($deliveryOrders)
+        $deliveryOrders = DeliveryOrder::with(['quotations', 'salesOrder'])->select('delivery_orders.*');
+        return DataTables::eloquent($deliveryOrders)
             ->addIndexColumn()
+            ->addColumn('quotation_number', function (DeliveryOrder $deliveryOrder) {
+                return $deliveryOrder->quotations->map(function ($quotation) {
+                    return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
+                })->implode("");
+            })
             ->addColumn('action', function ($row) {
                 $button = '
                 <div class="text-center">
@@ -45,11 +51,31 @@ class DeliveryOrderController extends Controller
                   <path d="M14,4.5 L14,4 C14,3.44771525 13.5522847,3 13,3 L11,3 C10.4477153,3 10,3.44771525 10,4 L10,4.5 L5.5,4.5 C5.22385763,4.5 5,4.72385763 5,5 L5,5.5 C5,5.77614237 5.22385763,6 5.5,6 L18.5,6 C18.7761424,6 19,5.77614237 19,5.5 L19,5 C19,4.72385763 18.7761424,4.5 18.5,4.5 L14,4.5 Z" fill="#000000" opacity="0.3"></path>
                 </g>
               </svg> </span> </a>
+              <div class="dropdown dropdown-inline" data-toggle="tooltip" title="" data-placement="left" data-original-title="Quick actions">
+                        <a href="#" class="btn btn-clean btn-hover-light-primary btn-sm btn-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="ki ki-bold-more-hor"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                            <!--begin::Navigation-->
+                            <ul class="navi navi-hover">
+                                <li class="navi-item">
+                                    <a href="/delivery-order/print/' . $row->id . '" target="_blank" class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon2-print"></i>
+                                        </span>
+                                        <span class="navi-text">Cetak</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            <!--end::Navigation-->
+                        </div>
+                    </div>
                 </div>
+                
                 ';
                 return $button;
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['quotation_number', 'action'])
             ->make(true);
     }
 
@@ -61,7 +87,7 @@ class DeliveryOrderController extends Controller
     public function create(Request $request)
     {
         $salesOrderId = $request->query('so');
-        $salesOrder = SalesOrder::with(['quotations.selectedEstimation', 'customer'])->find($salesOrderId);
+        $salesOrder = SalesOrder::with(['quotations.selectedEstimation', 'customer.warehouses', 'quotations.customer'])->find($salesOrderId);
 
         if ($salesOrderId == null || $salesOrder == null) {
             // abort(404);
@@ -127,7 +153,8 @@ class DeliveryOrderController extends Controller
     public function store(Request $request)
     {
         $deliveryOrder = new DeliveryOrder;
-        $deliveryOrder->number = $request->number;
+        // $deliveryOrder->number = $request->number;
+        $deliveryOrder->number = getRecordNumber(new DeliveryOrder, 'DO');
         $deliveryOrder->date = $request->date;
         $deliveryOrder->customer_id = $request->customer_id;
         $deliveryOrder->warehouse = $request->warehouse;
@@ -223,7 +250,7 @@ class DeliveryOrderController extends Controller
      */
     public function edit($id)
     {
-        $deliveryOrder = DeliveryOrder::with(['quotations', 'salesOrder', 'customer'])->findOrFail($id);
+        $deliveryOrder = DeliveryOrder::with(['quotations.selectedEstimation', 'salesOrder', 'customer.warehouses'])->findOrFail($id);
 
         $checkedQuotations = collect($deliveryOrder->quotations)->pluck('id')->all();
 
@@ -423,10 +450,19 @@ class DeliveryOrderController extends Controller
 
     public function print($id)
     {
-        $deliveryOrder = DeliveryOrder::with(['quotations'])->findOrFail($id);
+        $deliveryOrder = DeliveryOrder::with(['quotations', 'salesOrder'])->findOrFail($id);
+
+        $company = Company::all()->first();
+
+        if ($company == null) {
+            $newCompany = new Company;
+            $newCompany->save();
+            $company = Company::all()->first();
+        }
 
         $pdf = PDF::loadView('delivery-order.print', [
             'delivery_order' => $deliveryOrder,
+            'company' => $company,
         ]);
         return $pdf->stream($deliveryOrder->number . '.pdf');
     }

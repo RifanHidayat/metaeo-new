@@ -47,7 +47,7 @@
         <div class="row justify-content-center py-8 px-8 py-md-27 px-md-0">
             <div class="col-md-9">
                 <div class="d-flex justify-content-between pb-10 pb-md-20 flex-column flex-md-row">
-                    <h1 class="display-4 font-weight-boldest mb-10">TRANSAKSI</h1>
+                    <h1 class="display-4 font-weight-boldest mb-10">{{ $transaction->number }}</h1>
                     <div class="d-flex flex-column align-items-md-end px-0">
                         <!--begin::Logo-->
                         <a href="#" class="mb-5">
@@ -55,9 +55,10 @@
                         </a>
                         <!--end::Logo-->
                         <span class="d-flex flex-column align-items-md-end opacity-70">
-                            <span>PT. Magenta Mediatama</span>
+                            <h3>Detail Transaksi</h3>
+                            <!-- <span>PT. Magenta Mediatama</span>
                             <span>Jl. Raya Kebayoran Lama No. 15 RT.04 RW.03 Grogol Utara,</span>
-                            <span>Kebayoran Lama, Jakarta Selatan DKI Jakarta-12210</span>
+                            <span>Kebayoran Lama, Jakarta Selatan DKI Jakarta-12210</span> -->
                             <!-- <span>Phone (021)53660077 - 88; Fax (021)5366099</span> -->
                         </span>
                     </div>
@@ -96,7 +97,7 @@
                         <tbody>
                             @foreach($transaction->payments as $payment)
                             <tr class="font-weight-boldest">
-                                <td class="pl-0 pt-7">Pembayaran Faktur <a href="/invoice/edit/{{ $payment->invoice->id }}" target="_blank">#{{ $payment->invoice->number }}</a></td>
+                                <td class="pl-0 pt-7">Pembayaran Faktur <a href="/invoice/detail/{{ $payment->invoice->id }}" target="_blank">#{{ $payment->invoice->number }}</a></td>
                                 <!-- <td class="text-right pt-7">80</td>
                                 <td class="text-right pt-7">$40.00</td> -->
                                 <td class="text-danger pr-0 pt-7 text-right">Rp {{ number_format($payment->amount) }}</td>

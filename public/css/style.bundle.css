@@ -54213,6 +54213,17 @@ code {
       border-left-color: transparent;
       padding-bottom: 0; }
 
+      .timeline.timeline-5 .timeline-items .timeline-item .timeline-desc::before {
+        content: "";
+        position: absolute;
+        width: 4px;
+        height: calc(100% - 32px);
+        background-color: #EBEDF3;
+        border-radius: 6px;
+        top: 40px;
+        left: 16px;
+      }
+
 .timeline.timeline-6 {
   position: relative; }
   .timeline.timeline-6:before {

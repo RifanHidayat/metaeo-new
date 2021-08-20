@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Customers</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage SPK</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Customers</a>
+                        <a href="" class="text-muted">SPK</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Manage</a>
@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
     <div class="card-header flex-wrap py-3">
         <div class="card-title">
-            <h3 class="card-label">List Job Order
+            <h3 class="card-label">List SPK
                 <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
             </h3>
         </div>
@@ -76,6 +76,7 @@
                     <th>Tanggal Job Order</th>
                     <th>Nomor SO</th>
                     <th>Nomor PO</th>
+                    <th>Quotation</th>
                     <th>Quantity Produksi</th>
                     <th>Action</th>
                 </tr>
@@ -150,31 +151,44 @@
             processing: true,
             serverSide: true,
             ajax: '/datatables/spk',
+            order: [
+                [1, 'desc']
+            ],
             columns: [{
                     data: 'number',
+                    name: 'job_orders.number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                 {
                     data: 'date',
+                    name: 'job_orders.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
                 {
                     data: 'sales_order.number',
-                    name: 'number',
+                    name: 'salesOrder.number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                 {
                     data: 'sales_order.po_number',
-                    name: 'number',
+                    name: 'salesOrder.po_number',
                     render: function(data, type) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
+                },
+                {
+                    data: 'quotation_number',
+                    name: 'quotations.number',
+                    // className: 'text-right',
+                    // render: function(data, type) {
+                    //     return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${data.length > 0 && Intl.NumberFormat('de-DE').format(data.map(item => Number(item.pivot.produced)).reduce((acc, cur) => { return acc + cur }, 0))}</div>`;
+                    // },
                 },
                 {
                     data: 'quotations',

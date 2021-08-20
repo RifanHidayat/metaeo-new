@@ -14,7 +14,7 @@
       <!--begin::Page Heading-->
       <div class="d-flex align-items-baseline flex-wrap mr-5">
         <!--begin::Page Title-->
-        <h5 class="text-dark font-weight-bold my-1 mr-5">Add PIC PO</h5>
+        <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah PIC PO</h5>
         <!--end::Page Title-->
         <!--begin::Breadcrumb-->
         <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +25,7 @@
             <a href="" class="text-muted">PIC PO</a>
           </li>
           <li class="breadcrumb-item">
-            <a href="" class="text-muted">Add</a>
+            <a href="" class="text-muted">Tambah</a>
           </li>
         </ul>
         <!--end::Breadcrumb-->
@@ -44,7 +44,7 @@
   <div class="col-lg-12">
     <div class="card card-custom gutter-b">
       <div class="card-header">
-        <h3 class="card-title">PIC PO Form</h3>
+        <h3 class="card-title">Form PIC PO</h3>
 
       </div>
       <!--begin::Form-->
@@ -52,19 +52,19 @@
         <div class="card-body">
           <div class="form-group row">
             <div class="col-lg-6">
-              <label>Name:<span class="text-danger">*</span></label>
+              <label>Nama:<span class="text-danger">*</span></label>
               <input v-model="name" type="text" class="form-control" placeholder="Enter pic's name" required>
               <span class="form-text text-muted">Please enter pic's name</span>
             </div>
             <div class="col-lg-6">
-              <label>Position:</label>
+              <label>Jabatan:</label>
               <input v-model="position" type="text" class="form-control" placeholder="Enter pic's position">
               <span class="form-text text-muted">Please enter pic's position (Optional)</span>
             </div>
           </div>
           <div class="form-group row">
             <div class="col-lg-6">
-              <label>Contact Number:<span class="text-danger">*</span></label>
+              <label>Telepon:<span class="text-danger">*</span></label>
               <input v-model="phone" type="text" class="form-control" placeholder="Enter pic's contact number">
               <span class="form-text text-muted">Please enter pic's contact number (Optional)</span>
             </div>

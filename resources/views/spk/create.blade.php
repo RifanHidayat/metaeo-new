@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Add SPK</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah SPK</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -25,7 +25,7 @@
                         <a href="" class="text-muted">SPK</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Add</a>
+                        <a href="" class="text-muted">Tambah</a>
                     </li>
                 </ul>
                 <!--end::Breadcrumb-->
@@ -44,7 +44,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Add SPK</h3>
+                <h3 class="card-title">Form SPK</h3>
             </div>
 
             <!--begin::Form-->
@@ -109,12 +109,12 @@
 
                     <div class="row justify-content-between">
                         <div class="col-lg-6">
-                            <div class="form-group row">
+                            <!-- <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Job Order Number:</label>
                                 <div class="col-lg-8">
                                     <input type="text" v-model="number" class="form-control" readonly />
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Tanggal Job Order:</label>
                                 <div class="col-lg-8">
@@ -196,12 +196,17 @@
                             </div>
                             <div>
                                 <div class="row align-items-center" v-for="(quotation, index) in quotations" :key="quotation.id" :quotation="quotation">
+
                                     <div class="col-md-1">
-                                        <label class="checkbox checkbox-lg">
+                                        <div v-if="isCompleted(quotation)">
+                                            <i class="flaticon2-correct text-success icon-2x"></i>
+                                        </div>
+                                        <label v-else class="checkbox checkbox-lg">
                                             <input type="checkbox" v-model="checkedQuotationsIds" :value="quotation.id" />
                                             <span></span>
                                         </label>
                                     </div>
+
                                     <div class="col-md-11 card card-custom gutter-b card-stretch card-border ribbon ribbon-top">
                                         <!-- <div :class="'ribbon-target bg-primary text-capitalize'" style="top: -2px; left: 20px;">Closed</div> -->
                                         <!--begin::Body-->
@@ -211,7 +216,7 @@
                                                 <!--begin::Title-->
                                                 <div class="d-flex flex-column">
                                                     <a href="#" class="text-dark font-weight-bold text-hover-primary font-size-h4 mb-0">@{{ quotation.number }} - @{{ quotation.title }}</a>
-                                                    <span class="text-muted font-weight-bold">PT Kalbe Farma | @{{ quotation.date }}</span>
+                                                    <span class="text-muted font-weight-bold">@{{ quotation.customer.name }} | @{{ quotation.date }}</span>
                                                 </div>
                                                 <!--end::Title-->
                                             </div>
@@ -240,13 +245,13 @@
                                                     <span class="text-muted font-weight-bold">Rp @{{ Intl.NumberFormat('de-DE').format(quotation.selected_estimation.total_bill) }}</span>
                                                 </div>
 
-                                                <div class="d-flex justify-content-between align-items-center mt-5">
+                                                <div v-if="!isCompleted(quotation)" class="d-flex justify-content-between align-items-center mt-5">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Quantity Akan Diproduksi:</span>
                                                     <div>
                                                         <input type="number" v-model="quotation['production']" @input="validateProducedQuantity(quotation)" class="form-control">
                                                     </div>
                                                 </div>
-                                                <div class="d-flex justify-content-between align-items-center mt-5">
+                                                <div v-if="!isCompleted(quotation)" class="d-flex justify-content-between align-items-center mt-5">
                                                     <span class="text-dark-75 font-weight-bolder mr-2">Quantity Sisa:</span>
                                                     <span class="text-muted font-weight-bold">@{{ Intl.NumberFormat('de-DE').format(remainingQuantity(quotation.selected_estimation.quantity, quotation.produced, quotation.production)) }}</span>
                                                 </div>
@@ -283,7 +288,7 @@
                                         <i class="flaticon2-reload icon-2x text-muted font-weight-bold"></i>
                                     </span>
                                     <div class="d-flex flex-column text-dark-75">
-                                        <span class="font-weight-bolder font-size-sm">Quantity Produksi</span>
+                                        <span class="font-weight-bolder font-size-sm">Quantity Akan Diproduksi</span>
                                         <span class="font-weight-bolder font-size-h5">
                                             @{{ Intl.NumberFormat('de-DE').format(totalProduced) }}
                                             <span class="text-dark-50 font-weight-bold">Pcs</span></span>
@@ -420,6 +425,14 @@
             remainingQuantity: function(quantity, produced, production) {
                 const newProduction = isNaN(production) ? 0 : production;
                 return Number(quantity) - Number(produced) - Number(newProduction);
+            },
+            isCompleted: function(quotation) {
+                const remainingQuantity = quotation.selected_estimation.quantity - quotation.produced;
+                if (remainingQuantity <= 0) {
+                    return true;
+                }
+
+                return false;
             }
         },
         computed: {
@@ -451,8 +464,9 @@
     $(function() {
         $('.job-order-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.date = e.format(0, 'yyyy-mm-dd');
@@ -460,8 +474,9 @@
 
         $('.finish-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.finishDate = e.format(0, 'yyyy-mm-dd');
@@ -469,8 +484,9 @@
 
         $('.delivery-date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
             clearBtn: true,
+            todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.deliveryDate = e.format(0, 'yyyy-mm-dd');

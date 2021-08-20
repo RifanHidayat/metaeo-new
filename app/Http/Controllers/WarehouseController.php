@@ -91,7 +91,11 @@ class WarehouseController extends Controller
      */
     public function edit($id)
     {
-        //
+        $warehouse = Warehouse::findOrFail($id);
+
+        return view('warehouse.edit', [
+            'warehouse' => $warehouse,
+        ]);
     }
 
     /**
@@ -103,7 +107,29 @@ class WarehouseController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $warehouse = Warehouse::find($id);
+        $warehouse->name = $request->name;
+        $warehouse->pic = $request->pic;
+        $warehouse->contact = $request->contact;
+        $warehouse->address = $request->address;
+        // $warehouse->customer_id = $request->customer_id;
+
+        try {
+            $warehouse->save();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $warehouse,
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
     }
 
     /**
@@ -114,6 +140,21 @@ class WarehouseController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $warehouse = Warehouse::find($id);
+        try {
+            $warehouse->delete();
+            return [
+                'message' => 'data has been deleted',
+                'error' => false,
+                'code' => 200,
+            ];
+        } catch (Exception $e) {
+            return [
+                'message' => 'internal error',
+                'error' => true,
+                'code' => 500,
+                'errors' => $e,
+            ];
+        }
     }
 }

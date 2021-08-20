@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Transactions</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Transaksi</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Transactions</a>
+                        <a href="" class="text-muted">Transaction</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Manage</a>
@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
     <div class="card-header flex-wrap py-3">
         <div class="card-title">
-            <h3 class="card-label">List All Transactions
+            <h3 class="card-label">List Transaksi
                 <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
             </h3>
         </div>
@@ -68,8 +68,21 @@
         </div>
     </div>
     <div class="card-body">
+        <table class="table datatable datatable-bordered datatable-head-custom" id="transaction-table">
+            <thead>
+                <tr class="text-center">
+                    <th>Number</th>
+                    <th>Tanggal</th>
+                    <th>Customer</th>
+                    <th>Faktur</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
         <!--begin: Datatable-->
-        <table class="table table-bordered" id="basic-table">
+        <!-- <table class="table table-bordered" id="basic-table">
             <thead>
                 <tr class="text-center">
                     <th>Number</th>
@@ -106,7 +119,6 @@
                                 <i class="ki ki-bold-more-hor"></i>
                             </a>
                             <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
-                                <!--begin::Navigation-->
                                 <ul class="navi navi-hover">
                                     <li class="navi-item">
                                         <a href="/transaction/detail/{{ $transaction->id }}" class="navi-link">
@@ -117,14 +129,13 @@
                                         </a>
                                     </li>
                                 </ul>
-                                <!--end::Navigation-->
                             </div>
                         </div>
                     </td>
                 </tr>
                 @endforeach
             </tbody>
-        </table>
+        </table> -->
         <!--end: Datatable-->
     </div>
 </div>
@@ -189,7 +200,104 @@
 </script>
 <script>
     $(function() {
-        $('#basic-table').DataTable();
+        const transactionsTable = $('#transaction-table').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: '/datatables/transactions',
+            order: [
+                [1, 'desc']
+            ],
+            columns: [{
+                    data: 'number',
+                    name: 'transactions.number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    }
+                },
+                {
+                    data: 'date',
+                    name: 'transactions.date',
+                    render: function(data, type) {
+                        return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    }
+                },
+                {
+                    data: 'customer.name',
+                    name: 'customer.name',
+                    render: function(data, type) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    }
+                },
+                {
+                    data: 'invoice_number',
+                    name: 'invoices.number',
+                    // render: function(data, type) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data.length > 0 && data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('')}</div>`;
+                    // },
+                },
+                {
+                    data: 'total',
+                    name: 'transactions.total',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${Intl.NumberFormat('de-DE').format(data)}</div>`;
+                    }
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+
+            ]
+        });
+
+        $('#quotation-table').on('click', 'tr .btn-delete', function(e) {
+            e.preventDefault();
+            // alert('click');
+            const id = $(this).attr('data-id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "The data will be deleted",
+                icon: 'warning',
+                reverseButtons: true,
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return axios.delete('/quotation/' + id)
+                        .then(function(response) {
+                            console.log(response.data);
+                        })
+                        .catch(function(error) {
+                            console.log(error.data);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops',
+                                text: 'Something wrong',
+                            })
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Data has been deleted',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // window.location.reload();
+                            quotationsTable.ajax.reload();
+                        }
+                    })
+                }
+            })
+        })
     })
 </script>
 @endsection
