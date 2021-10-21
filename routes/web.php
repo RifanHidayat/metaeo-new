@@ -8,6 +8,8 @@ use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\EstimationController;
 use App\Http\Controllers\FinanceAccountController;
 use App\Http\Controllers\FinanceTransactionController;
+use App\Http\Controllers\GoodsCategoryController;
+use App\Http\Controllers\GoodsController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InOutTransactionController;
 use App\Http\Controllers\InvoiceController;
@@ -68,6 +70,24 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [CustomerController::class, 'store']);
         Route::patch('/{id}', [CustomerController::class, 'update']);
         Route::delete('/{id}', [CustomerController::class, 'destroy']);
+    });
+
+    Route::prefix('/goods')->group(function () {
+        Route::get('/', [GoodsController::class, 'index']);
+        Route::get('/create', [GoodsController::class, 'create']);
+        Route::get('/edit/{id}', [GoodsController::class, 'edit']);
+        Route::post('/', [GoodsController::class, 'store']);
+        Route::patch('/{id}', [GoodsController::class, 'update']);
+        Route::delete('/{id}', [GoodsController::class, 'destroy']);
+    });
+
+    Route::prefix('/goods-category')->group(function () {
+        Route::get('/', [GoodsCategoryController::class, 'index']);
+        Route::get('/create', [GoodsCategoryController::class, 'create']);
+        Route::get('/edit/{id}', [GoodsCategoryController::class, 'edit']);
+        Route::post('/', [GoodsCategoryController::class, 'store']);
+        Route::patch('/{id}', [GoodsCategoryController::class, 'update']);
+        Route::delete('/{id}', [GoodsCategoryController::class, 'destroy']);
     });
 
     Route::prefix('/pic-po')->group(function () {
