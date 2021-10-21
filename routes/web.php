@@ -17,6 +17,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SpkController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarehouseController;
@@ -68,6 +69,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [CustomerController::class, 'store']);
         Route::patch('/{id}', [CustomerController::class, 'update']);
         Route::delete('/{id}', [CustomerController::class, 'destroy']);
+    });
+
+    Route::prefix('/supplier')->group(function () {
+        Route::get('/', [SupplierController::class, 'index']);
+        Route::get('/create', [SupplierController::class, 'create']);
+        Route::get('/edit/{id}', [SupplierController::class, 'edit']);
+        Route::post('/', [SupplierController::class, 'store']);
+        // Route::post('/', [SupplierController::class, 'kode']);
+        Route::patch('/{id}', [SupplierController::class, 'update']);
+        Route::delete('/{id}', [SupplierController::class, 'destroy']);
     });
 
     Route::prefix('/pic-po')->group(function () {
