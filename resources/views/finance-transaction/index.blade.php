@@ -63,14 +63,14 @@
                             <label>Akun In:<span class="text-danger">*</span></label>
                             <select v-model="inAccount" class="form-control">
                                 <option value="">Pilih Akun</option>
-                                <option v-for="account in accounts" :value="account.id">@{{ account.bank_name }} (@{{ account.account_number }})</option>
+                                <option v-for="account in accounts" :value="account.id">@{{ account.name }} @{{ account.number ? `(${account.number})` : '' }}</option>
                             </select>
                         </div>
                         <div class="col-lg-4">
                             <label>Akun Out:<span class="text-danger">*</span></label>
                             <select v-model="outAccount" class="form-control">
                                 <option value="">Pilih Akun</option>
-                                <option v-for="account in accounts" :value="account.id">@{{ account.bank_name }} (@{{ account.account_number }})</option>
+                                <option v-for="account in accounts" :value="account.id">@{{ account.name }} @{{ account.number ? `(${account.number})` : '' }}</option>
                             </select>
                         </div>
                     </div>
@@ -113,12 +113,11 @@
             </form>
             <!--end::Form-->
         </div>
-        <div class="card card-custom gutter-b">
+        <!-- <div class="card card-custom gutter-b">
             <div class="card-header">
                 <h3 class="card-title">In Out</h3>
             </div>
             <div class="card-body">
-                <!--begin: Datatable-->
                 <table class="table table-bordered" id="basic-table">
                     <thead class="bg-light">
                         <tr class="text-center">
@@ -137,9 +136,8 @@
                         @endforeach
                     </tbody>
                 </table>
-                <!--end: Datatable-->
             </div>
-        </div>
+        </div> -->
     </div>
 </div>
 @endsection
@@ -192,7 +190,7 @@
         methods: {
             getAccounts: function() {
                 let vm = this;
-                let accounts = axios.get('{{ env("MAGENTA_HRD_URL") }}/api/bank-accounts').then(res => {
+                let accounts = axios.get('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/accounts').then(res => {
                     vm.accounts = res.data.data;
                     vm.accountLoading = false;
                 }).catch(err => {
@@ -207,58 +205,29 @@
                 // console.log('submitted');
                 let vm = this;
                 vm.loading = true;
-                axios.post('/in-out-transaction', {
+
+                axios.post('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/account-transactions/mode/group', {
                         in_account: vm.inAccount,
                         out_account: vm.outAccount,
                         date: vm.date,
                         description: vm.description,
                         amount: vm.amount,
+                        is_group: 1,
                         // source: 'add',
                     })
                     .then(function(response) {
-                        // vm.loading = false;
-                        // Swal.fire({
-                        //     title: 'Success',
-                        //     text: 'Data has been saved',
-                        //     icon: 'success',
-                        //     allowOutsideClick: false,
-                        // }).then((result) => {
-                        //     if (result.isConfirmed) {
-                        //         window.location.reload();
-                        //     }
-                        // })
-                        axios.post('{{ env("MAGENTA_HRD_URL") }}/api/transaction-accounts', {
-                                in_account: vm.inAccount,
-                                out_account: vm.outAccount,
-                                date: vm.date,
-                                description: vm.description,
-                                amount: vm.amount,
-                                source: 'add',
-                            })
-                            .then(function(response) {
-                                vm.loading = false;
-                                Swal.fire({
-                                    title: 'Success',
-                                    text: 'Data has been saved',
-                                    icon: 'success',
-                                    allowOutsideClick: false,
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        // window.location.href = '/user';
-                                        window.location.reload();
-                                    }
-                                })
-                                // console.log(response);
-                            })
-                            .catch(function(error) {
-                                vm.loading = false;
-                                console.log(error);
-                                Swal.fire(
-                                    'Oops!',
-                                    'Something wrong',
-                                    'error'
-                                )
-                            });
+                        vm.loading = false;
+                        Swal.fire({
+                            title: 'Success',
+                            text: 'Data has been saved',
+                            icon: 'success',
+                            allowOutsideClick: false,
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // window.location.href = '/user';
+                                window.location.reload();
+                            }
+                        })
                         // console.log(response);
                     })
                     .catch(function(error) {
@@ -270,6 +239,70 @@
                             'error'
                         )
                     });
+
+                //     axios.post('/in-out-transaction', {
+                //             in_account: vm.inAccount,
+                //             out_account: vm.outAccount,
+                //             date: vm.date,
+                //             description: vm.description,
+                //             amount: vm.amount,
+                //             // source: 'add',
+                //         })
+                //         .then(function(response) {
+                //             // vm.loading = false;
+                //             // Swal.fire({
+                //             //     title: 'Success',
+                //             //     text: 'Data has been saved',
+                //             //     icon: 'success',
+                //             //     allowOutsideClick: false,
+                //             // }).then((result) => {
+                //             //     if (result.isConfirmed) {
+                //             //         window.location.reload();
+                //             //     }
+                //             // })
+                //             axios.post('{{ env("MAGENTA_HRD_URL") }}/api/transaction-accounts', {
+                //                     in_account: vm.inAccount,
+                //                     out_account: vm.outAccount,
+                //                     date: vm.date,
+                //                     description: vm.description,
+                //                     amount: vm.amount,
+                //                     source: 'add',
+                //                 })
+                //                 .then(function(response) {
+                //                     vm.loading = false;
+                //                     Swal.fire({
+                //                         title: 'Success',
+                //                         text: 'Data has been saved',
+                //                         icon: 'success',
+                //                         allowOutsideClick: false,
+                //                     }).then((result) => {
+                //                         if (result.isConfirmed) {
+                //                             // window.location.href = '/user';
+                //                             window.location.reload();
+                //                         }
+                //                     })
+                //                     // console.log(response);
+                //                 })
+                //                 .catch(function(error) {
+                //                     vm.loading = false;
+                //                     console.log(error);
+                //                     Swal.fire(
+                //                         'Oops!',
+                //                         'Something wrong',
+                //                         'error'
+                //                     )
+                //                 });
+                //             // console.log(response);
+                //         })
+                //         .catch(function(error) {
+                //             vm.loading = false;
+                //             console.log(error);
+                //             Swal.fire(
+                //                 'Oops!',
+                //                 'Something wrong',
+                //                 'error'
+                //             )
+                //         });
             }
         }
     })
@@ -280,7 +313,8 @@
 
         $('.date').datepicker({
             format: 'yyyy-mm-dd',
-            todayBtn: true,
+            todayBtn: false,
+            todayHighlight: true,
             clearBtn: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {

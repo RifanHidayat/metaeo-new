@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,7 +11,18 @@ class AuthController extends Controller
 {
     public function login()
     {
-        return view('auth.login');
+        $company = Company::all()->first();
+
+        if ($company == null) {
+            $company = new Company;
+            $company->save();
+            // $company = $company;
+        }
+
+        return view('auth.login', [
+            'company' => $company,
+            'logo' => $company->logo,
+        ]);
     }
 
     public function authenticate(Request $request)

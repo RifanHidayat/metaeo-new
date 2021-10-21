@@ -400,9 +400,9 @@
                     <td><input v-model="item.item" @input="calculate(item)" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
                     <td>
                         <select v-model="item.machineType" @input="calculate(item)" class="form-control" style="width: 150px;">
-                        <option value="GTO">GTO</option>
-                        <option value="SM 74">GTO</option>
-                        <option value="SM 102">SM102</option>
+                        @foreach($machines as $machine)
+                        <option value="{{ $machine->id }}">{{ $machine->name }}</option>
+                        @endforeach
                         </select>
                     </td>
                     <!-- Size -->
@@ -430,7 +430,20 @@
                     <td><input v-model="item.paperCuttingSizeL" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
                     <td><input v-model="item.paperSizePlanoDivCuttingSizeL" type="number" step="any" class="form-control bg-light" style="width: 100px;" readonly></td>
                     <td><input v-model="item.paperQuantity" type="text" class="form-control bg-light" style="width: 150px;" value="" readonly required></td>
-                    <td><input v-model="item.paperUnitPrice" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
+                    <td>
+                        <div class="input-group" style="flex-wrap: nowrap;">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" data-toggle="tooltip" data-theme="dark" title="Custom Fill">
+                                <label class="checkbox checkbox-inline checkbox-success">
+                                    <input type="checkbox" v-model="item.isPaperUnitPriceEditable" />
+                                    <span></span>
+                                </label>
+                                </span>
+                            </div>
+                            <input type="text" class="form-control text-right" v-model="item.paperUnitPrice" @input="calculate(item)" aria-label="Paper Unit Price" style="width: 150px;" :disabled="!item.isPaperUnitPriceEditable" />
+                        </div>  
+                    </td>
+                    <!-- <td><input v-model="item.paperUnitPrice" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td> -->
                     <td><input v-model="item.paperTotal" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
                     <!-- Film -->
                     <td><input v-model="item.filmQuantitySet" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control" style="width: 150px;" value="" required></td>
@@ -440,11 +453,14 @@
                     <td><input v-model="item.appSetDesign" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
                     <!-- Printing -->
                     <td>
-                        <select v-model="item.printingType" @change="calculate(item)" class="form-control" style="width: 150px;">
-                        <option value="BBS">BBS</option>
-                        <option value="BBL">BBL</option>
-                        <option value="BB">BB</option>
-                        <option value="1 Muka">1 Muka</option>
+                        <select v-model="item.printingType" @change="calculate(item)" ref="asdasd" class="form-control" style="width: 150px;">
+                            @foreach($print_types as $print_type)
+                            <option value="{{ $print_type->id }}">{{ $print_type->name }}</option>
+                            @endforeach
+                            <!-- <option value="BBS">BBS</option>
+                            <option value="BBL">BBL</option>
+                            <option value="BB">BB</option>
+                            <option value="1 Muka">1 Muka</option> -->
                         </select>
                     </td>
                     <td><input v-model="item.printingQuantity" type="text" class="form-control bg-light" style="width: 150px;" value="" readonly required></td>
@@ -590,7 +606,18 @@
                     <td>
                         <input v-model="item.paper" type="text" class="form-control" style="width: 250px;" placeholder="Enter Paper">
                     </td>
-                    <td><input v-model="item.printingType" type="text" class="form-control bg-light" style="width: 250px;" value="BBL"></td>
+                    <td>
+                    <select v-model="item.printingType" @change="calculate(item)" ref="asdasd" class="form-control" style="width: 150px;" disabled>
+                        @foreach($print_types as $print_type)
+                        <option value="{{ $print_type->id }}">{{ $print_type->name }}</option>
+                        @endforeach
+                        <!-- <option value="BBS">BBS</option>
+                        <option value="BBL">BBL</option>
+                        <option value="BB">BB</option>
+                        <option value="1 Muka">1 Muka</option> -->
+                    </select>
+                    </td>
+                    <!-- <td><input v-model="item.printingType" type="text" class="form-control bg-light" style="width: 250px;" value="BBL"></td> -->
                     <!-- Color -->
                     <td><input v-model="item.color1" type="number" step="any" class="form-control" style="width: 100px;"></td>
                     <td><input v-model="item.color2" type="number" step="any" class="form-control" style="width: 100px;"></td>
@@ -682,6 +709,7 @@
     let app = new Vue({
         el: '#app',
         data: {
+            printTypes: JSON.parse(String.raw `{!! $print_types !!}`),
             offsetCounter: 1,
             digitalCounter: 1,
             cleaveCurrency: {
@@ -705,7 +733,7 @@
             // ppn: 0,
             // pph: 0,
             // totalDebt: 0,
-            note: '',
+            note: '{{ $estimation->note }}',
             file: '',
             previewFile: {
                 name: '',
@@ -1028,6 +1056,7 @@
                     paperCuttingSizeL: 1,
                     paperSizePlanoDivCuttingSizeL: '',
                     paperQuantity: '',
+                    isPaperUnitPriceEditable: false,
                     paperUnitPrice: '',
                     paperTotal: '',
                     filmQuantitySet: '',
@@ -1052,7 +1081,7 @@
                     id: this.digitalCounter++,
                     item: '',
                     paper: '',
-                    printingType: 'BBL',
+                    printingType: `{{ collect($print_types)->where('initial', 'bbl')->first()->id }}`,
                     color1: '',
                     color2: '',
                     price: '',
@@ -1113,8 +1142,20 @@
                 // Calculate Unit Price
                 let paperGramasi = item.paperGramasi;
                 let paperPricePerKg = item.paperPricePerKg;
-                let paperUnitPrice = ((paperSizePlanoP * paperSizePlanoL * paperGramasi * this.clearCurrencyMask(paperPricePerKg)) / 20000) / 500;
-                item.paperUnitPrice = this.toThousandFormat(Math.round(paperUnitPrice));
+
+                // let paperUnitPrice = ((paperSizePlanoP * paperSizePlanoL * paperGramasi * this.clearCurrencyMask(paperPricePerKg)) / 20000) / 500;
+                // item.paperUnitPrice = this.toThousandFormat(Math.round(paperUnitPrice));
+                let paperUnitPrice = 0;
+                if (item.isPaperUnitPriceEditable == false) {
+                    paperUnitPrice = ((paperSizePlanoP * paperSizePlanoL * paperGramasi * this.clearCurrencyMask(paperPricePerKg)) / 20000) / 500;
+                    item.paperUnitPrice = this.toThousandFormat(Math.round(paperUnitPrice));
+                    // item.paperUnitPrice = Math.round(paperUnitPrice);
+                } else {
+                    item.paperUnitPrice = this.clearCurrencyMask(item.paperUnitPrice);
+                    paperUnitPrice = Number(item.paperUnitPrice);
+                }
+
+
                 // Calculate Total Paper
                 let paperTotal = this.clearCurrencyMask(paperQuantityPlano) * paperUnitPrice;
                 item.paperTotal = this.toThousandFormat(Math.round(paperTotal));
@@ -1132,9 +1173,23 @@
 
                 // ------ Printing ------
                 // Calculate Total Quantity
-                let printingType = item.printingType;
-                let printingQuantity = (printingType == 'BBS') ? parseInt(this.clearCurrencyMask(paperQuantity)) * 2 : this.clearCurrencyMask(paperQuantity);
+                let filteredPrintingTypes = this.printTypes.filter(type => type.id == item.printingType);
+                let printingType = filteredPrintingTypes.length ? filteredPrintingTypes[0].initial : '';
+
+                let printingQuantity = 0;
+
+                if (printingType == 'bbs') {
+                    printingQuantity = Number(this.clearCurrencyMask(paperQuantity)) * 2;
+                } else if (printingType == 'none') {
+                    printingQuantity = 0;
+                } else {
+                    printingQuantity = this.clearCurrencyMask(paperQuantity);
+                }
+
                 item.printingQuantity = this.toThousandFormat(printingQuantity);
+                // let printingType = item.printingType;
+                // let printingQuantity = (printingType == 'BBS') ? parseInt(this.clearCurrencyMask(paperQuantity)) * 2 : this.clearCurrencyMask(paperQuantity);
+                // item.printingQuantity = this.toThousandFormat(printingQuantity);
 
                 let printingMinPrice = item.printingMinPrice;
                 let printingDrukPrice = item.printingDrukPrice;
@@ -1145,7 +1200,8 @@
                     printingTotal = (this.clearCurrencyMask(printingMinPrice) * color1) + (printingQuantity - 3000) * color1 * this.clearCurrencyMask(printingDrukPrice) * this.clearCurrencyMask(filmQuantitySet);
                 }
 
-                item.printingTotal = (printingTotal < 1) ? 1 : this.toThousandFormat(Math.round(printingTotal));
+                // item.printingTotal = (printingTotal < 1) ? 1 : this.toThousandFormat(Math.round(printingTotal));
+                item.printingTotal = this.toThousandFormat(Math.round(printingTotal));
 
                 // ------ Finishing -------
                 // Calculate Total

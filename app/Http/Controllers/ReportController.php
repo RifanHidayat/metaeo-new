@@ -38,9 +38,32 @@ class ReportController extends Controller
         ]);
     }
 
-    public function estimationData()
+    public function estimationData(Request $request)
     {
-        $estimations = Estimation::with(['customer'])->select('estimations.*');
+        // $columnSelections = explode(',', $request->query('columns'));
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $status = $request->query('status');
+        $customer = $request->query('customer');
+        $sortBy = $request->query('sort_by');
+        $sortIn = $request->query('sort_in');
+        // $estimations = Estimation::with(['customer'])->select('estimations.*');
+        $query = Estimation::with(['customer'])->select('estimations.*')->whereBetween('date', [$startDate, $endDate]);
+
+        if ($status !== '' && $status !== null) {
+            $query->where('status', $status);
+        }
+
+        if ($customer !== '' && $customer !== null) {
+            $query->where('customer_id', $customer);
+        }
+
+        if ($sortBy !== '' && $sortBy !== null) {
+            $query->orderBy($sortBy, $sortIn);
+        }
+
+        $estimations = $query->get();
+
         return DataTables::of($estimations)
             ->addIndexColumn()
             ->make(true);
@@ -71,12 +94,35 @@ class ReportController extends Controller
         ]);
     }
 
-    public function quotationData()
+    public function quotationData(Request $request)
     {
-        $quotations = Quotation::with(['customer'])->select('quotations.*');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $status = $request->query('status');
+        $customer = $request->query('customer');
+        $sortBy = $request->query('sort_by');
+        $sortIn = $request->query('sort_in');
+
+        $query = Quotation::with(['estimations', 'picPo', 'customer'])->select('quotations.*')->whereBetween('date', [$startDate, $endDate]);
+
+        if ($customer !== '' && $customer !== null) {
+            $query->where('customer_id', $customer);
+        }
+
+        if ($sortBy !== '' && $sortBy !== null) {
+            $query->orderBy($sortBy, $sortIn);
+        }
+
+        $quotations = $query->get();
+
         return DataTables::of($quotations)
             ->addIndexColumn()
+            // ->rawColumns(['estimation_number'])
             ->make(true);
+        // $quotations = Quotation::with(['customer'])->select('quotations.*');
+        // return DataTables::of($quotations)
+        //     ->addIndexColumn()
+        //     ->make(true);
     }
 
     public function quotationSheet(Request $request)
@@ -95,11 +141,40 @@ class ReportController extends Controller
         ]);
     }
 
-    public function salesOrderData()
+    public function salesOrderData(Request $request)
     {
-        $salesOrders = SalesOrder::with(['customer'])->select('sales_orders.*');
+        // $salesOrders = SalesOrder::with(['customer'])->select('sales_orders.*');
+        // return DataTables::of($salesOrders)
+        //     ->addIndexColumn()
+        //     ->make(true);
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $status = $request->query('status');
+        $customer = $request->query('customer');
+        $sortBy = $request->query('sort_by');
+        $sortIn = $request->query('sort_in');
+
+        $query = SalesOrder::with(['quotations.selectedEstimation', 'jobOrders', 'invoices', 'deliveryOrders'])->select('sales_orders.*')->whereBetween('date', [$startDate, $endDate]);
+
+        if ($customer !== '' && $customer !== null) {
+            $query->where('customer_id', $customer);
+        }
+
+        if ($sortBy !== '' && $sortBy !== null) {
+            $query->orderBy($sortBy, $sortIn);
+        }
+
+        $salesOrders = $query->get();
+
+
         return DataTables::of($salesOrders)
             ->addIndexColumn()
+            ->addColumn('quotation_number', function (SalesOrder $salesOrder) {
+                return $salesOrder->quotations->map(function ($quotation) {
+                    return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
+                })->implode("");
+            })
+            ->rawColumns(['quotation_number'])
             ->make(true);
     }
 
@@ -119,12 +194,40 @@ class ReportController extends Controller
         ]);
     }
 
-    public function spkData()
+    public function spkData(Request $request)
     {
-        $jobOrders = JobOrder::with(['customer'])->select('job_orders.*');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $status = $request->query('status');
+        $customer = $request->query('customer');
+        $sortBy = $request->query('sort_by');
+        $sortIn = $request->query('sort_in');
+
+        $query = JobOrder::with(['quotations', 'salesOrder', 'customer'])->select('job_orders.*')->whereBetween('date', [$startDate, $endDate]);
+
+        if ($customer !== '' && $customer !== null) {
+            $query->where('customer_id', $customer);
+        }
+
+        if ($sortBy !== '' && $sortBy !== null) {
+            $query->orderBy($sortBy, $sortIn);
+        }
+
+        $jobOrders = $query->get();
+
         return DataTables::of($jobOrders)
             ->addIndexColumn()
+            ->addColumn('quotation_number', function (JobOrder $jobOrder) {
+                return $jobOrder->quotations->map(function ($quotation) {
+                    return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
+                })->implode("");
+            })
+            ->rawColumns(['quotation_number'])
             ->make(true);
+        // $jobOrders = JobOrder::with(['customer'])->select('job_orders.*');
+        // return DataTables::of($jobOrders)
+        //     ->addIndexColumn()
+        //     ->make(true);
     }
 
     public function spkSheet(Request $request)
@@ -143,11 +246,35 @@ class ReportController extends Controller
         ]);
     }
 
-    public function deliveryOrderData()
+    public function deliveryOrderData(Request $request)
     {
-        $deliveryOrders = DeliveryOrder::with(['customer'])->select('job_orders.*');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $status = $request->query('status');
+        $customer = $request->query('customer');
+        $sortBy = $request->query('sort_by');
+        $sortIn = $request->query('sort_in');
+
+        $query = DeliveryOrder::with(['quotations', 'salesOrder', 'customer'])->select('delivery_orders.*')->whereBetween('date', [$startDate, $endDate]);
+
+        if ($customer !== '' && $customer !== null) {
+            $query->where('customer_id', $customer);
+        }
+
+        if ($sortBy !== '' && $sortBy !== null) {
+            $query->orderBy($sortBy, $sortIn);
+        }
+
+        $deliveryOrders = $query->get();
+
         return DataTables::of($deliveryOrders)
             ->addIndexColumn()
+            ->addColumn('quotation_number', function (DeliveryOrder $deliveryOrder) {
+                return $deliveryOrder->quotations->map(function ($quotation) {
+                    return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
+                })->implode("");
+            })
+            ->rawColumns(['quotation_number'])
             ->make(true);
     }
 
@@ -167,11 +294,36 @@ class ReportController extends Controller
         ]);
     }
 
-    public function invoiceData()
+    public function invoiceData(Request $request)
     {
-        $invoices = Invoice::with(['customer'])->select('invoices.*');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $status = $request->query('status');
+        $customer = $request->query('customer');
+        $sortBy = $request->query('sort_by');
+        $sortIn = $request->query('sort_in');
+
+        $query = Invoice::with(['quotations', 'salesOrder', 'customer', 'transactions'])->select('invoices.*')->whereBetween('date', [$startDate, $endDate]);
+
+        if ($customer !== '' && $customer !== null) {
+            $query->where('customer_id', $customer);
+        }
+
+        if ($sortBy !== '' && $sortBy !== null) {
+            $query->orderBy($sortBy, $sortIn);
+        }
+
+        $invoices = $query->get();
+
+
         return DataTables::of($invoices)
             ->addIndexColumn()
+            ->addColumn('quotation_number', function (Invoice $invoice) {
+                return $invoice->quotations->map(function ($quotation) {
+                    return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
+                })->implode("");
+            })
+            ->rawColumns(['quotation_number'])
             ->make(true);
     }
 
@@ -191,11 +343,35 @@ class ReportController extends Controller
         ]);
     }
 
-    public function transactionData()
+    public function transactionData(Request $request)
     {
-        $transactions = Transaction::with(['customer'])->select('transaction.*');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $status = $request->query('status');
+        $customer = $request->query('customer');
+        $sortBy = $request->query('sort_by');
+        $sortIn = $request->query('sort_in');
+
+        $query = Transaction::with(['customer', 'invoices'])->select('transactions.*')->whereBetween('date', [$startDate, $endDate]);
+
+        if ($customer !== '' && $customer !== null) {
+            $query->where('customer_id', $customer);
+        }
+
+        if ($sortBy !== '' && $sortBy !== null) {
+            $query->orderBy($sortBy, $sortIn);
+        }
+
+        $transactions = $query->get();
+
         return DataTables::of($transactions)
             ->addIndexColumn()
+            ->addColumn('invoice_number', function (Transaction $transaction) {
+                return $transaction->invoices->map(function ($invoice) {
+                    return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $invoice->number . '</span>';
+                })->implode("");
+            })
+            ->rawColumns(['invoice_number'])
             ->make(true);
     }
 

@@ -73,6 +73,7 @@
       <thead>
         <tr class="text-center">
           <th>Number</th>
+          <th>Work</th>
           <th>Tanggal</th>
           <th>Customer</th>
           <th>Quantity</th>
@@ -165,7 +166,7 @@
       serverSide: true,
       ajax: '/datatables/estimations',
       order: [
-        [1, 'desc']
+        [2, 'desc']
       ],
       columns: [{
           data: 'number',
@@ -173,6 +174,14 @@
           render: function(data, type, row) {
             return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div><span  class="text-muted font-weight-bold text-hover-primary">${row.work}</span>`;
           }
+        },
+        {
+          data: 'work',
+          name: 'estimations.work',
+          render: function(data, type) {
+            return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+          },
+          visible: false,
         },
         {
           data: 'date',

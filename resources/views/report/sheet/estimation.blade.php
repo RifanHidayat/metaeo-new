@@ -9,20 +9,17 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($quotations as $quotation)
+        @foreach($estimations as $estimation)
         <tr>
             @foreach ($all_columns as $column)
             @if(in_array($column['id'], $column_selections))
             @if($column['id'] == 'customer')
-            <td>{{ $quotation->customer->name }}</td>
-            @elseif($column['id'] == 'up')
-            <td>{{ $quotation->picPo->name }}</td>
-
+            <td>{{ $estimation->customer->name }}</td>
             @else
-            @if($column['id'] == 'quantity' || $column['id'] == 'price_per_unit' || $column['id'] == 'ppn' || $column['id'] == 'pph' || $column['id'] == 'total_bill' || $column['id'] == 'produced' || $column['id'] == 'shipped')
-            <td data-format="#,##0_-">{{ $quotation->{$column['id']} }}</td>
+            @if($column['id'] == 'quantity' || $column['id'] == 'production' || $column['id'] == 'hpp' || $column['id'] == 'hpp_per_unit' || $column['id'] == 'price_per_unit' || $column['id'] == 'margin' || $column['id'] == 'total_price' || $column['id'] == 'ppn' || $column['id'] == 'pph' || $column['id'] == 'total_bill')
+            <td data-format="#,##0_-">{{ $estimation->{$column['id']} }}</td>
             @else
-            <td>{{ $quotation->{$column['id']} }}</td>
+            <td>{{ $estimation->{$column['id']} }}</td>
             @endif
             @endif
             @endif

@@ -104,7 +104,7 @@
                 <td><?= ($offsetItem->size_opened_p + 0) . ' x ' . ($offsetItem->size_opened_l + 0) ?></td> <!-- Size Open -->
                 <td><?= ($offsetItem->size_closed_p + 0) . ' x ' . ($offsetItem->size_closed_l + 0) ?></td> <!-- Size Close -->
                 <td><?= $offsetItem->color_1 . '/' . $offsetItem->color_2 ?></td> <!-- Color -->
-                <td style="background-color: red">?</td> <!-- Qty Mata -->
+                <td>-</td> <!-- Qty Mata -->
                 <td><?= $offsetItem->type_cetak ?></td> <!-- Type Cetak -->
                 <td><?= $offsetItem->machine_id ?></td> <!-- Type Mesin -->
                 <td><?= $offsetItem->print_type_id ?></td> <!-- Paper Type -->
@@ -115,7 +115,7 @@
                 <td><?= number_format($offsetItem->paper_quantity_plano, 0, '', '.') ?></td> <!-- Ppr Qty Plano -->
                 <td><?= $offsetItem->paper_cutting_size_p + 0 ?></td> <!-- Ppr Cutting Size P -->
                 <td><?= $offsetItem->paper_cutting_size_l + 0 ?></td> <!-- Ppr Cutting Size L -->
-                <td style="background-color: red">?</td> <!-- Ppr Qty Cutting Mata -->
+                <td>-</td> <!-- Ppr Qty Cutting Mata -->
                 <td><?= number_format($offsetItem->paper_quantity, 0, '', '.') ?></td> <!-- Ppr Qty Cutting Item -->
                 <td><?= number_format($offsetItem->paper_unit_price, 0, '', '.') ?></td> <!-- Paper Hrg/plano -->
                 <td><?= number_format($offsetItem->paper_total, 0, '', '.') ?></td> <!-- Paper Total -->

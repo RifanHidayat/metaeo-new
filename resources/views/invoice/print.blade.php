@@ -6,8 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $invoice->number }}</title>
     <style>
+        @page {
+            margin: 20px;
+            /* padding: 0px 0px 0px 0px !important; */
+        }
+
         body {
             font-size: 10px;
+            font-family: sans-serif;
         }
 
         table {
@@ -16,13 +22,13 @@
 
         .table-header th,
         .table-header td {
-            padding: 3px;
+            padding: 1px;
         }
 
         .bordered-table th,
         .bordered-table td {
             border: 1px solid #000;
-            padding: 3px;
+            padding: 1px;
         }
     </style>
 </head>
@@ -30,13 +36,13 @@
 <body>
     <div class="header" style="float: left; margin-bottom: 100px;">
         <div style="width: 50%; float: left;">
-            <img src="https://karir-production.nos.jkt-1.neo.id/logos/11/1029111/unilabel_magenta.png" alt="Logo" width="150" height="60">
-            <div style="margin-top: 10px">
+            <img src="{{ $company->logo !== null ? Storage::disk('s3')->url($company->logo) : '' }}" alt="Logo" height="40">
+            <div style="margin-top: 5px">
                 <span style="display: block;">{{ $company->name }}</span>
                 <span style="display: block;">{{ $company->address }}</span>
                 <span style="display: block;">Phone {{ $company->phone }}; Fax {{ $company->fax }}</span>
             </div>
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 10px;">
                 <table>
                     <tr>
                         <td style="vertical-align: top;">Tagihan Ke</td>
@@ -49,7 +55,7 @@
             </div>
         </div>
         <div style="width: 36.5%; float: right; margin-bottom: 100px;">
-            <h1 style="text-align:right">Faktur Penjualan</h1>
+            <h1 style="text-align:right; margin: 0px;">Faktur Penjualan</h1>
             <table class="table-header" style="margin-right:0px; margin-left: auto">
                 <tr>
                     <td>No. Faktur</td>
@@ -92,7 +98,7 @@
             </table>
         </div>
     </div>
-    <div style="margin-top: 60px; clear: both">
+    <div style="margin-top: 10px; clear: both">
         <table class="bordered-table" style="width: 100%">
             <thead>
                 <tr>
@@ -119,36 +125,36 @@
                     <td style="border: none; width: 100px;" colspan="3">
                         <span>Terbilang&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="text-transform: capitalize;"><?= $invoice->terbilang ?></span>
                     </td>
-                    <td>Total Sub</td>
+                    <td style="text-align: right;">Total Sub :</td>
                     <td style="text-align: right;"><?= number_format($invoice->netto, 0, '', '.') ?></td>
                 </tr>
                 <tr>
                     <td style="border: none;" colspan="3"></td>
-                    <td>Diskon</td>
+                    <td style="text-align: right;">Diskon :</td>
                     <td style="text-align: right;"><?= number_format($invoice->discount, 0, '', '.') ?></td>
                 </tr>
                 <tr>
                     <td style="border: none;" colspan="3"></td>
-                    <td>PPN</td>
+                    <td style="text-align: right;">PPN :</td>
                     <td style="text-align: right;"><?= number_format($invoice->ppn, 0, '', '.') ?></td>
                 </tr>
                 <?php if ($invoice->pph > 0) : ?>
                     <tr>
                         <td style="border: none;" colspan="3"></td>
-                        <td>PPH 23</td>
+                        <td style="text-align: right;">PPH 23 :</td>
                         <td style="text-align: right;">(<?= number_format($invoice->pph, 0, '', '.') ?>)</td>
                     </tr>
                 <?php endif; ?>
                 <tr>
                     <td style="border: none;" colspan="3"></td>
-                    <td>Total Faktur</td>
+                    <td style="text-align: right;">Total Faktur :</td>
                     <td style="text-align: right;"><?= number_format($invoice->total, 0, '', '.') ?></td>
                 </tr>
             </tfoot>
         </table>
     </div>
     <!-- <p>Terbilang: Dua Puluh Ribu Rupiah</p> -->
-    <div class="footer" style=" margin-top: 30px">
+    <div class="footer" style=" margin-top: 5px">
         <div style="width: 50%; float: left">
             <table class="table-footer">
                 <tr>
@@ -185,7 +191,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding: 40px 0">&nbsp;</td>
+                    <td style="padding: 30px 0">&nbsp;</td>
                 </tr>
                 <tr>
                     <td>{{ $company->head }}</td>

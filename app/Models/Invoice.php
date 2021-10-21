@@ -22,7 +22,7 @@ class Invoice extends Model
 
     public function transactions()
     {
-        return $this->belongsToMany(Transaction::class);
+        return $this->belongsToMany(Transaction::class)->withPivot('amount');
     }
 
     public function customer()

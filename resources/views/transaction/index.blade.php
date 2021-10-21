@@ -253,7 +253,7 @@
             ]
         });
 
-        $('#quotation-table').on('click', 'tr .btn-delete', function(e) {
+        $('#transaction-table').on('click', 'tr .btn-delete', function(e) {
             e.preventDefault();
             // alert('click');
             const id = $(this).attr('data-id');
@@ -269,9 +269,35 @@
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true,
                 preConfirm: () => {
-                    return axios.delete('/quotation/' + id)
+                    return axios.delete('/transaction/' + id)
                         .then(function(response) {
                             console.log(response.data);
+                            const transaction = response.data.data.deleted_data;
+                            console.log(transaction);
+
+                            const data = {
+                                date: '{{ date("Y-m-d") }}',
+                                description: 'Hapus Pembayaran Faktur Metaprint Nomor ' + transaction.number,
+                                amount: transaction.total,
+                                type: 'out',
+                                is_group: 0,
+                                account_id: transaction.account_id,
+                            };
+                            axios.post('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/account-transactions', data)
+                                .then(function(response) {
+                                    console.log(response);
+                                    // return true;
+                                    transactionsTable.ajax.reload();
+                                })
+                                .catch(function(error) {
+                                    vm.loading = false;
+                                    console.log(error);
+                                    Swal.fire(
+                                        'Oops!',
+                                        'Something wrong',
+                                        'error'
+                                    )
+                                });
                         })
                         .catch(function(error) {
                             console.log(error.data);
@@ -292,7 +318,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             // window.location.reload();
-                            quotationsTable.ajax.reload();
+                            transactionsTable.ajax.reload();
                         }
                     })
                 }

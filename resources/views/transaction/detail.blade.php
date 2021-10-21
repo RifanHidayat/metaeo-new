@@ -95,12 +95,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($transaction->payments as $payment)
+                            @foreach($transaction->invoices as $invoice)
                             <tr class="font-weight-boldest">
-                                <td class="pl-0 pt-7">Pembayaran Faktur <a href="/invoice/detail/{{ $payment->invoice->id }}" target="_blank">#{{ $payment->invoice->number }}</a></td>
+                                <td class="pl-0 pt-7">Pembayaran Faktur <a href="/invoice/detail/{{ $invoice->id }}" target="_blank">#{{ $invoice->number }}</a></td>
                                 <!-- <td class="text-right pt-7">80</td>
                                 <td class="text-right pt-7">$40.00</td> -->
-                                <td class="text-danger pr-0 pt-7 text-right">Rp {{ number_format($payment->amount) }}</td>
+                                <td class="text-danger pr-0 pt-7 text-right">Rp {{ number_format($invoice->pivot->amount) }}</td>
                             </tr>
                             @endforeach
                             <!-- <tr class="font-weight-boldest border-bottom-0">
@@ -167,8 +167,8 @@
         <div class="row justify-content-center py-8 px-8 py-md-10 px-md-0">
             <div class="col-md-9">
                 <div class="d-flex justify-content-between">
-                    <button type="button" class="btn btn-light-primary font-weight-bold" onclick="window.print();">Download Transaksi</button>
-                    <button type="button" class="btn btn-primary font-weight-bold" onclick="window.print();">Print Transaksi</button>
+                    <!-- <button type="button" class="btn btn-light-primary font-weight-bold" onclick="window.print();">Download Transaksi</button> -->
+                    <a href="/transaction/print/{{ $transaction->id }}" target="_blank" class="btn btn-primary font-weight-bold">Print Transaksi</a>
                 </div>
             </div>
         </div>

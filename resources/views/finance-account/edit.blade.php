@@ -81,6 +81,16 @@
                             <span class="form-text text-muted">Please enter account's type</span>
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <div class="col-lg-6">
+                            <label>Status:<span class="text-danger">*</span></label>
+                            <select v-model="status" class="form-control">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                            <span class="form-text text-muted">Please choose account status</span>
+                        </div>
+                    </div>
                     <!-- begin: Example Code-->
 
                     <!-- end: Example Code-->
@@ -165,9 +175,24 @@
             number: '',
             balance: '',
             type: 'all',
+            status: '1',
             loading: false,
         },
+        mounted() {
+            this.getBankAccount();
+        },
         methods: {
+            getBankAccount: function() {
+                let vm = this;
+                axios.get('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/accounts/{{ $account_id }}').then(res => {
+                    const account = res.data.data;
+                    vm.name = account.name;
+                    vm.number = account.number;
+                    vm.balance = account.init_balance;
+                    vm.type = account.type;
+                    vm.status = account.active;
+                })
+            },
             submitForm: function() {
                 this.sendData();
             },
@@ -175,11 +200,12 @@
                 // console.log('submitted');
                 let vm = this;
                 vm.loading = true;
-                axios.post('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/accounts', {
-                        name: this.name,
-                        number: this.number,
-                        init_balance: this.balance,
-                        type: this.type,
+                axios.patch('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/accounts/{{ $account_id }}', {
+                        name: vm.name,
+                        number: vm.number,
+                        init_balance: vm.balance,
+                        type: vm.type,
+                        active: vm.status,
                     })
                     .then(function(response) {
                         vm.loading = false;
@@ -194,39 +220,6 @@
                             }
                         })
                         // console.log(response);
-                        // const account = response.data.data;
-                        // const data = {
-                        //     date: '{{ date("Y-m-d") }}',
-                        //     description: 'Saldo Awal',
-                        //     amount: vm.balance,
-                        //     type: 'in',
-                        //     is_group: 0,
-                        //     account_id: account.id,
-                        // };
-                        // axios.post('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/account-transactions', data)
-                        //     .then(function(response) {
-                        //         vm.loading = false;
-                        //         Swal.fire({
-                        //             title: 'Success',
-                        //             text: 'Data has been saved',
-                        //             icon: 'success',
-                        //             allowOutsideClick: false,
-                        //         }).then((result) => {
-                        //             if (result.isConfirmed) {
-                        //                 // window.location.href = '/pic-po';
-                        //             }
-                        //         })
-                        //         // console.log(response);
-                        //     })
-                        //     .catch(function(error) {
-                        //         vm.loading = false;
-                        //         console.log(error);
-                        //         Swal.fire(
-                        //             'Oops!',
-                        //             'Something wrong',
-                        //             'error'
-                        //         )
-                        //     });
                     })
                     .catch(function(error) {
                         vm.loading = false;

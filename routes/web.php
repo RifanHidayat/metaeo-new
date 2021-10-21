@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\EstimationController;
 use App\Http\Controllers\FinanceAccountController;
@@ -35,9 +36,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', function () {
-        return view('estimation.index');
-    });
+    Route::get('/', [DashboardController::class, 'index']);
 
     Route::prefix('/user')->group(function () {
         Route::get('/', [UserController::class, 'index']);
@@ -256,6 +255,7 @@ Route::middleware('auth')->group(function () {
 Route::prefix('/login')->group(function () {
     Route::get('/', [AuthController::class, 'login'])->middleware('guest')->name('login');
     Route::post('/', [AuthController::class, 'authenticate']);
+    Route::get('/action/logout', [AuthController::class, 'logout']);
 });
 
 Route::prefix('/datatables')->group(function () {
@@ -282,5 +282,14 @@ Route::prefix('/datatables')->group(function () {
     });
     Route::prefix('/transactions')->group(function () {
         Route::get('/', [TransactionController::class, 'indexData']);
+    });
+    Route::prefix('/reports')->group(function () {
+        Route::get('/estimations', [ReportController::class, 'estimationData']);
+        Route::get('/quotations', [ReportController::class, 'quotationData']);
+        Route::get('/sales-orders', [ReportController::class, 'salesOrderData']);
+        Route::get('/spk', [ReportController::class, 'spkData']);
+        Route::get('/delivery-orders', [ReportController::class, 'deliveryOrderData']);
+        Route::get('/invoices', [ReportController::class, 'invoiceData']);
+        Route::get('/transactions', [ReportController::class, 'transactionData']);
     });
 });

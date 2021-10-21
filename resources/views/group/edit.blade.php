@@ -118,15 +118,15 @@
             name: '{{ $group->name }}',
             permissions: [{
                     title: 'User',
-                    attributes: ['view_user', 'add_user', 'edit_user', 'delete_user', 'print_user'],
+                    attributes: ['view_user', 'add_user', 'edit_user', 'delete_user', null],
                 },
                 {
                     title: 'Group',
-                    attributes: ['view_group', 'add_group', 'edit_group', 'delete_group', 'print_group'],
+                    attributes: ['view_group', 'add_group', 'edit_group', 'delete_group', null],
                 },
                 {
                     title: 'Customer',
-                    attributes: ['view_customer', 'add_customer', 'edit_customer', 'delete_customer', 'print_customer'],
+                    attributes: ['view_customer', 'add_customer', 'edit_customer', 'delete_customer', null],
                 },
                 {
                     title: 'PIC PO',

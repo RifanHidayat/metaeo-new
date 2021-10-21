@@ -31,8 +31,8 @@ class TransactionController extends Controller
 
     public function indexData()
     {
-        $quotations = Transaction::with(['customer', 'invoices'])->select('transactions.*');
-        return DataTables::eloquent($quotations)
+        $transactions = Transaction::with(['customer', 'invoices'])->select('transactions.*');
+        return DataTables::eloquent($transactions)
             ->addIndexColumn()
             ->addColumn('invoice_number', function (Transaction $transaction) {
                 return $transaction->invoices->map(function ($invoice) {
@@ -41,13 +41,13 @@ class TransactionController extends Controller
             })
             ->addColumn('action', function ($row) {
                 $button = ' <div class="text-center">';
-                $button .= ' <a href="/quotation/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                  <rect x="0" y="0" width="24" height="24"></rect>
-                  <path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "></path>
-                  <rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"></rect>
-                </g>
-              </svg> </span> </a>';
+                //     $button .= ' <a href="/quotation/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                //     <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                //       <rect x="0" y="0" width="24" height="24"></rect>
+                //       <path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "></path>
+                //       <rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"></rect>
+                //     </g>
+                //   </svg> </span> </a>';
 
 
                 $button .= '<a href="#" data-id="' . $row->id . '" class="btn btn-sm btn-clean btn-icon btn-delete" title="Delete"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -67,7 +67,7 @@ class TransactionController extends Controller
                             <!--begin::Navigation-->
                             <ul class="navi navi-hover">
                                 <li class="navi-item">
-                                    <a href="/quotation/print/' . $row->id . '" target="_blank" class="navi-link">
+                                    <a href="/transaction/print/' . $row->id . '" target="_blank" class="navi-link">
                                         <span class="navi-icon">
                                             <i class="flaticon2-print"></i>
                                         </span>
@@ -128,6 +128,9 @@ class TransactionController extends Controller
         $transaction->payment_method = $request->payment_method;
         $transaction->other_payment_method = $request->other_payment_method;
         $transaction->note = $request->note;
+        $transaction->sender_name = $request->sender_name;
+        $transaction->sender_bank = $request->sender_bank;
+        $transaction->sender_number = $request->sender_number;
         $transaction->customer_id = $customerId;
 
         $invoices = $request->selected_invoices;
@@ -207,13 +210,22 @@ class TransactionController extends Controller
         // $customerInvoices = collect($invoices)
         $selectedInvoicesIds = collect($invoices)->pluck('id')->all();
 
-        $customerInvoices = Invoice::with(['payments'])
+        $customerInvoices = Invoice::with(['transactions'])
             ->whereIn('id', $selectedInvoicesIds)
             ->orderBy('date', 'ASC')
             // ->where('paid', 0)
             ->get()
+            // ->each(function ($invoice) {
+            //     $invoice['total_payment'] = collect($invoice->payments)->sum('amount');
+            // })
+            // ->filter(function ($invoice) {
+            //     return $invoice->total_payment < $invoice->total;
+            // })
             ->each(function ($invoice) {
-                $invoice['total_payment'] = collect($invoice->payments)->sum('amount');
+                $invoice['total_payment'] = collect($invoice->transactions)
+                    ->map(function ($transaction) {
+                        return $transaction->pivot->amount;
+                    })->sum();
             })
             ->filter(function ($invoice) {
                 return $invoice->total_payment < $invoice->total;
@@ -239,11 +251,16 @@ class TransactionController extends Controller
                 }
 
                 $payment = [
-                    'amount' => $amount,
                     'transaction_id' => $transaction->id,
                     'invoice_id' => $invoice->id,
-                    'created_at' => Carbon::now()->toDateTimeString(),
-                    'updated_at' => Carbon::now()->toDateTimeString(),
+                    'amount' => $amount,
+                    // 'created_at' => Carbon::now()->toDateTimeString(),
+                    // 'updated_at' => Carbon::now()->toDateTimeString(),
+                    // $invoice->id => [
+                    //     'amount' => $amount,
+                    //     'created_at' => Carbon::now()->toDateTimeString(),
+                    //     'updated_at' => Carbon::now()->toDateTimeString(),
+                    // ]
                 ];
 
                 array_push($payments, $payment);
@@ -264,63 +281,30 @@ class TransactionController extends Controller
                 }
             });
 
+        $keyedPayments = collect($payments)->mapWithKeys(function ($item) {
+            return [
+                $item['invoice_id'] => [
+                    'amount' => $item['amount'],
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ]
+            ];
+        });
+
         // return response()->json([
         //     'message' => 'Data has been saved',
         //     'code' => 200,
         //     'error' => false,
         //     'data' => $payments,
-        //     'invoices' => $customerInvoices
         // ]);
 
-        // $invoicesIds = collect($invoices)->map(function ($item) {
-        //     return $item['id'];
+        // $invoicesIds = collect($payments)->map(function ($item) {
+        //     return $item['invoice_id'];
         // })->all();
-        $invoicesIds = collect($payments)->map(function ($item) {
-            return $item['invoice_id'];
-        })->all();
 
         try {
-            $transaction->invoices()->attach($invoicesIds);
+            $transaction->invoices()->attach($keyedPayments);
 
-            // return response()->json([
-            //     'message' => 'Data has been saved',
-            //     'code' => 200,
-            //     'error' => false,
-            //     'data' => $transaction,
-            // ]);
-        } catch (Exception $e) {
-            $transaction->delete();
-            return response()->json([
-                'message' => 'Internal error',
-                'code' => 500,
-                'error' => true,
-                'errors' => $e,
-            ], 500);
-        }
-
-        try {
-            Payment::insert($payments);
-        } catch (Exception $e) {
-            $transaction->invoices()->detach();
-            $transaction->delete();
-            return response()->json([
-                'message' => 'Internal error',
-                'code' => 500,
-                'error' => true,
-                'errors' => $e,
-            ], 500);
-        }
-
-        try {
-            foreach ($invoices as $invoice) {
-                $invoiceRow = Invoice::find($invoice['id']);
-                if ($invoiceRow == null) {
-                    continue;
-                }
-
-                $invoiceRow->paid = 1;
-                $invoiceRow->save();
-            }
             return response()->json([
                 'message' => 'Data has been saved',
                 'code' => 200,
@@ -328,7 +312,6 @@ class TransactionController extends Controller
                 'data' => $transaction,
             ]);
         } catch (Exception $e) {
-            $transaction->invoices()->detach();
             $transaction->delete();
             return response()->json([
                 'message' => 'Internal error',
@@ -337,6 +320,46 @@ class TransactionController extends Controller
                 'errors' => $e,
             ], 500);
         }
+
+        // try {
+        //     Payment::insert($payments);
+        // } catch (Exception $e) {
+        //     $transaction->invoices()->detach();
+        //     $transaction->delete();
+        //     return response()->json([
+        //         'message' => 'Internal error',
+        //         'code' => 500,
+        //         'error' => true,
+        //         'errors' => $e,
+        //     ], 500);
+        // }
+
+        // try {
+        //     foreach ($invoices as $invoice) {
+        //         $invoiceRow = Invoice::find($invoice['id']);
+        //         if ($invoiceRow == null) {
+        //             continue;
+        //         }
+
+        //         $invoiceRow->paid = 1;
+        //         $invoiceRow->save();
+        //     }
+        //     return response()->json([
+        //         'message' => 'Data has been saved',
+        //         'code' => 200,
+        //         'error' => false,
+        //         'data' => $transaction,
+        //     ]);
+        // } catch (Exception $e) {
+        //     $transaction->invoices()->detach();
+        //     $transaction->delete();
+        //     return response()->json([
+        //         'message' => 'Internal error',
+        //         'code' => 500,
+        //         'error' => true,
+        //         'errors' => $e,
+        //     ], 500);
+        // }
     }
 
     /**
@@ -347,11 +370,11 @@ class TransactionController extends Controller
      */
     public function show($id)
     {
-        $transaction = Transaction::with(['customer', 'payments.invoice'])->findOrFail($id);
+        $transaction = Transaction::with(['customer', 'invoices'])->findOrFail($id);
 
         // return $transaction;
 
-        return view('transaction.show', [
+        return view('transaction.detail', [
             'transaction' => $transaction,
         ]);
     }
@@ -387,22 +410,41 @@ class TransactionController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $transaction = Transaction::find($id);
+        $deletedData = $transaction;
+
+        try {
+            $transaction->invoices()->detach();
+            $transaction->delete();
+            return [
+                'message' => 'data has been deleted',
+                'error' => false,
+                'data' => [
+                    'deleted_data' => $deletedData,
+                ],
+                'code' => 200,
+            ];
+        } catch (Exception $e) {
+            return [
+                'message' => 'internal error',
+                'error' => true,
+                'code' => 500,
+                'errors' => $e,
+            ];
+        }
     }
 
     public function print($id)
     {
-        $transaction = Transaction::with(['invoices', 'invoices.payments' => function ($q) use ($id) {
-            $q->where('transaction_id', $id);
-        },  'customer'])->findOrFail($id);
+        $transaction = Transaction::with(['invoices'])->findOrFail($id);
 
         // return $transaction;
 
         $company = Company::all()->first();
 
-        $totalPayment = collect($transaction->invoices)->flatMap(function ($invoice) {
-            return $invoice->payments;
-        })->sum('amount');
+        $totalPayment = collect($transaction->invoices)->map(function ($invoice) {
+            return $invoice->pivot->amount;
+        })->sum();
 
         // return $totalPayment;
 

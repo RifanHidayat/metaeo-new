@@ -18,15 +18,27 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $customers = Customer::with(['invoices.payments'])->get()
+        $customers = Customer::with(['invoices.transactions'])->get()
+            // ->flatMap(function ($customer) {
+            //     return $customer->invoices;
+            // })
+            // ->flatMap(function ($invoice) {
+            //     return $invoice->transactions;
+            // })
+            // ->map(function ($transaction) {
+            //     return $transaction->pivot->amount;
+            // })
+            // ->all();
             ->each(function ($customer) {
                 $customer['paid'] = collect($customer->invoices)->flatMap(function ($invoice) {
-                    return $invoice->payments;
-                })->sum('amount');
+                    return $invoice->transactions;
+                })->map(function ($transaction) {
+                    return $transaction->pivot->amount;
+                })->sum();
                 $customer['total_invoice'] = collect($customer->invoices)->sum('total');
 
                 $customer['unpaid'] = $customer->total_invoice - $customer->paid;
-            })->all();
+            });
 
         // return $customers;
         return view('customer.index', ['customers' => $customers]);
@@ -184,13 +196,26 @@ class CustomerController extends Controller
     public function payment($id)
     {
         $customer = Customer::findOrFail($id);
-        $invoices = Invoice::with(['payments'])
+        $invoices = Invoice::with(['transactions'])
             ->where('customer_id', $id)
             ->orderBy('date', 'DESC')
             // ->where('paid', 0)
             ->get()
+            // ->each(function ($invoice) {
+            //     $invoice['total_payment'] = collect($invoice->payments)->sum('amount');
+            // })
+            // ->filter(function ($invoice) {
+            //     return $invoice->total_payment < $invoice->total;
+            // })
+            // // ->map(function ($invoice) {
+            // //     return $invoice->total_payment;
+            // // })
+            // ->values()->all();
             ->each(function ($invoice) {
-                $invoice['total_payment'] = collect($invoice->payments)->sum('amount');
+                $invoice['total_payment'] = collect($invoice->transactions)
+                    ->map(function ($transaction) {
+                        return $transaction->pivot->amount;
+                    })->sum();
             })
             ->filter(function ($invoice) {
                 return $invoice->total_payment < $invoice->total;

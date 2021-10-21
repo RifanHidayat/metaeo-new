@@ -32,7 +32,7 @@ class Quotation extends Model
 
     public function deliveryOrders()
     {
-        return $this->belongsToMany(DeliveryOrder::class);
+        return $this->belongsToMany(DeliveryOrder::class)->withPivot('code', 'amount', 'unit', 'description', 'information');
     }
 
     public function invoices()

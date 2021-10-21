@@ -26,7 +26,7 @@ class InvoiceController extends Controller
 
     public function indexData()
     {
-        $invoices = Invoice::with(['quotations', 'salesOrder', 'payments'])->select('invoices.*');
+        $invoices = Invoice::with(['quotations', 'salesOrder', 'customer', 'transactions'])->select('invoices.*');
         return DataTables::of($invoices)
             ->addIndexColumn()
             ->addColumn('quotation_number', function (Invoice $invoice) {
@@ -146,9 +146,16 @@ class InvoiceController extends Controller
 
         // return $salesOrder;
 
-        $invoicesByCurrentDateCount = Invoice::query()->where('date', date("Y-m-d"))->get()->count();
-        // return $estimationsByCurrentDateCount;
-        $invoiceNumber = 'INV-' . date('d') . date('m') . date("y") . sprintf('%04d', $invoicesByCurrentDateCount + 1);
+        // $invoicesByCurrentDateCount = Invoice::query()->where('date', date("Y-m-d"))->get()->count();
+        // $invoiceNumber = 'INV-' . date('d') . date('m') . date("y") . sprintf('%04d', $invoicesByCurrentDateCount + 1);
+        $invoicesByCurrentYearCount = Invoice::query()->whereYear('date', date("Y"))->get()->count();
+        $currentYear = date("Y");
+        $romanYear = $this->numberToRomanRepresentation((int) $currentYear);
+        $firstSplitYear = substr($romanYear, 0, 2);
+        $secondSplitYear = substr($romanYear, 2);
+        // $secondSplitRomanYear = $this->numberToRomanRepresentation((int) $secondSplitYear);
+        $invoiceNumber = $firstSplitYear . '-' . $secondSplitYear . '-' . sprintf('%05d', $invoicesByCurrentYearCount + 1);
+        // $invoiceNumber = $this->numberToRomanRepresentation(2000);
 
         // return $salesOrder;
 
@@ -168,10 +175,11 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $invoice = new Invoice;
-        // $invoice->number = $request->number;
-        $invoice->number = getRecordNumber(new Invoice, 'INV');
+        $invoice->number = $request->number;
+        // $invoice->number = getRecordNumber(new Invoice, 'INV');
         $invoice->date = $request->date;
         $invoice->due_date = $request->due_date;
+        $invoice->due_date_term = $request->due_date_term;
         $invoice->tax_invoice_series = $request->tax_invoice_series;
         $invoice->terms_of_payment = $request->terms_of_payment;
         $invoice->gr_number = $request->gr_number;
@@ -187,8 +195,34 @@ class InvoiceController extends Controller
         $invoice->sales_order_id = $request->sales_order_id;
         $invoice->customer_id = $request->customer_id;
 
-
         $quotations = $request->selected_quotations;
+
+        try {
+            $invoiceWithNumber = Invoice::query()->where('number', $request->number)->first();
+            if ($invoiceWithNumber !== null) {
+                return response()->json([
+                    'message' => 'Internal error',
+                    'code' => 400,
+                    'error' => true,
+                    'error_type' => 'exist_number',
+                    'data' => [
+                        'swal' => [
+                            'title' => 'Kesalahan',
+                            'text' => 'Nomor faktur sudah digunakan',
+                            'icon' => 'warning'
+                        ],
+                    ]
+                    // 'errors' => $e,
+                ], 400);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
 
         try {
             $invoice->save();
@@ -266,12 +300,14 @@ class InvoiceController extends Controller
             $q->orderBy('date', 'DESC');
         }, 'customer'])->findOrFail($id);
 
-        $totalPaid = collect($invoice->payments)->sum('amount');
+        $totalPaid = collect($invoice->transactions)->map(function ($transaction) {
+            return $transaction->pivot->amount;
+        })->sum();
         $totalUnpaid = $invoice->total - $totalPaid;
 
         $summary = [
             [
-                'title' => 'TOTAL INVOICE',
+                'title' => 'TOTAL FAKTUR',
                 'amount' => $invoice->total,
             ],
             [
@@ -279,7 +315,7 @@ class InvoiceController extends Controller
                 'amount' => $totalPaid,
             ],
             [
-                'title' => 'TOTAL UNPAID',
+                'title' => 'UNPAID',
                 'amount' => $totalUnpaid,
             ],
         ];
@@ -376,6 +412,7 @@ class InvoiceController extends Controller
         $invoice->number = $request->number;
         $invoice->date = $request->date;
         $invoice->due_date = $request->due_date;
+        $invoice->due_date_term = $request->due_date_term;
         $invoice->tax_invoice_series = $request->tax_invoice_series;
         $invoice->terms_of_payment = $request->terms_of_payment;
         $invoice->gr_number = $request->gr_number;
@@ -532,12 +569,15 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'company' => $company,
         ]);
+        $pdf->setPaper('a5', 'landscape');
         return $pdf->stream($invoice->number . '.pdf');
     }
 
     public function printByDeliveryOrder($id)
     {
-        $invoice = Invoice::with(['quotations', 'customer', 'salesOrder.deliveryOrders.quotations'])->findOrFail($id);
+        $invoice = Invoice::with(['quotations' => function ($q) {
+            $q->with(['deliveryOrders', 'selectedEstimation']);
+        }, 'customer', 'salesOrder'])->findOrFail($id);
 
         // return $invoice;
         $company = Company::all()->first();
@@ -552,12 +592,32 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'company' => $company,
         ]);
-        // $pdf->setPaper('a5', 'landscape');
+        $pdf->setPaper('a5', 'landscape');
         return $pdf->stream($invoice->number . '.pdf');
     }
 
     private function clearThousandFormat($number)
     {
         return str_replace(".", "", $number);
+    }
+
+    /**
+     * @param int $number
+     * @return string
+     */
+    public function numberToRomanRepresentation($number)
+    {
+        $map = array('M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400, 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40, 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1);
+        $returnValue = '';
+        while ($number > 0) {
+            foreach ($map as $roman => $int) {
+                if ($number >= $int) {
+                    $number -= $int;
+                    $returnValue .= $roman;
+                    break;
+                }
+            }
+        }
+        return $returnValue;
     }
 }

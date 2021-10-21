@@ -109,7 +109,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Konfirmasi Password:</label>
-                                <input type="confirmPassword" v-model="confirmPassword" class="form-control form-control-solid" placeholder="" />
+                                <input type="password" v-model="confirmPassword" class="form-control form-control-solid" placeholder="" />
                                 <!-- <span class="form-text text-muted">Please enter password</span> -->
                             </div>
                             <div class="form-group">
@@ -240,6 +240,9 @@
                         .then(function(response) {
                             vm.loading = false;
                             toastr.success("Perubahan telah disimpan");
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500)
                             // Swal.fire({
                             //     title: 'Success',
                             //     text: 'Data has been saved',

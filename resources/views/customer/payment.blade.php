@@ -79,7 +79,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <!-- <div class="form-group row">
                         <label class="col-lg-4 col-form-label text-lg-right">Metode Pembayaran:</label>
                         <div class="col-lg-8">
                             <select class="form-control" v-model="paymentMethod" required>
@@ -89,13 +89,21 @@
                             </select>
                             <input type="text" v-if="paymentMethod == 'other'" v-model="otherPaymentMethod" class="form-control mt-3" placeholder="Masukkan metode pembayaran" required />
                         </div>
+                    </div> -->
+                    <div class="form-group row">
+                        <label class="col-lg-4 col-form-label text-lg-right">Informasi Pengirim (Opsional):</label>
+                        <div class="col-lg-8">
+                            <input type="text" v-model="sender.name" class="form-control mt-3" placeholder="Nama Rekening Pengirim" />
+                            <input type="text" v-model="sender.bank" class="form-control mt-3" placeholder="Nama Bank Pengirim" />
+                            <input type="text" v-model="sender.number" class="form-control mt-3" placeholder="Nomor Rekening Pengirim" />
+                        </div>
                     </div>
-                    <div class="form-group row" v-if="paymentMethod == 'transfer'">
+                    <div class="form-group row">
                         <label class="col-lg-4 col-form-label text-lg-right">Akun:</label>
                         <div class="col-lg-8">
                             <select class="form-control" v-model="account" required>
                                 <option value="">Pilih Akun</option>
-                                <option v-for="acc in accounts" :value="acc.id">@{{acc.bank_name}}</option>
+                                <option v-for="acc in accounts" :value="acc.id">@{{acc.name}}</option>
                             </select>
                         </div>
                     </div>
@@ -225,6 +233,11 @@
             paymentMethod: 'transfer',
             otherPaymentMethod: '',
             note: '',
+            sender: {
+                name: '',
+                bank: '',
+                number: '',
+            },
             cleaveCurrency: {
                 delimiter: '.',
                 numeralDecimalMark: ',',
@@ -239,7 +252,7 @@
         methods: {
             getBankAccounts: function() {
                 let vm = this;
-                axios.get('{{ env("MAGENTA_HRD_URL") }}/api/bank-accounts').then(res => {
+                axios.get('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/accounts').then(res => {
                     vm.accounts = res.data.data;
                 })
             },
@@ -255,13 +268,16 @@
                     number: vm.number,
                     date: vm.date,
                     account_id: vm.accountData.id,
-                    account_name: vm.accountData.bank_name,
+                    account_name: vm.accountData.name,
                     total: vm.totalCheckedInvoices,
                     customer_id: vm.customerId,
                     payment_amount: vm.paymentAmount,
                     payment_method: vm.paymentMethod,
                     other_payment_method: null,
                     note: vm.note,
+                    sender_name: vm.sender.name,
+                    sender_bank: vm.sender.bank,
+                    sender_number: vm.sender.number,
                     selected_invoices: vm.checkedInvoices,
                 }
 
@@ -271,18 +287,53 @@
 
                 axios.post('/transaction', data)
                     .then(function(response) {
-                        vm.loading = false;
-                        Swal.fire({
-                            title: 'Success',
-                            text: 'Data has been saved',
-                            icon: 'success',
-                            // allowOutsideClick: false,
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                window.location.href = '/customer';
-                            }
-                        })
+                        // vm.loading = false;
+                        // Swal.fire({
+                        //     title: 'Success',
+                        //     text: 'Data has been saved',
+                        //     icon: 'success',
+                        //     allowOutsideClick: false,
+                        // }).then((result) => {
+                        //     if (result.isConfirmed) {
+                        //         window.location.href = '/customer';
+                        //     }
+                        // })
                         // console.log(response);
+                        const transaction = response.data.data;
+                        const invoices = vm.checkedInvoices.map(invoice => invoice.number).join(", ")
+
+                        const data = {
+                            date: vm.date,
+                            description: 'Transaksi Pembayaran Faktur Metaprint Nomor ' + transaction.number + ` (${invoices})`,
+                            amount: vm.paymentAmount,
+                            type: 'in',
+                            is_group: 0,
+                            account_id: vm.account,
+                        };
+                        axios.post('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/account-transactions', data)
+                            .then(function(response) {
+                                vm.loading = false;
+                                Swal.fire({
+                                    title: 'Success',
+                                    text: 'Data has been saved',
+                                    icon: 'success',
+                                    allowOutsideClick: false,
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = '/customer';
+                                    }
+                                })
+                                // console.log(response);
+                            })
+                            .catch(function(error) {
+                                vm.loading = false;
+                                console.log(error);
+                                Swal.fire(
+                                    'Oops!',
+                                    'Something wrong',
+                                    'error'
+                                )
+                            });
                     })
                     .catch(function(error) {
                         vm.loading = false;
@@ -345,7 +396,7 @@
         $('#basic-table').DataTable({
             // "search": false,
             "order": [
-                [1, 'desc']
+                [1, 'asc']
             ],
         });
 

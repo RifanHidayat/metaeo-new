@@ -145,7 +145,7 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <button type="button" class="btn btn-light-primary font-weight-bold">Generate</button>
+                        <button type="button" class="btn btn-light-primary font-weight-bold btn-generate" :class="loadingGenerate && 'spinner spinner-white spinner-right'" :disabled="loadingGenerate">Generate</button>
                     </div>
                 </div>
                 <!-- <div class="col-lg-5 col-md-12">
@@ -182,11 +182,11 @@
         </div>
 
     </div>
-    <div class="py-5">
+    <!-- <div class="py-5">
         <div class="progress">
             <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-    </div>
+    </div> -->
     <div class="card card-custom gutter-b" id="app">
         <div class="card-header">
             <div class="card-title"></div>
@@ -196,13 +196,21 @@
             </div>
         </div>
         <div class="card-body">
-            <table class="table" id="basic-table">
-                <thead>
-                    <th>Tanggal</th>
-                    <th>Customer</th>
-                    <th>Pekerjaan</th>
-                </thead>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="sales-order-table">
+                    <thead>
+                        <tr class="text-center">
+                            <th>Nomor SO</th>
+                            <th>Tanggal SO</th>
+                            <th>Customer</th>
+                            <th>Nomor PO</th>
+                            <th>Tanggal PO</th>
+                            <th>Quotation</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -218,6 +226,7 @@
     let app = new Vue({
         el: '#app',
         data: {
+            loadingGenerate: false,
             filter: {
                 startDate: '{{ date("Y-m-01") }}',
                 endDate: '{{ date("Y-m-t") }}',
@@ -282,7 +291,100 @@
 </script>
 <script>
     $(function() {
-        $('#basic-table').DataTable();
+        let urlRequest = function() {
+            return `?start_date=${app.$data.filter.startDate}` +
+                `&end_date=${app.$data.filter.endDate}` +
+                `&status=${app.$data.filter.status}` +
+                `&customer=${app.$data.filter.customer}` +
+                `&columns=${app.$data.filter.columnSelections}` +
+                `&sort_by=${app.$data.filter.sortBy}` +
+                `&sort_in=${app.$data.filter.sortIn}`;
+        }
+
+        let defineColumnVisible = function(columnSelections = [], columnName) {
+            const index = columnSelections.indexOf(columnName);
+            return index > -1 ? true : false;
+        }
+
+        let dataTableColumns = function(columnSelections = []) {
+            return [{
+                    data: 'number',
+                    name: 'sales_orders.number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'number'),
+                },
+                {
+                    data: 'date',
+                    name: 'sales_orders.date',
+                    render: function(data, type) {
+                        return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'date'),
+                },
+                {
+                    data: 'customer.name',
+                    name: 'customer.name',
+                    render: function(data, type) {
+                        return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'customer'),
+                },
+                {
+                    data: 'po_number',
+                    name: 'sales_orders.po_number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'po_number'),
+                },
+                {
+                    data: 'po_date',
+                    name: 'sales_orders.po_date',
+                    render: function(data, type) {
+                        return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'po_date'),
+                },
+                {
+                    data: 'quotation_number',
+                    name: 'quotations.number',
+                    visible: defineColumnVisible(columnSelections, 'quotations'),
+                    // render: function(data, type) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${(data.length > 0) ? data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('') : ''}</div>`;
+                    // },
+                },
+            ];
+        }
+        // $('#basic-table').DataTable();
+        let salesOrdersTable = $('#sales-order-table').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            ajax: '/datatables/reports/sales-orders' + urlRequest(),
+            order: [
+                [2, 'desc']
+            ],
+            columns: dataTableColumns(app.$data.filter.columnSelections),
+        });
+
+        $('.btn-generate').on('click', function() {
+            app.$data.loadingGenerate = true;
+            salesOrdersTable = $('#sales-order-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: '/datatables/reports/sales-orders' + urlRequest(),
+                order: [
+                    [2, 'desc']
+                ],
+                columns: dataTableColumns(app.$data.filter.columnSelections),
+                "drawCallback": function(settings) {
+                    app.$data.loadingGenerate = false;
+                },
+            });
+        })
 
         $('.select-column').select2();
         $('.select-column').on('change', function() {

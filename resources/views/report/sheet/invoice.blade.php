@@ -20,7 +20,7 @@
             @elseif($column['id'] == 'sales_order')
             <td>{{ $invoice->salesOrder->number }}</td>
             @else
-            @if($column['id'] == 'netto' || $column['id'] == 'discount' || $column['id'] == 'ppn' || $column['id'] == 'pph' || $column['id'] == 'total')
+            @if($column['id'] == 'netto' || $column['id'] == 'discount' || $column['id'] == 'ppn' || $column['id'] == 'pph' || $column['id'] == 'total' || $column['id'] == 'total_payment' || $column['id'] == 'unpaid')
             <td data-format="#,##0_-">{{ $invoice->{$column['id']} }}</td>
             @else
             <td>{{ $invoice->{$column['id']} }}</td>

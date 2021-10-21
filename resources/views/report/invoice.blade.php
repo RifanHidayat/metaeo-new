@@ -145,7 +145,7 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <button type="button" class="btn btn-light-primary font-weight-bold">Generate</button>
+                        <button type="button" class="btn btn-light-primary font-weight-bold btn-generate" :class="loadingGenerate && 'spinner spinner-white spinner-right'" :disabled="loadingGenerate">Generate</button>
                     </div>
                 </div>
                 <!-- <div class="col-lg-5 col-md-12">
@@ -182,11 +182,11 @@
         </div>
 
     </div>
-    <div class="py-5">
+    <!-- <div class="py-5">
         <div class="progress">
             <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-    </div>
+    </div> -->
     <div class="card card-custom gutter-b" id="app">
         <div class="card-header">
             <div class="card-title"></div>
@@ -196,13 +196,32 @@
             </div>
         </div>
         <div class="card-body">
-            <table class="table" id="basic-table">
-                <thead>
-                    <th>Tanggal</th>
-                    <th>Customer</th>
-                    <th>Pekerjaan</th>
-                </thead>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="invoice-table">
+                    <thead>
+                        <tr class="text-center">
+                            <th>Nomor Faktur</th>
+                            <th>Tanggal Faktur</th>
+                            <th>Due Date</th>
+                            <th>Customer</th>
+                            <th>GR Number</th>
+                            <th>Seri Faktur Pajak</th>
+                            <th>Syarat Pembayaran</th>
+                            <th>Sales Order</th>
+                            <th>Quotation</th>
+                            <th>Total Sub</th>
+                            <th>Diskon</th>
+                            <th>PPN</th>
+                            <th>PPh</th>
+                            <th>Total</th>
+                            <th>Total Pembayaran</th>
+                            <th>Sisa Pembayaran</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -218,6 +237,7 @@
     let app = new Vue({
         el: '#app',
         data: {
+            loadingGenerate: false,
             filter: {
                 startDate: '{{ date("Y-m-01") }}',
                 endDate: '{{ date("Y-m-t") }}',
@@ -277,8 +297,20 @@
                         id: 'total',
                         text: 'Total'
                     },
+                    {
+                        id: 'total_payment',
+                        text: 'Total Pembayaran'
+                    },
+                    {
+                        id: 'unpaid',
+                        text: 'Sisa Pembayaran'
+                    },
+                    {
+                        id: 'status',
+                        text: 'Keterangan'
+                    },
                 ],
-                columnSelections: ['number', 'date', 'customer', 'due_date', 'gr_number', 'tax_invoice_series', 'terms_of_payment', 'sales_order', 'quotations', 'netto', 'discount', 'ppn', 'pph', 'total'],
+                columnSelections: ['number', 'date', 'customer', 'due_date', 'gr_number', 'tax_invoice_series', 'terms_of_payment', 'sales_order', 'quotations', 'netto', 'discount', 'ppn', 'pph', 'total', 'total_payment', 'unpaid', 'status'],
                 // tes: function() {
                 //     return this.startDate;
                 // },
@@ -318,7 +350,217 @@
 </script>
 <script>
     $(function() {
-        $('#basic-table').DataTable();
+        let urlRequest = function() {
+            return `?start_date=${app.$data.filter.startDate}` +
+                `&end_date=${app.$data.filter.endDate}` +
+                `&status=${app.$data.filter.status}` +
+                `&customer=${app.$data.filter.customer}` +
+                `&columns=${app.$data.filter.columnSelections}` +
+                `&sort_by=${app.$data.filter.sortBy}` +
+                `&sort_in=${app.$data.filter.sortIn}`;
+        }
+
+        let defineColumnVisible = function(columnSelections = [], columnName) {
+            const index = columnSelections.indexOf(columnName);
+            return index > -1 ? true : false;
+        }
+
+        let dataTableColumns = function(columnSelections = []) {
+            return [{
+                    data: 'number',
+                    name: 'invoices.number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'number'),
+                },
+                {
+                    data: 'date',
+                    name: 'invoices.date',
+                    render: function(data, type) {
+                        return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'date'),
+                },
+                {
+                    data: 'due_date',
+                    name: 'invoices.due_date',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'due_date'),
+                },
+                {
+                    data: 'customer.name',
+                    name: 'customer.name',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'customer'),
+                },
+                {
+                    data: 'gr_number',
+                    name: 'invoices.gr_number',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'gr_number'),
+                },
+                {
+                    data: 'tax_invoice_series',
+                    name: 'invoices.tax_invoice_series',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'tax_invoice_series'),
+                },
+                {
+                    data: 'terms_of_payment',
+                    name: 'invoices.terms_of_payment',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'terms_of_payment'),
+                },
+                {
+                    data: 'sales_order.number',
+                    name: 'salesOrder.number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'sales_order'),
+                },
+                {
+                    data: 'quotation_number',
+                    name: 'quotations.number',
+                    // render: function(data, type) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data.length > 0 && data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('')}</div>`;
+                    // },
+                    visible: defineColumnVisible(columnSelections, 'quotations'),
+                },
+                {
+                    data: 'netto',
+                    name: 'invoices.netto',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'netto'),
+                },
+                {
+                    data: 'discount',
+                    name: 'invoices.discount',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'discount'),
+                },
+                {
+                    data: 'ppn',
+                    name: 'invoices.ppn',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'ppn'),
+                },
+                {
+                    data: 'pph',
+                    name: 'invoices.pph',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'pph'),
+                },
+                {
+                    data: 'total',
+                    name: 'invoices.total',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'total'),
+                },
+                {
+                    data: 'transactions',
+                    name: 'number',
+                    render: function(data, type, row) {
+                        const totalPayment = data.map(transaction => transaction.pivot.amount).reduce((acc, cur) => {
+                            return acc + cur;
+                        }, 0);
+
+                        // const unpaid = row.total - totalPayment;
+
+                        // if (unpaid > 0) {
+                        //     return `<div class="text-success font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
+                        // }
+
+                        return `<div class="text-success font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(totalPayment) }</div>`
+                    },
+                    visible: defineColumnVisible(columnSelections, 'total_payment'),
+                },
+                {
+                    data: 'transactions',
+                    name: 'number',
+                    render: function(data, type, row) {
+                        const totalPayment = data.map(transaction => transaction.pivot.amount).reduce((acc, cur) => {
+                            return acc + cur;
+                        }, 0);
+
+                        const unpaid = row.total - totalPayment;
+
+                        return `<div class="text-warning font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
+                        // if (unpaid > 0) {}
+
+                        // return `<span class="label label-light-success label-pill label-inline text-capitalize">Lunas</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'unpaid'),
+                },
+                {
+                    data: 'transactions',
+                    name: 'number',
+                    render: function(data, type, row) {
+                        const totalPayment = data.map(transaction => transaction.pivot.amount).reduce((acc, cur) => {
+                            return acc + cur;
+                        }, 0);
+
+                        const unpaid = row.total - totalPayment;
+
+                        if (unpaid > 0) {
+                            return `<span class="label label-light-warning label-pill label-inline text-capitalize">Belum Lunas</span>`
+                        }
+
+                        return `<span class="label label-light-success label-pill label-inline text-capitalize">Lunas</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'status'),
+                },
+            ];
+        }
+        // $('#basic-table').DataTable();
+        let invoicesTable = $('#invoice-table').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            ajax: '/datatables/reports/invoices' + urlRequest(),
+            order: [
+                [1, 'desc']
+            ],
+            columns: dataTableColumns(app.$data.filter.columnSelections),
+        });
+
+        $('.btn-generate').on('click', function() {
+            app.$data.loadingGenerate = true;
+            invoicesTable = $('#invoice-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: '/datatables/reports/invoices' + urlRequest(),
+                order: [
+                    [1, 'desc']
+                ],
+                columns: dataTableColumns(app.$data.filter.columnSelections),
+                "drawCallback": function(settings) {
+                    app.$data.loadingGenerate = false;
+                },
+            });
+        })
 
         $('.select-column').select2();
         $('.select-column').on('change', function() {

@@ -509,7 +509,7 @@
             warehouse: '',
             shipper: '',
             numberOfVehicle: '',
-            billingAddress: '{{ $sales_order->customer !== null ? $sales_order->customer->address : "" }}',
+            billingAddress: `{{ $sales_order->customer !== null ? $sales_order->customer->address : "" }}`,
             shippingAddress: '',
             salesOrderId: '{{ $sales_order->id }}',
             warehouses: JSON.parse(String.raw `{!! $sales_order->customer->warehouses !!}`),

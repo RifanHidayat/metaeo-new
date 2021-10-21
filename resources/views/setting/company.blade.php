@@ -161,6 +161,7 @@
                     size: '',
                     type: '',
                 },
+                oldFile: '{{ $company->logo }}',
                 imageSource: `{{ $company->logo !== null ? Storage::disk('s3')->url($company->logo) : '' }}`,
                 loading: false,
             },
@@ -194,6 +195,7 @@
                     this.previewFile.type = splittedFileName[splittedFileName.length - 1];
                     this.file = file;
                     this.imageSource = URL.createObjectURL(file);
+                    this.oldFile = '';
                 },
                 removeFile: function() {
                     this.file = '';
@@ -222,6 +224,7 @@
                         head: vm.head,
                         address: vm.address,
                         logo: vm.file,
+                        old_logo: vm.oldFile,
                     };
 
                     let formData = new FormData();

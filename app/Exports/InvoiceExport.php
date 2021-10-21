@@ -83,6 +83,18 @@ class InvoiceExport implements FromView, ShouldAutoSize
             'id' => 'total',
             'text' => 'Total'
         ],
+        [
+            'id' => 'total_payment',
+            'text' => 'Total Dibayar'
+        ],
+        [
+            'id' => 'unpaid',
+            'text' => 'Sisa Pembayaran'
+        ],
+        [
+            'id' => 'status',
+            'text' => 'Keterangan'
+        ],
     ];
 
     public function __construct($request)
@@ -107,7 +119,17 @@ class InvoiceExport implements FromView, ShouldAutoSize
             $query->orderBy($sortBy, $sortIn);
         }
 
-        $invoices = $query->get();
+        $invoices = $query->get()
+            ->each(function ($invoice) {
+                $totalPayment = collect($invoice->transactions)
+                    ->map(function ($transaction) {
+                        return $transaction->pivot->amount;
+                    })->sum();
+
+                $invoice['total_payment'] = $totalPayment;
+                $invoice['unpaid'] = $invoice->total - $totalPayment;
+                $invoice['status'] = $invoice->unpaid <= 0 ? 'Lunas' : 'Belum Lunas';
+            });
 
         return view('report.sheet.invoice', [
             'invoices' => $invoices,

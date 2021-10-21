@@ -70,7 +70,16 @@
                             <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Tenggat Waktu:</label>
                                 <div class="col-lg-8">
-                                    <input type="text" v-model="dueDate" class="form-control due-date" placeholder="Masukkan tanggal faktur" required />
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <select class="form-control" v-model="dueDateTerm" @change="onChangeDueDateSelect($event)" style="border-radius: 0.42rem 0 0 0.42rem;">
+                                                <option value="custom">Custom</option>
+                                                @for($i = 15; $i <= 90; $i +=15) <option value="{{ $i }}" :disabled="!date">{{ $i }} Hari</option>
+                                                    @endfor
+                                            </select>
+                                        </div>
+                                        <input type="text" v-model="dueDate" class="form-control due-date" placeholder="Masukkan tanggal faktur" required />
+                                    </div>
                                 </div>
                                 <!-- <div class="col-lg-4">
                                     <div class="input-group">
@@ -463,6 +472,7 @@
             number: '{{ $invoice->number }}',
             date: '{{ $invoice->date }}',
             dueDate: '{{ $invoice->due_date }}',
+            dueDateTerm: '{{ $invoice->due_date_term }}',
             grNumber: '{{ $invoice->gr_number }}',
             discount: '{{ $invoice->discount }}',
             taxInvoiceSeries: '{{ $invoice->tax_invoice_series }}',
@@ -492,6 +502,7 @@
                     number: vm.number,
                     date: vm.date,
                     due_date: vm.dueDate,
+                    due_date_term: vm.dueDateTerm,
                     tax_invoice_series: vm.taxInvoiceSeries,
                     terms_of_payment: vm.termsOfPayment,
                     gr_number: vm.grNumber,
@@ -550,6 +561,23 @@
                 }
                 return masked.toString().replaceAll('.', '');
             },
+            onChangeDueDateSelect: function(event) {
+                const invoiceDate = new Date(this.date);
+                const dueDate = new Date();
+                const dueDateTerm = event.target.value;
+                if (dueDateTerm !== 'custom') {
+                    const numDays = Number(dueDateTerm);
+                    dueDate.setDate(invoiceDate.getDate() + numDays);
+                    this.dueDate = `${dueDate.getFullYear()}-${this.pad(dueDate.getMonth() + 1, 2)}-${this.pad(dueDate.getDate() + 1, 2)}`;
+                    $('.due-date').datepicker('setDate', this.dueDate);
+                }
+                this.dueDateTerm = dueDateTerm;
+            },
+            pad: function(num, size) {
+                num = num.toString();
+                while (num.length < size) num = "0" + num;
+                return num;
+            }
             // validateProducedQuantity: function(quotation) {
             //     const remainingQuantity = this.remainingQuantity(quotation.quantity, quotation.produced, quotation.production);
             //     if (remainingQuantity < 0) {

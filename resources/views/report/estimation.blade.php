@@ -116,7 +116,7 @@
                         <div class="col-lg-6 col-md-12">
                             <p class="text-dark-75"><strong>Urutkan Berdasarkan</strong></p>
                             <select v-model="filter.sortBy" class="form-control form-control-sm select-sort-by">
-                                <option value="" disabled>Pilih Kolom</option>
+                                <option value="">Pilih Kolom</option>
                                 <option v-for="column in sortColumns" :value="column.id">@{{ column.text }}</option>
                                 <!-- <option value="date">Tanggal</option>
                                 <option value="customer">Customer</option>
@@ -144,7 +144,7 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <button type="button" class="btn btn-light-primary font-weight-bold">Generate</button>
+                        <button type="button" class="btn btn-light-primary font-weight-bold btn-generate" :class="loadingGenerate && 'spinner spinner-white spinner-right'" :disabled="loadingGenerate">Generate</button>
                     </div>
                 </div>
                 <!-- <div class="col-lg-5 col-md-12">
@@ -181,11 +181,11 @@
         </div>
 
     </div>
-    <div class="py-5">
+    <!-- <div class="py-5">
         <div class="progress">
             <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-    </div>
+    </div> -->
     <div class="card card-custom gutter-b" id="app">
         <div class="card-header">
             <div class="card-title"></div>
@@ -195,13 +195,30 @@
             </div>
         </div>
         <div class="card-body">
-            <table class="table" id="basic-table">
-                <thead>
-                    <th>Tanggal</th>
-                    <th>Customer</th>
-                    <th>Pekerjaan</th>
-                </thead>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="estimation-table">
+                    <thead>
+                        <tr class="text-center">
+                            <th>Number</th>
+                            <th>Tanggal</th>
+                            <th>Customer</th>
+                            <th>Pekerjaan</th>
+                            <th>Quantity</th>
+                            <th>Produksi</th>
+                            <th>HPP</th>
+                            <th>HPP Per Unit</th>
+                            <th>Unit Price</th>
+                            <th>Margin</th>
+                            <th>Total Price</th>
+                            <th>PPN</th>
+                            <th>PPh</th>
+                            <th>Total Piutang</th>
+                            <th>Tanggal Kirim</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -217,6 +234,7 @@
     let app = new Vue({
         el: '#app',
         data: {
+            loadingGenerate: false,
             filter: {
                 startDate: '{{ date("Y-m-01") }}',
                 endDate: '{{ date("Y-m-t") }}',
@@ -317,7 +335,212 @@
 </script>
 <script>
     $(function() {
-        $('#basic-table').DataTable();
+        let urlRequest = function() {
+            return `?start_date=${app.$data.filter.startDate}` +
+                `&end_date=${app.$data.filter.endDate}` +
+                `&status=${app.$data.filter.status}` +
+                `&customer=${app.$data.filter.customer}` +
+                `&columns=${app.$data.filter.columnSelections}` +
+                `&sort_by=${app.$data.filter.sortBy}` +
+                `&sort_in=${app.$data.filter.sortIn}`;
+        }
+
+        let defineColumnVisible = function(columnSelections = [], columnName) {
+            const index = columnSelections.indexOf(columnName);
+            return index > -1 ? true : false;
+        }
+
+        let dataTableColumns = function(columnSelections = []) {
+            return [{
+                    data: 'number',
+                    name: 'estimations.number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'number'),
+                },
+                {
+                    data: 'date',
+                    name: 'estimations.date',
+                    render: function(data, type) {
+                        return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'date'),
+                },
+                {
+                    data: 'customer.name',
+                    name: 'customer.name',
+                    render: function(data, type) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'customer'),
+                },
+                {
+                    data: 'work',
+                    name: 'estimations.work',
+                    render: function(data, type) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'work'),
+                    // visible: false,
+                },
+                {
+                    data: 'quantity',
+                    name: 'estimations.quantity',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'quantity'),
+                },
+                {
+                    data: 'production',
+                    name: 'estimations.production',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'production'),
+                },
+                {
+                    data: 'hpp',
+                    name: 'estimations.hpp',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'hpp'),
+                },
+                {
+                    data: 'hpp_per_unit',
+                    name: 'estimations.hpp_per_unit',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'hpp_per_unit'),
+                },
+                {
+                    data: 'price_per_unit',
+                    name: 'estimations.price_per_unit',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'price_per_unit'),
+                },
+                {
+                    data: 'margin',
+                    name: 'estimations.margin',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'margin'),
+                },
+                {
+                    data: 'total_price',
+                    name: 'estimations.total_price',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'total_price'),
+                },
+                {
+                    data: 'ppn',
+                    name: 'estimations.ppn',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'ppn'),
+                },
+                {
+                    data: 'pph',
+                    name: 'estimations.pph',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'pph'),
+                },
+                {
+                    data: 'total_bill',
+                    name: 'estimations.total_bill',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'total_bill'),
+                },
+                {
+                    data: 'delivery_date',
+                    name: 'estimations.delivery_date',
+                    className: 'text-center',
+                    // render: function(data, type) {
+                    //     return `<span  class="text-muted font-weight-bold  font-size-lg text-hover-primary">${Intl.NumberFormat('de-DE').format(data)}</span>`;
+                    // }
+                    visible: defineColumnVisible(columnSelections, 'delivery_date'),
+                },
+                {
+                    data: 'status',
+                    name: 'estimations.status',
+                    className: 'text-center',
+                    render: function(data, type) {
+                        const label = function(text, type) {
+                            return `<span class="label label-light-${type} label-pill label-inline text-capitalize">${text}</span>`;
+                        }
+
+                        switch (data) {
+                            case 'open':
+                                return label(data, 'warning');
+                                break;
+                            case 'closed':
+                                return label(data, 'success');
+                                break;
+                            case 'rejected':
+                                return label(data, 'danger');
+                                break;
+                            case 'final':
+                                return label(data, 'primart');
+                                break;
+                            default:
+                                return label('unknown', 'light');
+                        }
+                    },
+                    visible: defineColumnVisible(columnSelections, 'status'),
+                },
+            ];
+        }
+        // $('#basic-table').DataTable();
+        let estimationsTable = $('#estimation-table').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            ajax: '/datatables/reports/estimations' + urlRequest(),
+            order: [
+                [2, 'desc']
+            ],
+            columns: dataTableColumns(app.$data.filter.columnSelections),
+        });
+
+        $('.btn-generate').on('click', function() {
+            app.$data.loadingGenerate = true;
+            estimationsTable = $('#estimation-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: '/datatables/reports/estimations' + urlRequest(),
+                order: [
+                    [2, 'desc']
+                ],
+                columns: dataTableColumns(app.$data.filter.columnSelections),
+                "drawCallback": function(settings) {
+                    app.$data.loadingGenerate = false;
+                },
+            });
+        })
 
         $('.select-column').select2();
         $('.select-column').on('change', function() {

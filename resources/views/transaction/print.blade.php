@@ -67,7 +67,7 @@
     <header>
         <div class="header" style="float: left; margin-bottom: 100px;">
             <div style="width: 50%; float: left;">
-                <img src="https://karir-production.nos.jkt-1.neo.id/logos/11/1029111/unilabel_magenta.png" alt="Logo" width="150" height="60">
+                <img src="{{ $company->logo !== null ? Storage::disk('s3')->url($company->logo) : '' }}" alt="Logo" height="35">
                 <!-- <div style="margin-top: 10px">
                 <span style="display: block;">{{ $company->name }}</span>
                 <span style="display: block;">{{ $company->address }}</span>
@@ -130,11 +130,7 @@
                     <td style="text-align:center"><?= $invoice->date ?></td>
                     <td style="text-align:center"><?= $invoice->due_date ?></td>
                     <td style="text-align:right"><?= number_format($invoice->total, 0, '', '.') ?></td>
-                    @if(count($invoice->payments) > 0)
-                    <td style="text-align:right"><?= number_format($invoice->payments[0]->amount, 0, '', '.') ?></td>
-                    @else
-                    <td style="text-align:right">0</td>
-                    @endif
+                    <td style="text-align:right"><?= number_format($invoice->pivot->amount, 0, '', '.') ?></td>
                 </tr>
 
                 @endforeach

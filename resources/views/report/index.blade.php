@@ -83,7 +83,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
         <!--begin::Card-->
         <div class="card card-custom gutter-b card-stretch">
-            <a href="">
+            <a href="/report/quotation">
                 <div class="card-body pt-15">
                     <div class="d-flex flex-column align-items-center">
                         <!--begin: Icon-->
@@ -111,7 +111,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
         <!--begin::Card-->
         <div class="card card-custom gutter-b card-stretch">
-            <a href="">
+            <a href="/report/sales-order">
                 <div class="card-body pt-15">
                     <div class="d-flex flex-column align-items-center">
                         <!--begin: Icon-->
@@ -140,7 +140,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
         <!--begin::Card-->
         <div class="card card-custom gutter-b card-stretch">
-            <a href="">
+            <a href="report/spk">
                 <div class="card-body pt-15">
                     <div class="d-flex flex-column align-items-center">
                         <!--begin: Icon-->
@@ -169,7 +169,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
         <!--begin::Card-->
         <div class="card card-custom gutter-b card-stretch">
-            <a href="">
+            <a href="/report/delivery-order">
                 <div class="card-body pt-15">
                     <div class="d-flex flex-column align-items-center">
                         <!--begin: Icon-->
@@ -198,7 +198,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
         <!--begin::Card-->
         <div class="card card-custom gutter-b card-stretch">
-            <a href="">
+            <a href="/report/invoice">
                 <div class="card-body pt-15">
                     <div class="d-flex flex-column align-items-center">
                         <!--begin: Icon-->
@@ -227,7 +227,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
         <!--begin::Card-->
         <div class="card card-custom gutter-b card-stretch">
-            <a href="">
+            <a href="/report/transaction">
                 <div class="card-body pt-15">
                     <div class="d-flex flex-column align-items-center">
                         <!--begin: Icon-->

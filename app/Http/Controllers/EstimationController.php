@@ -6,7 +6,9 @@ use App\Models\Customer;
 use App\Models\Estimation;
 use App\Models\EstimationDigitalItem;
 use App\Models\EstimationOffsetItem;
+use App\Models\Machine;
 use App\Models\PicPo;
+use App\Models\PrintType;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Exception;
@@ -96,6 +98,9 @@ class EstimationController extends Controller
     public function create()
     {
         // return printTest();
+        $machines = Machine::all();
+        $printTypes = PrintType::all();
+
         $customers = Customer::all();
         $customersAll = $customers;
         $customers = $customers->map(function ($item, $key) {
@@ -112,7 +117,9 @@ class EstimationController extends Controller
         return view('estimation.create', [
             'customers' => $customers,
             'customers_all' => $customersAll,
-            'estimation_number' => $estimationNumber
+            'estimation_number' => $estimationNumber,
+            'machines' => $machines,
+            'print_types' => $printTypes,
         ]);
     }
 
@@ -162,6 +169,7 @@ class EstimationController extends Controller
         $estimation->total_bill = $this->clearThousandFormat($request->total_bill);
         $estimation->delivery_date = $request->delivery_date;
         $estimation->status = $request->status;
+        $estimation->note = $request->note;
         // $estimation->status = "open";
         $request->offsetItems = json_decode($request->offsetItems);
         $request->digitalItems = json_decode($request->digitalItems);
@@ -199,8 +207,8 @@ class EstimationController extends Controller
                 $offsetItem = new EstimationOffsetItem;
                 $offsetItem->item = $offset->item;
                 // *NEED TO CHANGE
-                // $offsetItem->machine_id = $offset->machineType;
-                $offsetItem->machine_id = 0;
+                $offsetItem->machine_id = $offset->machineType;
+                // $offsetItem->machine_id = 0;
                 $offsetItem->size_opened_p = $offset->sizeOpenedP;
                 $offsetItem->size_opened_l = $offset->sizeOpenedL;
                 $offsetItem->size_closed_p = $offset->sizeClosedP;
@@ -208,8 +216,8 @@ class EstimationController extends Controller
                 $offsetItem->color_1 = $offset->color1;
                 $offsetItem->color_2 = $offset->color2;
                 // *NEED TO CHANGE
-                // $offsetItem->paper_id = $offset->paperType;
-                $offsetItem->paper_id = 0;
+                $offsetItem->paper_id = $offset->paperType;
+                // $offsetItem->paper_id = 0;
                 $offsetItem->paper_size_plano_p = $offset->paperSizePlanoP;
                 $offsetItem->paper_size_plano_l = $offset->paperSizePlanoL;
                 $offsetItem->paper_gramasi = $offset->paperGramasi;
@@ -220,6 +228,7 @@ class EstimationController extends Controller
                 $offsetItem->paper_cutting_size_plano_p = $offset->paperSizePlanoDivCuttingSizeP;
                 $offsetItem->paper_cutting_size_plano_l = $offset->paperSizePlanoDivCuttingSizeL;
                 $offsetItem->paper_quantity = $this->clearThousandFormat($offset->paperQuantity);
+                $offsetItem->paper_unit_price_editable = $this->booleanToNumber($offset->isPaperUnitPriceEditable);
                 $offsetItem->paper_unit_price = $this->clearThousandFormat($offset->paperUnitPrice);
                 $offsetItem->paper_total = $this->clearThousandFormat($offset->paperTotal);
                 $offsetItem->plat_film_quantity_set = $this->clearThousandFormat($offset->filmQuantitySet);
@@ -227,8 +236,8 @@ class EstimationController extends Controller
                 $offsetItem->plat_film_total = $this->clearThousandFormat($offset->filmTotal);
                 $offsetItem->app_set_design = $this->clearThousandFormat($offset->appSetDesign);
                 // *NEED TO CHANGE
-                // $offsetItem->print_type_id = $offset->printingType;
-                $offsetItem->print_type_id = 0;
+                $offsetItem->print_type_id = $offset->printingType;
+                // $offsetItem->print_type_id = 0;
                 $offsetItem->print_quantity = $this->clearThousandFormat($offset->printingQuantity);
                 $offsetItem->print_min_price = $this->clearThousandFormat($offset->printingMinPrice);
                 $offsetItem->print_druk_price = $this->clearThousandFormat($offset->printingDrukPrice);
@@ -454,6 +463,7 @@ class EstimationController extends Controller
                 'paperCuttingSizeL' => $this->toNumber($item->paper_cutting_size_l),
                 'paperSizePlanoDivCuttingSizeL' => $this->toNumber($item->paper_cutting_size_plano_l),
                 'paperQuantity' => $item->paper_quantity,
+                'isPaperUnitPriceEditable' => $this->numberToBoolean($item->paper_unit_price_editable),
                 'paperUnitPrice' => $item->paper_unit_price,
                 'paperTotal' => $item->paper_total,
                 'filmQuantitySet' => $item->plat_film_quantity_set,
@@ -512,6 +522,9 @@ class EstimationController extends Controller
         // $estimation->offset_items = '123123';
         // return $estimation;
 
+        $machines = Machine::all();
+        $printTypes = PrintType::all();
+
         // Get Customers
         $customers = Customer::all();
         $customersAll = $customers;
@@ -539,6 +552,8 @@ class EstimationController extends Controller
             'customers_all' => $customersAll,
             'estimation' => $estimation,
             'picPos' => $picPos,
+            'machines' => $machines,
+            'print_types' => $printTypes,
         ]);
     }
 
@@ -645,8 +660,8 @@ class EstimationController extends Controller
                 $offsetItem = new EstimationOffsetItem;
                 $offsetItem->item = $offset->item;
                 // *NEED TO CHANGE
-                // $offsetItem->machine_id = $offset->machineType;
-                $offsetItem->machine_id = 0;
+                $offsetItem->machine_id = $offset->machineType;
+                // $offsetItem->machine_id = 0;
                 $offsetItem->size_opened_p = $offset->sizeOpenedP;
                 $offsetItem->size_opened_l = $offset->sizeOpenedL;
                 $offsetItem->size_closed_p = $offset->sizeClosedP;
@@ -654,8 +669,8 @@ class EstimationController extends Controller
                 $offsetItem->color_1 = $offset->color1;
                 $offsetItem->color_2 = $offset->color2;
                 // *NEED TO CHANGE
-                // $offsetItem->paper_id = $offset->paperType;
-                $offsetItem->paper_id = 0;
+                $offsetItem->paper_id = $offset->paperType;
+                // $offsetItem->paper_id = 0;
                 $offsetItem->paper_size_plano_p = $offset->paperSizePlanoP;
                 $offsetItem->paper_size_plano_l = $offset->paperSizePlanoL;
                 $offsetItem->paper_gramasi = $offset->paperGramasi;
@@ -666,6 +681,7 @@ class EstimationController extends Controller
                 $offsetItem->paper_cutting_size_plano_p = $offset->paperSizePlanoDivCuttingSizeP;
                 $offsetItem->paper_cutting_size_plano_l = $offset->paperSizePlanoDivCuttingSizeL;
                 $offsetItem->paper_quantity = $this->clearThousandFormat($offset->paperQuantity);
+                $offsetItem->paper_unit_price_editable = $this->booleanToNumber($offset->isPaperUnitPriceEditable);
                 $offsetItem->paper_unit_price = $this->clearThousandFormat($offset->paperUnitPrice);
                 $offsetItem->paper_total = $this->clearThousandFormat($offset->paperTotal);
                 $offsetItem->plat_film_quantity_set = $this->clearThousandFormat($offset->filmQuantitySet);
@@ -673,8 +689,8 @@ class EstimationController extends Controller
                 $offsetItem->plat_film_total = $this->clearThousandFormat($offset->filmTotal);
                 $offsetItem->app_set_design = $this->clearThousandFormat($offset->appSetDesign);
                 // *NEED TO CHANGE
-                // $offsetItem->print_type_id = $offset->printingType;
-                $offsetItem->print_type_id = 0;
+                $offsetItem->print_type_id = $offset->printingType;
+                // $offsetItem->print_type_id = 0;
                 $offsetItem->print_quantity = $this->clearThousandFormat($offset->printingQuantity);
                 $offsetItem->print_min_price = $this->clearThousandFormat($offset->printingMinPrice);
                 $offsetItem->print_druk_price = $this->clearThousandFormat($offset->printingDrukPrice);
@@ -866,6 +882,7 @@ class EstimationController extends Controller
                 'paperCuttingSizeL' => $this->toNumber($item->paper_cutting_size_l),
                 'paperSizePlanoDivCuttingSizeL' => $this->toNumber($item->paper_cutting_size_plano_l),
                 'paperQuantity' => $item->paper_quantity,
+                'isPaperUnitPriceEditable' => $this->numberToBoolean($item->paper_unit_price_editable),
                 'paperUnitPrice' => $item->paper_unit_price,
                 'paperTotal' => $item->paper_total,
                 'filmQuantitySet' => $item->plat_film_quantity_set,
@@ -924,6 +941,9 @@ class EstimationController extends Controller
         // $estimation->offset_items = '123123';
         // return $estimation;
 
+        $machines = Machine::all();
+        $printTypes = PrintType::all();
+
         // Get Customers
         $customers = Customer::all();
         $customersAll = $customers;
@@ -951,6 +971,8 @@ class EstimationController extends Controller
             'customers_all' => $customersAll,
             'estimation' => $estimation,
             'picPos' => $picPos,
+            'machines' => $machines,
+            'print_types' => $printTypes,
         ]);
     }
 
@@ -984,5 +1006,15 @@ class EstimationController extends Controller
     private function toNumber($string)
     {
         return is_numeric($string) ? $string + 0 : $string;
+    }
+
+    private function booleanToNumber($boolean)
+    {
+        return $boolean == true ? 1 : 0;
+    }
+
+    private function numberToBoolean($number)
+    {
+        return (int) $number == 1 ? true : false;
     }
 }

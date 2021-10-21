@@ -94,7 +94,7 @@ class CompanyController extends Controller
                 ], 500);
             }
         } else {
-            if ($company->logo !== null) {
+            if ($request->old_logo == null || $request->old_logo == '') {
                 try {
                     Storage::disk('s3')->delete($company->logo);
                     $company->logo = null;

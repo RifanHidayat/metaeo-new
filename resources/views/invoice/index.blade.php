@@ -174,18 +174,35 @@
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
+                // {
+                //     data: 'payments',
+                //     name: 'number',
+                //     render: function(data, type, row) {
+                //         const totalPayment = data.map(payment => payment.amount).reduce((acc, cur) => {
+                //             return acc + cur;
+                //         }, 0);
+
+                //         const unpaid = row.total - totalPayment;
+
+                //         if (unpaid > 0) {
+                //             return `<div class="text-success font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
+                //         }
+
+                //         return `<span class="label label-light-success label-pill label-inline text-capitalize">Lunas</span>`;
+                //     }
+                // },
                 {
-                    data: 'payments',
+                    data: 'transactions',
                     name: 'number',
                     render: function(data, type, row) {
-                        const totalPayment = data.map(payment => payment.amount).reduce((acc, cur) => {
+                        const totalPayment = data.map(transaction => transaction.pivot.amount).reduce((acc, cur) => {
                             return acc + cur;
                         }, 0);
 
                         const unpaid = row.total - totalPayment;
 
                         if (unpaid > 0) {
-                            return `<div class="text-success font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
+                            return `<div class="text-warning font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
                         }
 
                         return `<span class="label label-light-success label-pill label-inline text-capitalize">Lunas</span>`;

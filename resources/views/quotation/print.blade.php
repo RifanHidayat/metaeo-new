@@ -95,7 +95,7 @@ function stringifyDate($date)
 <body>
     <div class="header">
         <div class="header-left">
-            <img src="https://karir-production.nos.jkt-1.neo.id/logos/11/1029111/unilabel_magenta.png" alt="Logo" width="150" height="60"><br>
+            <img src="{{ $company->logo !== null ? Storage::disk('s3')->url($company->logo) : '' }}" alt="Logo" height="40"><br>
             <span style="display: block;">{{ $company->name }}</span>
             <span style="display: block;">{{ $company->address }}</span>
             <span style="display: block;">Phone {{ $company->phone }}; Fax {{ $company->fax }}</span>

@@ -52,12 +52,15 @@
                 <div class="card-body">
                     <div class="row justify-content-between">
                         <div class="col-lg-6 col-sm-12">
-                            <!-- <div class="form-group row">
+                            <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Nomor Faktur:</label>
-                                <div class="col-lg-8">
+                                <!-- <div class="col-lg-8">
                                     <span class="label label-xl label-info label-inline ">@{{ number }}</span>
+                                </div> -->
+                                <div class="col-lg-8">
+                                    <input type="text" v-model="number" class="form-control" placeholder="Masukkan nomor faktur" required />
                                 </div>
-                            </div> -->
+                            </div>
                             <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Tanggal Faktur:</label>
                                 <div class="col-lg-8">
@@ -67,7 +70,17 @@
                             <div class="form-group row">
                                 <label class="col-lg-4 col-form-label text-lg-right">Tenggat Waktu:</label>
                                 <div class="col-lg-8">
-                                    <input type="text" v-model="dueDate" class="form-control due-date" placeholder="Masukkan tanggal faktur" required />
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <select class="form-control" v-model="dueDateTerm" @change="onChangeDueDateSelect($event)" style="border-radius: 0.42rem 0 0 0.42rem;">
+                                                <option value="custom">Custom</option>
+                                                @for($i = 15; $i <= 90; $i +=15) <option value="{{ $i }}" :disabled="!date">{{ $i }} Hari</option>
+                                                    @endfor
+                                            </select>
+                                        </div>
+                                        <input type="text" v-model="dueDate" class="form-control due-date" placeholder="Masukkan tanggal faktur" required />
+                                    </div>
+                                    <em v-if="!isDueDateValid" class="text-muted"><i class="flaticon-warning text-warning"></i> Tanggal tidak valid</em>
                                 </div>
                                 <!-- <div class="col-lg-4">
                                     <div class="input-group">
@@ -414,7 +427,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || checkedQuotationsIds.length < 1">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || checkedQuotationsIds.length < 1 || !isDueDateValid">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -459,6 +472,7 @@
             number: '{{ $invoice_number }}',
             date: '',
             dueDate: '',
+            dueDateTerm: 'custom',
             customer: '{{ $sales_order->customer->id }}',
             taxInvoiceSeries: '',
             termsOfPayment: '',
@@ -489,6 +503,7 @@
                     number: vm.number,
                     date: vm.date,
                     due_date: vm.dueDate,
+                    due_date_term: vm.dueDateTerm,
                     customer_id: vm.customer,
                     tax_invoice_series: vm.taxInvoiceSeries,
                     terms_of_payment: vm.termsOfPayment,
@@ -525,11 +540,25 @@
                     .catch(function(error) {
                         vm.loading = false;
                         console.log(error);
-                        Swal.fire(
-                            'Oops!',
-                            'Something wrong',
-                            'error'
-                        )
+                        if (error.response.data.error_type == 'exist_number') {
+                            const {
+                                title,
+                                text,
+                                icon
+                            } = error.response.data.data.swal;
+                            Swal.fire({
+                                title: title,
+                                text: text,
+                                icon: icon,
+                                allowOutsideClick: false,
+                            })
+                        } else {
+                            Swal.fire(
+                                'Oops!',
+                                'Something wrong',
+                                'error'
+                            )
+                        }
                     });
             },
             validateShippingQuantity: function(quotation) {
@@ -549,6 +578,23 @@
                 }
                 return masked.toString().replaceAll('.', '');
             },
+            onChangeDueDateSelect: function(event) {
+                const invoiceDate = new Date(this.date);
+                const dueDate = new Date();
+                const dueDateTerm = event.target.value;
+                if (dueDateTerm !== 'custom') {
+                    const numDays = Number(dueDateTerm);
+                    dueDate.setDate(invoiceDate.getDate() + numDays);
+                    this.dueDate = `${dueDate.getFullYear()}-${this.pad(dueDate.getMonth() + 1, 2)}-${this.pad(dueDate.getDate() + 1, 2)}`;
+                    $('.due-date').datepicker('setDate', this.dueDate);
+                }
+                this.dueDateTerm = dueDateTerm;
+            },
+            pad: function(num, size) {
+                num = num.toString();
+                while (num.length < size) num = "0" + num;
+                return num;
+            }
             // dateDiffInDays: function(a, b) {
             //     const _MS_PER_DAY = 1000 * 60 * 60 * 24;
             //     // Discard the time and time-zone information.
@@ -651,6 +697,21 @@
                     return acc + cur;
                 }, 0);
             },
+            isDueDateValid: function() {
+                let vm = this;
+                const date = new Date(vm.date);
+                const dueDate = new Date(vm.dueDate);
+
+                if (vm.date && vm.dueDate) {
+                    if (dueDate < date) {
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                return true;
+            }
             // dueDayAmount: function() {
             //     if (this.date == '' || this.dueDate == '') {
             //         return 0;
@@ -685,6 +746,7 @@
             todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
+            app.$data.dueDateTerm = 'custom';
             app.$data.dueDate = e.format(0, 'yyyy-mm-dd');
         });
     })

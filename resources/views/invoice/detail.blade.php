@@ -153,18 +153,25 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($invoice->payments as $payment)
+                                    @foreach($invoice->transactions as $transaction)
                                     <tr class="font-weight-bolder font-size-lg">
                                         <td class="border-top-0 pl-0 pl-md-5 pt-7 d-flex align-items-center">
-                                            {{ $payment->transaction->date }}
+                                            {{ $transaction->date }}
                                         </td>
                                         <td class="border-top-0 pt-7 font-size-h6 font-weight-boldest text-center">
-                                            <a href="/transaction/detail/{{ $payment->transaction->id }}">#{{ $payment->transaction->number }}</a>
+                                            <a href="/transaction/detail/{{ $transaction->id }}">#{{ $transaction->number }}</a>
                                         </td>
-                                        <td class="border-top-0 pt-7 font-size-h6 font-weight-boldest text-right">Rp {{ number_format($payment->amount) }}</td>
+                                        <td class="border-top-0 pt-7 font-size-h6 font-weight-boldest text-right">Rp {{ number_format($transaction->pivot->amount) }}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class=" pt-7 font-size-h6 font-weight-boldest text-right" colspan="3">
+                                            Rp {{ number_format($summary[1]['amount']) }}
+                                        </td>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>

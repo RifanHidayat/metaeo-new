@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 
 class DeliveryOrderController extends Controller
@@ -464,6 +465,7 @@ class DeliveryOrderController extends Controller
             'delivery_order' => $deliveryOrder,
             'company' => $company,
         ]);
+        $pdf->setPaper('a5', 'landscape');
         return $pdf->stream($deliveryOrder->number . '.pdf');
     }
 }

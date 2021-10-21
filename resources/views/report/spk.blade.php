@@ -145,7 +145,7 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <button type="button" class="btn btn-light-primary font-weight-bold">Generate</button>
+                        <button type="button" class="btn btn-light-primary font-weight-bold btn-generate" :class="loadingGenerate && 'spinner spinner-white spinner-right'" :disabled="loadingGenerate">Generate</button>
                     </div>
                 </div>
                 <!-- <div class="col-lg-5 col-md-12">
@@ -182,11 +182,11 @@
         </div>
 
     </div>
-    <div class="py-5">
+    <!-- <div class="py-5">
         <div class="progress">
             <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-    </div>
+    </div> -->
     <div class="card card-custom gutter-b" id="app">
         <div class="card-header">
             <div class="card-title"></div>
@@ -196,13 +196,29 @@
             </div>
         </div>
         <div class="card-body">
-            <table class="table" id="basic-table">
-                <thead>
-                    <th>Tanggal</th>
-                    <th>Customer</th>
-                    <th>Pekerjaan</th>
-                </thead>
-            </table>
+            <div class="table-responsive">
+                <table class="table datatable-bordered" id="job-order-table">
+                    <thead>
+                        <tr class="text-center">
+                            <th>Nomor</th>
+                            <th>Tanggal</th>
+                            <th>Customer</th>
+                            <th>Tanggal Finish</th>
+                            <th>Tanggal Kirim</th>
+                            <th>Desainer</th>
+                            <th>Penyiap</th>
+                            <th>Pemeriksa</th>
+                            <th>Produksi</th>
+                            <th>Finishing</th>
+                            <th>Gudang</th>
+                            <th>Sales Order</th>
+                            <th>Quotation</th>
+                            <th>Total Produksi</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -218,6 +234,7 @@
     let app = new Vue({
         el: '#app',
         data: {
+            loadingGenerate: false,
             filter: {
                 startDate: '{{ date("Y-m-01") }}',
                 endDate: '{{ date("Y-m-t") }}',
@@ -318,7 +335,166 @@
 </script>
 <script>
     $(function() {
-        $('#basic-table').DataTable();
+        let urlRequest = function() {
+            return `?start_date=${app.$data.filter.startDate}` +
+                `&end_date=${app.$data.filter.endDate}` +
+                `&status=${app.$data.filter.status}` +
+                `&customer=${app.$data.filter.customer}` +
+                `&columns=${app.$data.filter.columnSelections}` +
+                `&sort_by=${app.$data.filter.sortBy}` +
+                `&sort_in=${app.$data.filter.sortIn}`;
+        }
+
+        let defineColumnVisible = function(columnSelections = [], columnName) {
+            const index = columnSelections.indexOf(columnName);
+            return index > -1 ? true : false;
+        }
+
+        let dataTableColumns = function(columnSelections = []) {
+            return [{
+                    data: 'number',
+                    name: 'job_orders.number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'number'),
+                },
+                {
+                    data: 'date',
+                    name: 'job_orders.date',
+                    render: function(data, type) {
+                        return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'date'),
+                },
+                {
+                    data: 'customer.name',
+                    name: 'customer.name',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'customer'),
+                },
+                {
+                    data: 'finish_date',
+                    name: 'job_orders.finish_date',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'finish_date'),
+                },
+                {
+                    data: 'delivery_date',
+                    name: 'job_orders.delivery_date',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'delivery_date'),
+                },
+                {
+                    data: 'designer',
+                    name: 'job_orders.designer',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'designer'),
+                },
+                {
+                    data: 'preparer',
+                    name: 'job_orders.preparer',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'preparer'),
+                },
+                {
+                    data: 'examiner',
+                    name: 'job_orders.examiner',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'examiner'),
+                },
+                {
+                    data: 'production',
+                    name: 'job_orders.production',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'production'),
+                },
+                {
+                    data: 'finishing',
+                    name: 'job_orders.finishing',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'finishing'),
+                },
+                {
+                    data: 'warehouse',
+                    name: 'job_orders.warehouse',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'warehouse'),
+                },
+                {
+                    data: 'sales_order.number',
+                    name: 'salesOrder.number',
+                    render: function(data, type, row) {
+                        return `<span class="label label-light-success label-pill label-inline text-capitalize">${data}</span>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'sales_order'),
+                },
+                {
+                    data: 'quotation_number',
+                    name: 'quotations.number',
+                    visible: defineColumnVisible(columnSelections, 'quotations'),
+                    // className: 'text-right',
+                    // render: function(data, type) {
+                    //     return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${data.length > 0 && Intl.NumberFormat('de-DE').format(data.map(item => Number(item.pivot.produced)).reduce((acc, cur) => { return acc + cur }, 0))}</div>`;
+                    // },
+                },
+                {
+                    data: 'quotations',
+                    name: 'number',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${data.length > 0 && Intl.NumberFormat('de-DE').format(data.map(item => Number(item.pivot.produced)).reduce((acc, cur) => { return acc + cur }, 0))}</div>`;
+                    },
+                    visible: defineColumnVisible(columnSelections, 'total_production'),
+                },
+            ];
+        }
+        // $('#basic-table').DataTable();
+        let spkTable = $('#job-order-table').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            ajax: '/datatables/reports/spk' + urlRequest(),
+            order: [
+                [2, 'desc']
+            ],
+            columns: dataTableColumns(app.$data.filter.columnSelections),
+        });
+
+        $('.btn-generate').on('click', function() {
+            app.$data.loadingGenerate = true;
+            spkTable = $('#job-order-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: '/datatables/reports/spk' + urlRequest(),
+                order: [
+                    [2, 'desc']
+                ],
+                columns: dataTableColumns(app.$data.filter.columnSelections),
+                "drawCallback": function(settings) {
+                    app.$data.loadingGenerate = false;
+                },
+            });
+        })
 
         $('.select-column').select2();
         $('.select-column').on('change', function() {

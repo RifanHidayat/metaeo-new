@@ -56,7 +56,9 @@ class FinanceAccountController extends Controller
      */
     public function edit($id)
     {
-        //
+        return view('finance-account.edit', [
+            'account_id' => $id,
+        ]);
     }
 
     /**

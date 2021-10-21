@@ -180,8 +180,30 @@
                             <textarea v-model="note" class="form-control" rows="3"></textarea>
                         </div>
                         <div class="col-lg-6">
-                            <label>Upload File:</label>
-                            <input type="file">
+                            <div class="form-group">
+                                <label>File (Max. 2MB)</label>
+                                <div></div>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="customFile" ref="fileUpload" v-on:change="handleFileUpload" accept=".jpg, .jpeg, .png, .pdf, .doc, .xls, .xlsx">
+                                    <label ref="fileUploadLabel" id="file-upload-label" class="custom-file-label" for="customFile">Choose file</label>
+                                </div>
+                                <p v-if="previewFile.size !== '' && previewFile.size > (2048 * 1000)"><i class="flaticon-warning text-warning"></i> Ukuran file max. 2 MB. File tidak akan terkirim</p>
+                            </div>
+                            <div v-if="file">
+                                <div class="card card-custom gutter-b card-stretch">
+                                    <div class="card-body">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <!--begin: Icon-->
+                                            <img alt="" class="max-h-100px" :src="fileTypeImage">
+                                            <!--end: Icon-->
+                                            <!--begin: Tite-->
+                                            <span href="#" class="text-dark-75 font-weight-bold mt-5 font-size-lg">@{{ previewFile.name }}</span>
+                                            <a href="#" @click.prevent="removeFile" class="d-block text-danger font-weight-bold">Remove</a>
+                                            <!--end: Tite-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -373,9 +395,9 @@
                     <td><input v-model="item.item" @input="calculate(item)" type="text" class="form-control" style="width: 250px;" placeholder="Enter Item"></td>
                     <td>
                         <select v-model="item.machineType" @input="calculate(item)" class="form-control" style="width: 150px;">
-                        <option value="GTO">GTO</option>
-                        <option value="SM 74">GTO</option>
-                        <option value="SM 102">SM102</option>
+                        @foreach($machines as $machine)
+                        <option value="{{ $machine->id }}">{{ $machine->name }}</option>
+                        @endforeach
                         </select>
                     </td>
                     <!-- Size -->
@@ -403,7 +425,21 @@
                     <td><input v-model="item.paperCuttingSizeL" @input="calculate(item)" type="number" step="any" class="form-control" style="width: 100px;"></td>
                     <td><input v-model="item.paperSizePlanoDivCuttingSizeL" type="number" step="any" class="form-control bg-light" style="width: 100px;" readonly></td>
                     <td><input v-model="item.paperQuantity" type="text" class="form-control bg-light" style="width: 150px;" value="" readonly required></td>
-                    <td><input v-model="item.paperUnitPrice" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
+                    <td>
+                        <div class="input-group" style="flex-wrap: nowrap;">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" data-toggle="tooltip" data-theme="dark" title="Custom Fill">
+                                <label class="checkbox checkbox-inline checkbox-success">
+                                    <input type="checkbox" v-model="item.isPaperUnitPriceEditable" />
+                                    <span></span>
+                                </label>
+                                </span>
+                            </div>
+                            <input type="text" class="form-control text-right" v-model="item.paperUnitPrice" @input="calculate(item)" aria-label="Paper Unit Price" style="width: 150px;" :disabled="!item.isPaperUnitPriceEditable" />
+                        </div>  
+                    </td>
+                    <!-- <td><input v-model="item.paperUnitPrice" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td> -->
+                    
                     <td><input v-model="item.paperTotal" type="text" class="form-control bg-light text-right" style="width: 150px;" value="" readonly required></td>
                     <!-- Film -->
                     <td><input v-model="item.filmQuantitySet" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control" style="width: 150px;" value="" required></td>
@@ -413,11 +449,14 @@
                     <td><input v-model="item.appSetDesign" v-cleave="cleave" @input="calculate(item)" type="text" class="form-control text-right" style="width: 150px;" value="" required></td>
                     <!-- Printing -->
                     <td>
-                        <select v-model="item.printingType" @change="calculate(item)" class="form-control" style="width: 150px;">
-                        <option value="BBS">BBS</option>
-                        <option value="BBL">BBL</option>
-                        <option value="BB">BB</option>
-                        <option value="1 Muka">1 Muka</option>
+                        <select v-model="item.printingType" @change="calculate(item)" ref="asdasd" class="form-control" style="width: 150px;">
+                            @foreach($print_types as $print_type)
+                            <option value="{{ $print_type->id }}">{{ $print_type->name }}</option>
+                            @endforeach
+                            <!-- <option value="BBS">BBS</option>
+                            <option value="BBL">BBL</option>
+                            <option value="BB">BB</option>
+                            <option value="1 Muka">1 Muka</option> -->
                         </select>
                     </td>
                     <td><input v-model="item.printingQuantity" type="text" class="form-control bg-light" style="width: 150px;" value="" readonly required></td>
@@ -563,7 +602,18 @@
                     <td>
                         <input v-model="item.paper" type="text" class="form-control" style="width: 250px;" placeholder="Enter Paper">
                     </td>
-                    <td><input v-model="item.printingType" type="text" class="form-control bg-light" style="width: 250px;" value="BBL"></td>
+                    <td>
+                        <select v-model="item.printingType" @change="calculate(item)" ref="asdasd" class="form-control" style="width: 150px;" disabled>
+                            @foreach($print_types as $print_type)
+                            <option value="{{ $print_type->id }}">{{ $print_type->name }}</option>
+                            @endforeach
+                            <!-- <option value="BBS">BBS</option>
+                            <option value="BBL">BBL</option>
+                            <option value="BB">BB</option>
+                            <option value="1 Muka">1 Muka</option> -->
+                        </select>
+                    </td>
+                    <!-- <td><input v-model="item.printingType" type="text" class="form-control bg-light" style="width: 250px;" value="BBL"></td> -->
                     <!-- Color -->
                     <td><input v-model="item.color1" type="number" step="any" class="form-control" style="width: 100px;"></td>
                     <td><input v-model="item.color2" type="number" step="any" class="form-control" style="width: 100px;"></td>
@@ -655,6 +705,7 @@
     let app = new Vue({
         el: '#app',
         data: {
+            printTypes: JSON.parse(String.raw `{!! $print_types !!}`),
             offsetCounter: 1,
             digitalCounter: 1,
             cleaveCurrency: {
@@ -678,7 +729,13 @@
             // ppn: 0,
             // pph: 0,
             // totalDebt: 0,
-            note: '',
+            note: '{{ $estimation->note }}',
+            file: '',
+            previewFile: {
+                name: '',
+                size: '',
+                type: '',
+            },
             offsetItems: JSON.parse('{!! json_encode($estimation->offset_items) !!}'),
             // offsetItems: [{
             //     id: 0,
@@ -821,9 +878,69 @@
             totalDebt: function() {
                 const totalDebt = Number(this.clearCurrencyMask(this.totalSellPrice)) + Number(this.clearCurrencyMask(this.ppn)) - Number(this.clearCurrencyMask(this.pph))
                 return this.toThousandFormat(totalDebt);
+            },
+            fileTypeImage: function() {
+                const path = '/media/svg/files/';
+                switch (this.previewFile.type) {
+                    case 'pdf':
+                        return path + 'pdf.svg';
+                    case 'xls':
+                    case 'xlsx':
+                        return path + 'csv.svg';
+                    case 'jpg':
+                    case 'png':
+                    case 'jpeg':
+                        return path + 'jpg.svg';
+                    case 'doc':
+                    case 'docx':
+                        return path + 'doc.svg';
+                    default:
+                        return path + 'jpg.svg';
+                }
             }
         },
         methods: {
+            handleFileUpload: function() {
+                let file = this.$refs.fileUpload.files[0];
+
+                if (!file) {
+                    this.$refs.fileUpload.value = '';
+                    // this.resetFileUploadLabel();
+                    return;
+                }
+
+                const MAX_SIZE = 2.048;
+                const MULTIPLIER = 1000000;
+
+                console.log(file);
+                if (file.size > MAX_SIZE * MULTIPLIER) {
+                    this.$refs.fileUpload.value = '';
+                    this.resetFileUploadLabel();
+                    // document.getElementById('file-upload-label').innerHTML = 'Choose file';
+                    toastr.warning("Ukuran file max. 2MB");
+                    return;
+                }
+
+                this.$refs.fileUploadLabel.innerHTML = file.name;
+
+                this.previewFile.name = file.name;
+                this.previewFile.size = file.size;
+                let splittedFileName = file.name.split('.');
+                this.previewFile.type = splittedFileName[splittedFileName.length - 1];
+                this.file = file;
+            },
+            removeFile: function() {
+                this.file = '';
+                this.$refs.fileUpload.value = '';
+                this.resetFileUploadLabel();
+                // Object.keys(this.previewFile).forEach(function(index) {
+                //     this.previewFile[index] = '';
+                // });
+            },
+            resetFileUploadLabel: function() {
+                this.$refs.fileUploadLabel.classList.remove('selected');
+                this.$refs.fileUploadLabel.innerHTML = 'Choose file';
+            },
             submitForm: function() {
                 this.sendData();
             },
@@ -851,11 +968,17 @@
                     delivery_date: this.deliveryDate,
                     status: this.status,
                     note: this.note,
-                    offsetItems: this.offsetItems,
-                    digitalItems: this.digitalItems,
+                    file: this.file,
+                    offsetItems: JSON.stringify(this.offsetItems),
+                    digitalItems: JSON.stringify(this.digitalItems),
                 }
 
-                axios.post('/estimation', data)
+                let formData = new FormData();
+                for (var key in data) {
+                    formData.append(key, data[key]);
+                }
+
+                axios.post('/estimation', formData)
                     .then(function(response) {
                         vm.loading = false;
                         Swal.fire({
@@ -902,6 +1025,7 @@
                     paperCuttingSizeL: 1,
                     paperSizePlanoDivCuttingSizeL: '',
                     paperQuantity: '',
+                    isPaperUnitPriceEditable: false,
                     paperUnitPrice: '',
                     paperTotal: '',
                     filmQuantitySet: '',
@@ -926,7 +1050,7 @@
                     id: this.digitalCounter++,
                     item: '',
                     paper: '',
-                    printingType: 'BBL',
+                    printingType: `{{ collect($print_types)->where('initial', 'bbl')->first()->id }}`,
                     color1: '',
                     color2: '',
                     price: '',
@@ -987,8 +1111,19 @@
                 // Calculate Unit Price
                 let paperGramasi = item.paperGramasi;
                 let paperPricePerKg = item.paperPricePerKg;
-                let paperUnitPrice = ((paperSizePlanoP * paperSizePlanoL * paperGramasi * this.clearCurrencyMask(paperPricePerKg)) / 20000) / 500;
-                item.paperUnitPrice = this.toThousandFormat(Math.round(paperUnitPrice));
+
+                // let paperUnitPrice = ((paperSizePlanoP * paperSizePlanoL * paperGramasi * this.clearCurrencyMask(paperPricePerKg)) / 20000) / 500;
+                // item.paperUnitPrice = this.toThousandFormat(Math.round(paperUnitPrice));
+                let paperUnitPrice = 0;
+                if (item.isPaperUnitPriceEditable == false) {
+                    paperUnitPrice = ((paperSizePlanoP * paperSizePlanoL * paperGramasi * this.clearCurrencyMask(paperPricePerKg)) / 20000) / 500;
+                    item.paperUnitPrice = this.toThousandFormat(Math.round(paperUnitPrice));
+                    // item.paperUnitPrice = Math.round(paperUnitPrice);
+                } else {
+                    item.paperUnitPrice = this.clearCurrencyMask(item.paperUnitPrice);
+                    paperUnitPrice = Number(item.paperUnitPrice);
+                }
+
                 // Calculate Total Paper
                 let paperTotal = this.clearCurrencyMask(paperQuantityPlano) * paperUnitPrice;
                 item.paperTotal = this.toThousandFormat(Math.round(paperTotal));
@@ -1006,9 +1141,23 @@
 
                 // ------ Printing ------
                 // Calculate Total Quantity
-                let printingType = item.printingType;
-                let printingQuantity = (printingType == 'BBS') ? parseInt(this.clearCurrencyMask(paperQuantity)) * 2 : this.clearCurrencyMask(paperQuantity);
+                let filteredPrintingTypes = this.printTypes.filter(type => type.id == item.printingType);
+                let printingType = filteredPrintingTypes.length ? filteredPrintingTypes[0].initial : '';
+
+                let printingQuantity = 0;
+
+                if (printingType == 'bbs') {
+                    printingQuantity = Number(this.clearCurrencyMask(paperQuantity)) * 2;
+                } else if (printingType == 'none') {
+                    printingQuantity = 0;
+                } else {
+                    printingQuantity = this.clearCurrencyMask(paperQuantity);
+                }
+
                 item.printingQuantity = this.toThousandFormat(printingQuantity);
+                // let printingType = item.printingType;
+                // let printingQuantity = (printingType == 'BBS') ? parseInt(this.clearCurrencyMask(paperQuantity)) * 2 : this.clearCurrencyMask(paperQuantity);
+                // item.printingQuantity = this.toThousandFormat(printingQuantity);
 
                 let printingMinPrice = item.printingMinPrice;
                 let printingDrukPrice = item.printingDrukPrice;
@@ -1019,7 +1168,8 @@
                     printingTotal = (this.clearCurrencyMask(printingMinPrice) * color1) + (printingQuantity - 3000) * color1 * this.clearCurrencyMask(printingDrukPrice) * this.clearCurrencyMask(filmQuantitySet);
                 }
 
-                item.printingTotal = (printingTotal < 1) ? 1 : this.toThousandFormat(Math.round(printingTotal));
+                // item.printingTotal = (printingTotal < 1) ? 1 : this.toThousandFormat(Math.round(printingTotal));
+                item.printingTotal = this.toThousandFormat(Math.round(printingTotal));
 
                 // ------ Finishing -------
                 // Calculate Total
@@ -1245,9 +1395,9 @@
         //   });
         // })
 
-        FilePond.registerPlugin(FilePondPluginImagePreview);
-        const inputElement = document.querySelector('input[type="file"]');
-        const pond = FilePond.create(inputElement);
+        // FilePond.registerPlugin(FilePondPluginImagePreview);
+        // const inputElement = document.querySelector('input[type="file"]');
+        // const pond = FilePond.create(inputElement);
     });
 </script>
 @endsection
