@@ -8,25 +8,27 @@ use Exception;
 
 class SupplierController extends Controller
 {
-    public function index(){
+    public function index()
+    {
         $suppliers = Supplier::all()->sortByDesc('id');
-        return view('supplier.index',[
+        return view('supplier.index', [
             'suppliers' => $suppliers
         ]);
     }
 
-    public function create(){
-        
+    public function create()
+    {
+
         $kode = Supplier::max('id');
-        $number = "S" . sprintf("%03d",$kode+1);
-        return view('supplier.create',[
+        $number = "S" . sprintf("%03d", $kode + 1);
+        return view('supplier.create', [
             'number' => $number,
         ]);
     }
 
     public function store(Request $request)
     {
-        
+
         $supplier = new Supplier;
         $supplier->number = $request->number;
         $supplier->name = $request->name;
@@ -34,6 +36,12 @@ class SupplierController extends Controller
         $supplier->telephone = $request->telephone;
         $supplier->handphone = $request->handphone;
         $supplier->email = $request->email;
+
+        if ($request->number == null) {
+            $maxSupplier = Supplier::max('id');
+            $number = "S" . sprintf("%03d", $maxSupplier + 1);
+            $supplier->number = $number;
+        }
 
         try {
             $supplier->save();

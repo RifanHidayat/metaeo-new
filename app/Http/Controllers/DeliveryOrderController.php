@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\DeliveryOrder;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use App\Models\V2SalesOrder;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Exception;
@@ -143,6 +144,63 @@ class DeliveryOrderController extends Controller
         ]);
 
         // return view('delivery-order.create');
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function createV2(Request $request)
+    {
+        $salesOrderId = $request->query('so');
+        $salesOrder = SalesOrder::with(['quotations.selectedEstimation', 'customer.warehouses', 'quotations.customer'])->find($salesOrderId);
+
+        if ($salesOrderId == null || $salesOrder == null) {
+            // abort(404);
+            return view('errors.custom-error', [
+                'title' => 'ID Sales Order Tidak Ditemukan',
+                'subtitle' => 'Pastikann id sales order atau url telah sesuai'
+            ]);
+        }
+
+        // return 
+
+        // $customerExist = $salesOrder->quotations->filter(function ($item) {
+        //     return $item->estimations !== null && count($item->estimations) > 0;
+        // })->flatMap(function ($item) {
+        //     return $item->estimations;
+        // })->filter(function ($item) {
+        //     return $item->picPo->customer !== null;
+        // })->first();
+
+        // $customer = null;
+
+        // if ($customerExist !== null) {
+        //     $customer = $customerExist->picPo->customer;
+        // }
+
+        if ($salesOrder->quotations !== null) {
+            if (count($salesOrder->quotations) > 0) {
+                foreach ($salesOrder->quotations as $quotation) {
+                    $quotation['shipping_code'] = 'D002';
+                    $quotation['shipping_description'] = strip_tags($quotation['description']);
+                    $quotation['shipping_information'] = '';
+                    $quotation['shipping_amount'] = 0;
+                    $quotation['shipping_unit'] = 'Pcs';
+                }
+            }
+        }
+
+        $deliveryOrdersByCurrentDateCount = DeliveryOrder::query()->where('date', date("Y-m-d"))->get()->count();
+        // return $estimationsByCurrentDateCount;
+        $deliveryOrderNumber = 'DO-' . date('d') . date('m') . date("y") . sprintf('%04d', $deliveryOrdersByCurrentDateCount + 1);
+
+        return view('delivery-order.v2.create', [
+            // 'customer' => $customer,
+            'sales_order' => $salesOrder,
+            'delivery_order_number' => $deliveryOrderNumber,
+        ]);
     }
 
     /**
@@ -467,5 +525,31 @@ class DeliveryOrderController extends Controller
         ]);
         $pdf->setPaper('a5', 'landscape');
         return $pdf->stream($deliveryOrder->number . '.pdf');
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return Yajra\DataTables\Facades\DataTables;
+     */
+    public function datatablesSalesOrders(Request $request)
+    {
+        $customerId = $request->query('customer_id');
+        // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
+        $salesOrders = V2SalesOrder::with(['v2Quotation.items.jobOrders', 'customerPurchaseOrder.items.jobOrders'])->select('v2_sales_orders.*')
+            ->get();
+        // ->filter(function ($quotation) {
+        //     return count($quotation->salesOrders) < 1;
+        // })->all();
+
+        return DataTables::of($salesOrders)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                return $button;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
 }
