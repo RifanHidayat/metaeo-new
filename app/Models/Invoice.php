@@ -34,4 +34,14 @@ class Invoice extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
+    public function deliveryOrders()
+    {
+        return $this->belongsToMany(DeliveryOrder::class);
+    }
+
+    public function v2SalesOrder()
+    {
+        return $this->belongsTo(V2SalesOrder::class, 'sales_order_id');
+    }
 }

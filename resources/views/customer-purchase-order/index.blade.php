@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Faktur</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Purchase Order</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Invoice</a>
+                        <a href="" class="text-muted">Purchase Order</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Manage</a>
@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
     <div class="card-header flex-wrap py-3">
         <div class="card-title">
-            <h3 class="card-label">List Faktur
+            <h3 class="card-label">List Purchase Order
                 <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
             </h3>
         </div>
@@ -52,9 +52,9 @@
 
             <!--end::Dropdown-->
             <!--begin::Button-->
-            <a href="/invoice/create" class="btn btn-primary font-weight-bolder">
+            <a href="/quotation/create" class="btn btn-primary font-weight-bolder">
                 <span class="svg-icon svg-icon-md">
-
+                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                         <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                             <rect x="0" y="0" width="24" height="24"></rect>
@@ -62,24 +62,22 @@
                             <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z" fill="#000000" opacity="0.3"></path>
                         </g>
                     </svg>
-
-                </span>Faktur Baru</a>
+                    <!--end::Svg Icon-->
+                </span>PO Baru</a>
             <!--end::Button-->
         </div>
     </div>
     <div class="card-body">
         <!--begin: Datatable-->
-        <table class="table datatable datatable-bordered datatable-head-custom" id="invoice-table">
+        <table class="table datatable datatable-bordered datatable-head-custom" id="quotation-table">
             <thead>
                 <tr class="text-center">
-                    <th>Nomor Faktur</th>
-                    <th>Tanggal Faktur</th>
-                    <th>Nomor SO</th>
-                    <th>Unpaid</th>
+                    <th>Number</th>
+                    <th>Tanggal</th>
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody class="text-center"></tbody>
+            <tbody></tbody>
         </table>
         <!--end: Datatable-->
     </div>
@@ -145,70 +143,27 @@
 </script>
 <script>
     $(function() {
-        const invoicesTable = $('#invoice-table').DataTable({
+        const quotationsTable = $('#quotation-table').DataTable({
             processing: true,
             serverSide: true,
-            ajax: '/datatables/invoices',
+            ajax: '/datatables/v2/customer-purchase-orders',
             order: [
                 [1, 'desc']
             ],
             columns: [{
                     data: 'number',
-                    name: 'invoices.number',
+                    name: 'customer_purchase_orders.number',
                     render: function(data, type, row) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div><span  class="text-muted font-weight-bold text-hover-primary">${row.title}</span>`;
                     }
                 },
                 {
                     data: 'date',
-                    name: 'invoices.date',
+                    name: 'customer_purchase_orders.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
-                    }
-                },
-                {
-                    data: 'v2_sales_order.number',
-                    name: 'v2SalesOrder.number',
-                    render: function(data, type, row) {
-                        if (typeof data == "undefined") {
-                            return "-";
-                        }
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
-                    }
-                },
-                // {
-                //     data: 'payments',
-                //     name: 'number',
-                //     render: function(data, type, row) {
-                //         const totalPayment = data.map(payment => payment.amount).reduce((acc, cur) => {
-                //             return acc + cur;
-                //         }, 0);
-
-                //         const unpaid = row.total - totalPayment;
-
-                //         if (unpaid > 0) {
-                //             return `<div class="text-success font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
-                //         }
-
-                //         return `<span class="label label-light-success label-pill label-inline text-capitalize">Lunas</span>`;
-                //     }
-                // },
-                {
-                    data: 'transactions',
-                    name: 'number',
-                    render: function(data, type, row) {
-                        const totalPayment = data.map(transaction => transaction.pivot.amount).reduce((acc, cur) => {
-                            return acc + cur;
-                        }, 0);
-
-                        const unpaid = row.total - totalPayment;
-
-                        if (unpaid > 0) {
-                            return `<div class="text-warning font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
-                        }
-
-                        return `<span class="label label-light-success label-pill label-inline text-capitalize">Lunas</span>`;
-                    }
+                    },
+                    className: 'text-center',
                 },
                 {
                     data: 'action',
@@ -220,7 +175,7 @@
             ]
         });
 
-        $('#invoice-table').on('click', 'tr .btn-delete', function(e) {
+        $('#quotation-table').on('click', 'tr .btn-delete', function(e) {
             e.preventDefault();
             // alert('click');
             const id = $(this).attr('data-id');
@@ -236,7 +191,7 @@
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true,
                 preConfirm: () => {
-                    return axios.delete('/invoice/' + id)
+                    return axios.delete('/quotation/' + id)
                         .then(function(response) {
                             console.log(response.data);
                         })
@@ -259,7 +214,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             // window.location.reload();
-                            invoicesTable.ajax.reload();
+                            quotationsTable.ajax.reload();
                         }
                     })
                 }

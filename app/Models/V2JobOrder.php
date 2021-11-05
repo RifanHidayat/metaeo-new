@@ -23,4 +23,9 @@ class V2JobOrder extends Model
     {
         return $this->belongsTo(V2QuotationItem::class);
     }
+
+    public function v2SalesOrder()
+    {
+        return $this->belongsTo(V2SalesOrder::class);
+    }
 }

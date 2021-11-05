@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Faktur</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Manage Job Order</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Invoice</a>
+                        <a href="" class="text-muted">Job Order</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Manage</a>
@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
     <div class="card-header flex-wrap py-3">
         <div class="card-title">
-            <h3 class="card-label">List Faktur
+            <h3 class="card-label">List Job Order
                 <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
             </h3>
         </div>
@@ -52,7 +52,7 @@
 
             <!--end::Dropdown-->
             <!--begin::Button-->
-            <a href="/invoice/create" class="btn btn-primary font-weight-bolder">
+            <a href="/spk/create" class="btn btn-primary font-weight-bolder">
                 <span class="svg-icon svg-icon-md">
 
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -63,23 +63,25 @@
                         </g>
                     </svg>
 
-                </span>Faktur Baru</a>
+                </span>Job Order Baru</a>
             <!--end::Button-->
         </div>
     </div>
     <div class="card-body">
         <!--begin: Datatable-->
-        <table class="table datatable datatable-bordered datatable-head-custom" id="invoice-table">
+        <table class="table datatable datatable-bordered datatable-head-custom" id="job-order-table">
             <thead>
                 <tr class="text-center">
-                    <th>Nomor Faktur</th>
-                    <th>Tanggal Faktur</th>
-                    <th>Nomor SO</th>
-                    <th>Unpaid</th>
+                    <th>Nomor</th>
+                    <th>Tanggal</th>
+                    <th>Jenis Pesanan</th>
+                    <th>Jumlah Pesanan</th>
+                    <th>Tanggal Kirim</th>
+                    <th>Nomor Estimasi</th>
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody class="text-center"></tbody>
+            <tbody></tbody>
         </table>
         <!--end: Datatable-->
     </div>
@@ -145,70 +147,55 @@
 </script>
 <script>
     $(function() {
-        const invoicesTable = $('#invoice-table').DataTable({
+        const jobOrdersTable = $('#job-order-table').DataTable({
             processing: true,
             serverSide: true,
-            ajax: '/datatables/invoices',
+            ajax: '/datatables/v2/job-orders',
             order: [
                 [1, 'desc']
             ],
             columns: [{
                     data: 'number',
-                    name: 'invoices.number',
+                    name: 'v2_job_orders.number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                 {
                     data: 'date',
-                    name: 'invoices.date',
+                    name: 'v2_job_orders.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
                 {
-                    data: 'v2_sales_order.number',
-                    name: 'v2SalesOrder.number',
-                    render: function(data, type, row) {
-                        if (typeof data == "undefined") {
-                            return "-";
-                        }
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
-                    }
+                    data: 'title',
+                    name: 'v2_job_orders.title',
+                    // render: function(data, type, row) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    // }
                 },
-                // {
-                //     data: 'payments',
-                //     name: 'number',
-                //     render: function(data, type, row) {
-                //         const totalPayment = data.map(payment => payment.amount).reduce((acc, cur) => {
-                //             return acc + cur;
-                //         }, 0);
-
-                //         const unpaid = row.total - totalPayment;
-
-                //         if (unpaid > 0) {
-                //             return `<div class="text-success font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
-                //         }
-
-                //         return `<span class="label label-light-success label-pill label-inline text-capitalize">Lunas</span>`;
-                //     }
-                // },
                 {
-                    data: 'transactions',
-                    name: 'number',
-                    render: function(data, type, row) {
-                        const totalPayment = data.map(transaction => transaction.pivot.amount).reduce((acc, cur) => {
-                            return acc + cur;
-                        }, 0);
-
-                        const unpaid = row.total - totalPayment;
-
-                        if (unpaid > 0) {
-                            return `<div class="text-warning font-weight-bolder font-size-lg mb-0">${ Intl.NumberFormat('de-DE').format(unpaid) }</div>`
-                        }
-
-                        return `<span class="label label-light-success label-pill label-inline text-capitalize">Lunas</span>`;
-                    }
+                    data: 'order_amount',
+                    name: 'v2_job_orders.order_amount',
+                    className: 'text-right',
+                    // render: function(data, type, row) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    // }
+                },
+                {
+                    data: 'delivery_date',
+                    name: 'v2_job_orders.delivery_date',
+                    // render: function(data, type, row) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    // }
+                },
+                {
+                    data: 'estimation_number',
+                    name: 'v2_job_orders.estimation_number',
+                    // render: function(data, type, row) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    // }
                 },
                 {
                     data: 'action',
@@ -220,7 +207,7 @@
             ]
         });
 
-        $('#invoice-table').on('click', 'tr .btn-delete', function(e) {
+        $('#job-order-table').on('click', 'tr .btn-delete', function(e) {
             e.preventDefault();
             // alert('click');
             const id = $(this).attr('data-id');
@@ -236,7 +223,7 @@
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true,
                 preConfirm: () => {
-                    return axios.delete('/invoice/' + id)
+                    return axios.delete('/spk/' + id)
                         .then(function(response) {
                             console.log(response.data);
                         })
@@ -259,7 +246,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             // window.location.reload();
-                            invoicesTable.ajax.reload();
+                            jobOrdersTable.ajax.reload();
                         }
                     })
                 }

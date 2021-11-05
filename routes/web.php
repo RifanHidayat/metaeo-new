@@ -242,7 +242,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [DeliveryOrderController::class, 'createV2']);
         Route::get('/edit/{id}', [DeliveryOrderController::class, 'edit']);
         Route::get('/print/{id}', [DeliveryOrderController::class, 'print']);
-        Route::post('/', [DeliveryOrderController::class, 'store']);
+        Route::post('/', [DeliveryOrderController::class, 'storeV2']);
         Route::patch('/{id}', [DeliveryOrderController::class, 'update']);
         Route::delete('/{id}', [DeliveryOrderController::class, 'destroy']);
     });
@@ -254,7 +254,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{id}', [InvoiceController::class, 'edit']);
         Route::get('/print/{id}', [InvoiceController::class, 'print']);
         Route::get('/print-v2/{id}', [InvoiceController::class, 'printByDeliveryOrder']);
-        Route::post('/', [InvoiceController::class, 'store']);
+        Route::post('/', [InvoiceController::class, 'storeV2']);
         Route::patch('/{id}', [InvoiceController::class, 'update']);
         Route::delete('/{id}', [InvoiceController::class, 'destroy']);
     });
@@ -390,7 +390,7 @@ Route::prefix('/datatables')->group(function () {
     });
     Route::prefix('/v2')->group(function () {
         Route::prefix('/sales-orders')->group(function () {
-            Route::get('/', [SalesOrderController::class, 'indexData']);
+            Route::get('/', [V2SalesOrderController::class, 'indexData']);
             Route::get('/quotations', [V2SalesOrderController::class, 'datatablesQuotations']);
             Route::get('/customer-purchase-orders', [V2SalesOrderController::class, 'datatablesCustomerPurchaseOrders']);
         });
@@ -401,6 +401,16 @@ Route::prefix('/datatables')->group(function () {
         Route::prefix('/delivery-orders')->group(function () {
             Route::get('/', [DeliveryOrderController::class, 'indexData']);
             Route::get('/sales-orders', [DeliveryOrderController::class, 'datatablesSalesOrders']);
+        });
+        Route::prefix('/invoices')->group(function () {
+            Route::get('/', [InvoiceController::class, 'indexData']);
+            Route::get('/sales-orders', [InvoiceController::class, 'datatablesSalesOrders']);
+        });
+        Route::prefix('/quotations')->group(function () {
+            Route::get('/', [V2QuotationController::class, 'indexData']);
+        });
+        Route::prefix('/customer-purchase-orders')->group(function () {
+            Route::get('/', [CustomerPurchaseOrderController::class, 'indexData']);
         });
     });
     Route::prefix('/spk')->group(function () {

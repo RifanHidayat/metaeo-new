@@ -26,7 +26,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Pesanan Pembelian</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Sales Order</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -34,7 +34,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Pesanan Pembelian</a>
+                        <a href="" class="text-muted">Sales Order</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Tambah</a>
@@ -168,7 +168,13 @@
                                     </div>
                                     <div v-if="selectedData">
                                         <div v-if="selectedData.source == 'purchase_order'">
-                                            <h1>Purchase Order <a href="#">#@{{ selectedData.data.number }}</a></h1>
+                                            <div class="row">
+                                                <div class="col-md-12 col-lg-12">
+                                                    <div class="px-3 py-4 mb-3 rounded">
+                                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Purchase Order <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="row">
                                                 <div class="col-md-12 col-lg-6">
                                                     <table class="table">
@@ -199,21 +205,21 @@
                                                 <table class="table table-bordered">
                                                     <thead class="bg-light">
                                                         <tr>
-                                                            <th>No</th>
+                                                            <th class="text-center">No</th>
                                                             <th>Kode</th>
-                                                            <th>Deskripsi</th>
-                                                            <th>Tanggal Kirim</th>
-                                                            <th>Qty</th>
-                                                            <th>Price</th>
-                                                            <th>Amount</th>
+                                                            <th class="text-center">Deskripsi</th>
+                                                            <th class="text-right">Tanggal Kirim</th>
+                                                            <th class="text-right">Qty</th>
+                                                            <th class="text-right">Price</th>
+                                                            <th class="text-right">Amount</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         <tr v-for="(item, index) in selectedData.data.items">
-                                                            <td>@{{ index + 1 }}</td>
+                                                            <td class="text-center">@{{ index + 1 }}</td>
                                                             <td>@{{ item.code }}</td>
-                                                            <td>@{{ item.description }}</td>
-                                                            <td>@{{ item.delivery_date }}</td>
+                                                            <td><strong>@{{ item.name }}</strong> <br> <em class="text-dark-50">@{{ item.description }}</em></td>
+                                                            <td class="text-center">@{{ item.delivery_date }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.quantity) }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.price) }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.amount) }}</td>
@@ -229,7 +235,14 @@
                                             </div>
                                         </div>
                                         <div v-if="selectedData.source == 'quotation'">
-                                            <h1>Quotation <a href="#">#@{{ selectedData.data.number }}</a></h1>
+                                            <!-- <h1>Quotation <a href="#">#@{{ selectedData.data.number }}</a></h1> -->
+                                            <div class="row">
+                                                <div class="col-md-12 col-lg-12">
+                                                    <div class="px-3 py-4 mb-3 rounded">
+                                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Quotation <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="row">
                                                 <div class="col-md-12 col-lg-6">
                                                     <table class="table">
@@ -281,7 +294,7 @@
                                                         <tr v-for="(item, index) in selectedData.data.items">
                                                             <td>@{{ index + 1 }}</td>
                                                             <td>@{{ item.code }}</td>
-                                                            <td>@{{ item.description }}</td>
+                                                            <td>@{{ item.name }} <br> @{{ item.description }}</td>
                                                             <td>@{{ item.delivery_date }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.quantity) }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.price) }}</td>

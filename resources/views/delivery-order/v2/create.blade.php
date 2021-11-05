@@ -60,8 +60,15 @@
                         <p class="text-center text-dark-50"><strong>Pilih sales order</strong></p>
                     </div>
                     <div v-if="selectedData">
-                        <div v-if="selectedData.source == 'sales_order'">
-                            <h1>Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h1>
+                        <div>
+                            <!-- <h1>Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h1> -->
+                            <div class="row">
+                                <div class="col-md-12 col-lg-6">
+                                    <div class="px-3 py-4 mb-3 rounded">
+                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="row">
                                 <div class="col-md-12 col-lg-4">
                                     <table class="table">
@@ -100,23 +107,6 @@
                                     </table>
                                 </div>
                             </div>
-                            <!-- <div class="mt-5">
-                                <table class="table table-bordered">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Kode</th>
-                                            <th>Nama</th>
-                                            <th>Deskripsi</th>
-                                            <th>Tanggal Kirim</th>
-                                            <th>Qty</th>
-                                            <th>Price</th>
-                                            <th>Amount</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div> -->
                         </div>
                     </div>
                     <div v-if="selectedData" class="mt-20">
@@ -126,7 +116,8 @@
                                     <span class="nav-icon">
                                         <i class="flaticon-signs-1"></i>
                                     </span>
-                                    <span class="nav-text">Item Pengiriman</span>
+                                    <span class="nav-text">Item Pengiriman&nbsp;<span class="label label-primary mr-2">@{{ dataItems.length }}</span></span>
+
                                 </a>
                             </li>
                             <li class="nav-item" role="presentation">
@@ -143,6 +134,14 @@
                                         <i class="flaticon-signs-1"></i>
                                     </span>
                                     <span class="nav-text">Info Lainnya</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="complete-tab" data-toggle="tab" href="#complete">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">Riwayat Pengiriman&nbsp;<span class="label label-primary mr-2">@{{ deliveryHistoryItems.length }}</span></span>
                                 </a>
                             </li>
                         </ul>
@@ -166,10 +165,10 @@
                                             <div>
                                                 <div class="row align-items-center" v-for="(item, index) in dataItems" :key="item.id">
                                                     <div class="col-md-1">
-                                                        <div v-if="isCompleted(item)">
+                                                        <!-- <div v-if="isCompleted(item)">
                                                             <i class="flaticon2-correct text-success icon-2x"></i>
-                                                        </div>
-                                                        <label v-else class="checkbox checkbox-lg">
+                                                        </div> -->
+                                                        <label class="checkbox checkbox-lg">
                                                             <input type="checkbox" v-model="checkedItemsIds" :value="item.id" />
                                                             <span></span>
                                                         </label>
@@ -188,6 +187,38 @@
                                                             <!--end::User-->
                                                             <!--begin::Info-->
                                                             <div>
+                                                                <div class="row">
+                                                                    <div class="col-md-3">
+                                                                        <div class="bg-primary w-100" style="height: 5px;"></div>
+                                                                        <div class="p-2 border">
+                                                                            <strong>Qty</strong>
+                                                                            <p class="text-right mb-0">@{{ item.quantity }}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-3">
+                                                                        <div class="bg-danger w-100" style="height: 5px;"></div>
+                                                                        <div class="p-2 border">
+                                                                            <strong>Diproduksi</strong>
+                                                                            <p class="text-right mb-0">@{{ item.produced }}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-3">
+                                                                        <div class="bg-info w-100" style="height: 5px;"></div>
+                                                                        <div class="p-2 border">
+                                                                            <strong>Dikirim</strong>
+                                                                            <p class="text-right mb-0">@{{ item.shipped }}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-3">
+                                                                        <div class="bg-success w-100" style="height: 5px;"></div>
+                                                                        <div class="p-2 border">
+                                                                            <strong>Belum Dikirim</strong>
+                                                                            <p class="text-right mb-0">@{{ item.produced - item.shipped }}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <!-- <div>
                                                                 <table class="table table-bordered">
                                                                     <thead class="bg-light">
                                                                         <tr class="text-center">
@@ -199,14 +230,14 @@
                                                                     </thead>
                                                                     <tbody>
                                                                         <tr class="text-center">
-                                                                            <td>@{{ item.amount }}</td>
-                                                                            <td>@{{ item.produced }}</td>
-                                                                            <td>@{{ 0 }}</td>
-                                                                            <td>@{{ 0 }}</td>
+                                                                            <td>@{{ toCurrencyFormat(item.amount) }}</td>
+                                                                            <td>@{{ toCurrencyFormat(item.produced) }}</td>
+                                                                            <td>@{{ toCurrencyFormat(item.shipped) }}</td>
+                                                                            <td>@{{ toCurrencyFormat(item.produced - item.shipped) }}</td>
                                                                         </tr>
                                                                     </tbody>
                                                                 </table>
-                                                            </div>
+                                                            </div> -->
                                                             <div class="mb-7">
                                                                 <div v-if="!isCompleted(item)" class="d-flex justify-content-end align-items-center mt-3">
                                                                     <!-- <span class="text-dark-50 font-weight-bolder mr-2">Detail Barang Yang Akan Dikirim:</span> -->
@@ -327,9 +358,15 @@
                                 <div class="row justify-content-between mt-5">
                                     <div class="col-lg-6 col-sm-12">
                                         <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Nomor:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="number" class="form-control" placeholder="Masukkan nomor pengiriman" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
                                             <label class="col-lg-4 col-form-label text-lg-right">Tanggal Pengiriman:</label>
                                             <div class="col-lg-8">
-                                                <input type="text" v-model="date" class="form-control delivery-order-date" placeholder="Masukkan tanggal pengiriman" />
+                                                <input type="date" v-model="date" class="form-control delivery-order-date" placeholder="Masukkan tanggal pengiriman" />
                                             </div>
                                         </div>
                                         <div class="form-group row">
@@ -378,6 +415,142 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="complete" role="tabpanel" aria-labelledby="complete-tab">
+                                <div class="mt-5">
+                                    <!-- begin::Estimations List -->
+                                    <div class="card card-custom card-border">
+                                        <div class="card-header">
+                                            <div class="card-title">
+                                                <h3 class="card-label">
+                                                    Pengiriman Selesai
+                                                </h3>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div v-if="dataItems.length < 1" class="text-center">
+                                                <i class="flaticon2-open-box icon-4x"></i>
+                                                <p class="text-muted">Tidak ada item</p>
+                                            </div>
+                                            <div>
+                                                <div class="row justify-content-between mb-10" v-for="(item, index) in deliveryHistoryItems" :key="item.id">
+                                                    <div class="col-md-12 col-lg-6 card card-custom gutter-b card-stretch card-border">
+                                                        <div class="card-body pt-4">
+                                                            <!--begin::User-->
+                                                            <div class="d-flex align-items-center my-7">
+                                                                <!--begin::Title-->
+                                                                <div class="d-flex flex-column">
+                                                                    <a href="#" class="text-dark font-weight-bold text-hover-primary font-size-h4 mb-0">@{{ item.code }} - @{{ item.name }}</a>
+                                                                    <span class="text-muted font-weight-bold">Tanggal Kirim: @{{ item.delivery_date }}</span>
+                                                                </div>
+                                                                <!--end::Title-->
+
+                                                            </div>
+                                                            <!--end::User-->
+                                                            <div>
+                                                                <p>
+                                                                    <i class="flaticon2-layers-2"></i>
+                                                                    <strong class="text-muted">Quantity</strong>
+                                                                    <span>&nbsp;:&nbsp;</span>
+                                                                    <strong>@{{ item.quantity }}</strong>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <!--end::Body-->
+                                                    </div>
+                                                    <div class="col-md-12 col-lg-6">
+                                                        <div class="timeline timeline-3">
+                                                            <div class="timeline-items">
+                                                                <div v-for="(deliveryOrder, index) in item.delivery_orders" class="timeline-item">
+                                                                    <div class="timeline-media">
+                                                                        <i class="flaticon2-box text-success"></i>
+                                                                    </div>
+                                                                    <div class="timeline-content">
+                                                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                                                            <div class="mr-2">
+                                                                                <a href="#" class="text-dark-75 text-hover-primary font-weight-bold">
+                                                                                    Delivery Order <span class="text-primary">#@{{ deliveryOrder.number }}</span>
+                                                                                </a>
+                                                                                <span class="text-muted ml-2">
+                                                                                    @{{ deliveryOrder.date }}
+                                                                                </span>
+                                                                                <span class="label label-light-success font-weight-bolder label-inline ml-2">Selesai</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <!-- <p class="p-0"> -->
+                                                                        <div class="row mb-3">
+                                                                            <div class="col-lg-6 col-md-12">
+                                                                                <span>Jumlah: </span>
+                                                                                <strong>@{{ deliveryOrder.pivot.amount }}</strong>
+                                                                            </div>
+                                                                            <div class="col-lg-6 col-md-12">
+                                                                                <span>Pengirim: </span>
+                                                                                <strong>@{{ deliveryOrder.shipper }}</strong>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <span>Alamat:</span>
+                                                                            <strong>@{{ deliveryOrder.shipping_address }}</strong>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <span>Catatan:</span>
+                                                                            <strong>@{{ deliveryOrder.description }}</strong>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- Here -->
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            <div class="d-flex align-items-center flex-wrap">
+                                                <!--begin: Item-->
+                                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                    <span class="mr-4">
+                                                        <i class="flaticon2-layers-1 icon-2x text-muted font-weight-bold"></i>
+                                                    </span>
+                                                    <div class="d-flex flex-column text-dark-75">
+                                                        <span class="font-weight-bolder font-size-sm">Quantity</span>
+                                                        <span class="font-weight-bolder font-size-h5">
+                                                            @{{ Intl.NumberFormat('de-DE').format(totalQuantity) }}
+                                                            <span class="text-dark-50 font-weight-bold">Pcs</span></span>
+                                                    </div>
+                                                </div>
+                                                <!--end: Item-->
+                                                <!--begin: Item-->
+                                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                    <span class="mr-4">
+                                                        <i class="flaticon2-reload icon-2x text-muted font-weight-bold"></i>
+                                                    </span>
+                                                    <div class="d-flex flex-column text-dark-75">
+                                                        <span class="font-weight-bolder font-size-sm">Quantity Produksi</span>
+                                                        <span class="font-weight-bolder font-size-h5">
+                                                            @{{ Intl.NumberFormat('de-DE').format(totalProduced) }}
+                                                            <span class="text-dark-50 font-weight-bold">Pcs</span></span>
+                                                    </div>
+                                                </div>
+                                                <!--end: Item-->
+                                                <!--begin: Item-->
+                                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                    <span class="mr-4">
+                                                        <i class="flaticon2-lorry icon-2x text-muted font-weight-bold"></i>
+                                                    </span>
+                                                    <div class="d-flex flex-column text-dark-75">
+                                                        <span class="font-weight-bolder font-size-sm">Quantity Akan Dikirim</span>
+                                                        <span class="font-weight-bolder font-size-h5">
+                                                            @{{ Intl.NumberFormat('de-DE').format(totalShipping) }}
+                                                            <span class="text-dark-50 font-weight-bold">Pcs</span></span>
+                                                    </div>
+                                                </div>
+                                                <!--end: Item-->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- end::Estimations List -->
                                 </div>
                             </div>
                         </div>
@@ -434,7 +607,7 @@
                             <!--begin::Title-->
                             <div class="d-flex flex-column flex-grow-1 mr-2">
                                 <span class="font-weight-bold text-dark-75 font-size-lg mb-1">Alamat Customer</span>
-                                <span class="text-dark-50 font-weight-bold">{{ $sales_order->customer->address }}</span>
+                                <span class="text-dark-50 font-weight-bold"></span>
                             </div>
                             <!--end::Title-->
                             <!--begin::Lable-->
@@ -515,18 +688,18 @@
     let app = new Vue({
         el: '#app',
         data: {
-            quotations: JSON.parse(String.raw `{!! $sales_order->quotations !!}`),
+            quotations: [],
             checkedQuotationsIds: [],
-            number: '{{ $delivery_order_number }}',
+            number: '',
             date: '',
-            customer: '{{ $sales_order->customer->id }}',
+            customer: '',
             warehouse: '',
             shipper: '',
             numberOfVehicle: '',
-            billingAddress: `{{ $sales_order->customer !== null ? $sales_order->customer->address : "" }}`,
+            billingAddress: ``,
             shippingAddress: '',
-            salesOrderId: '{{ $sales_order->id }}',
-            warehouses: JSON.parse(String.raw `{!! $sales_order->customer->warehouses !!}`),
+            salesOrderId: '',
+            warehouses: [],
             loading: false,
             selectedData: null,
             checkedItemsIds: [],
@@ -544,14 +717,17 @@
                 const data = {
                     number: vm.number,
                     date: vm.date,
-                    customer_id: vm.customer,
+                    customer_id: 1,
                     warehouse: vm.warehouse,
                     shipper: vm.shipper,
                     number_of_vehicle: vm.numberOfVehicle,
                     billing_address: vm.billingAddress,
                     shipping_address: vm.shippingAddress,
-                    sales_order_id: vm.salesOrderId,
-                    selected_quotations: vm.checkedQuotations,
+                    sales_order_id: vm.selectedData.data.id,
+                    source: vm.selectedData.data.source,
+                    description: vm.description,
+                    // selected_quotations: vm.checkedQuotations,
+                    selected_items: vm.checkedItems,
                 }
 
                 axios.post('/delivery-order', data)
@@ -637,7 +813,7 @@
                 return this.dataItems.filter(item => this.checkedItemsIds.indexOf(item.id) > -1);
             },
             totalQuantity: function() {
-                return this.checkedItems.map(item => item.amount).reduce((acc, cur) => {
+                return this.checkedItems.map(item => item.quantity).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0);
             },
@@ -670,12 +846,35 @@
                         source
                     } = vm.selectedData.data;
                     if (source == 'quotation') {
-                        items = vm.selectedData.data.v2_quotation.items.map(item => {
+                        items = vm.selectedData.data.v2_quotation.items.filter(item => Number(item.shipped) < Number(item.quantity)).map(item => {
                             item.source = 'quotation';
                             return item;
                         });
                     } else if (source == 'purchase_order') {
-                        items = vm.selectedData.data.customer_purchase_order.items.map(item => {
+                        items = vm.selectedData.data.customer_purchase_order.items.filter(item => Number(item.shipped) < Number(item.quantity)).map(item => {
+                            item.source = 'purchase_order';
+                            return item;
+                        });
+                    }
+                    return items;
+                }
+
+                return [];
+            },
+            deliveryHistoryItems: function() {
+                let vm = this;
+                if (vm.selectedData) {
+                    let items = [];
+                    const {
+                        source
+                    } = vm.selectedData.data;
+                    if (source == 'quotation') {
+                        items = vm.selectedData.data.v2_quotation.items.filter(item => item.delivery_orders.length > 0).map(item => {
+                            item.source = 'quotation';
+                            return item;
+                        });
+                    } else if (source == 'purchase_order') {
+                        items = vm.selectedData.data.customer_purchase_order.items.filter(item => item.delivery_orders.length > 0).map(item => {
                             item.source = 'purchase_order';
                             return item;
                         });
@@ -719,9 +918,9 @@
             const data = salesOrdersTable.row($(this).parents('tr')).data();
 
             let items = [];
-            if (data.v2_quotation && data.customer_purchase_order == null) {
+            if (data.source == 'quotation') {
                 items = data.v2_quotation.items;
-            } else if (data.customer_purchase_order !== null) {
+            } else if (data.source == 'purchase_order') {
                 items = data.customer_purchase_order.items;
             }
 
@@ -732,6 +931,7 @@
                 item['shipping_amount'] = 0;
                 item['shipping_unit'] = 'pcs';
                 let produced = 0;
+                let shipped = 0;
 
                 if (item.job_orders.length) {
                     produced = item.job_orders.map(jo => Number(jo.order_amount)).reduce((acc, cur) => {
@@ -739,15 +939,24 @@
                     }, 0);
                 }
 
+                if (item.delivery_orders.length) {
+                    shipped = item.delivery_orders.map(deliveryOrder => Number(deliveryOrder.pivot.amount)).reduce((acc, cur) => {
+                        return acc + cur;
+                    }, 0);
+                }
+
                 item['produced'] = produced;
+                item['shipped'] = shipped;
 
                 return item;
             })
 
             app.$data.selectedData = {
                 data,
-                source: 'sales_order',
+                source: data.source,
             };
+
+            console.log(app.$data.selectedData);
 
             // app.$data.salesOrderNumber = app.$data.selectedData.data.number;
             // const newDate = app.$data.selectedData.data.date;

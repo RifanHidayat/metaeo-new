@@ -52,9 +52,9 @@
 
             <!--end::Dropdown-->
             <!--begin::Button-->
-            <!-- <a href="/spk/create" class="btn btn-primary font-weight-bolder">
+            <a href="/delivery-order/create" class="btn btn-primary font-weight-bolder">
                 <span class="svg-icon svg-icon-md">
-       
+
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                         <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                             <rect x="0" y="0" width="24" height="24"></rect>
@@ -62,8 +62,8 @@
                             <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z" fill="#000000" opacity="0.3"></path>
                         </g>
                     </svg>
-    
-                </span>New Record</a> -->
+
+                </span>Delivery Order Baru</a>
             <!--end::Button-->
         </div>
     </div>
@@ -72,12 +72,9 @@
         <table class="table datatable datatable-bordered datatable-head-custom" id="delivery-order-table">
             <thead>
                 <tr class="text-center">
-                    <th>Nomor Job Order</th>
-                    <th>Tanggal Job Order</th>
-                    <th>Nomor SO</th>
-                    <th>Nomor PO</th>
-                    <th>Quotation</th>
-                    <th>Quantity Dikirim</th>
+                    <th>Nomor</th>
+                    <th>Tanggal</th>
+                    <th>Pengirim</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -169,34 +166,11 @@
                     }
                 },
                 {
-                    data: 'sales_order.number',
-                    name: 'salesOrder.number',
-                    render: function(data, type, row) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
-                    }
-                },
-                {
-                    data: 'sales_order.po_number',
-                    name: 'salesOrder.po_number',
-                    render: function(data, type) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
-                    }
-                },
-                {
-                    data: 'quotation_number',
-                    name: 'quotations.number',
-                    // className: 'text-right',
+                    data: 'shipper',
+                    name: 'delivery_orders.shipper',
                     // render: function(data, type) {
-                    //     return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${data.length > 0 && Intl.NumberFormat('de-DE').format(data.map(item => Number(item.pivot.produced)).reduce((acc, cur) => { return acc + cur }, 0))}</div>`;
-                    // },
-                },
-                {
-                    data: 'quotations',
-                    name: 'number',
-                    className: 'text-right',
-                    render: function(data, type) {
-                        return `<div class="text-muted font-weight-bolder font-size-lg mb-0">${data.length > 0 && Intl.NumberFormat('de-DE').format(data.map(item => Number(item.pivot.amount)).reduce((acc, cur) => { return acc + cur }, 0))}</div>`;
-                    },
+                    //     return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    // }
                 },
                 {
                     data: 'action',

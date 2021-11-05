@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -28,14 +29,14 @@ class DeliveryOrderController extends Controller
 
     public function indexData()
     {
-        $deliveryOrders = DeliveryOrder::with(['quotations', 'salesOrder'])->select('delivery_orders.*');
+        $deliveryOrders = DeliveryOrder::with(['v2SalesOrder'])->select('delivery_orders.*');
         return DataTables::eloquent($deliveryOrders)
             ->addIndexColumn()
-            ->addColumn('quotation_number', function (DeliveryOrder $deliveryOrder) {
-                return $deliveryOrder->quotations->map(function ($quotation) {
-                    return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
-                })->implode("");
-            })
+            // ->addColumn('quotation_number', function (DeliveryOrder $deliveryOrder) {
+            //     return $deliveryOrder->quotations->map(function ($quotation) {
+            //         return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
+            //     })->implode("");
+            // })
             ->addColumn('action', function ($row) {
                 $button = '
                 <div class="text-center">
@@ -153,52 +154,11 @@ class DeliveryOrderController extends Controller
      */
     public function createV2(Request $request)
     {
-        $salesOrderId = $request->query('so');
-        $salesOrder = SalesOrder::with(['quotations.selectedEstimation', 'customer.warehouses', 'quotations.customer'])->find($salesOrderId);
-
-        if ($salesOrderId == null || $salesOrder == null) {
-            // abort(404);
-            return view('errors.custom-error', [
-                'title' => 'ID Sales Order Tidak Ditemukan',
-                'subtitle' => 'Pastikann id sales order atau url telah sesuai'
-            ]);
-        }
-
-        // return 
-
-        // $customerExist = $salesOrder->quotations->filter(function ($item) {
-        //     return $item->estimations !== null && count($item->estimations) > 0;
-        // })->flatMap(function ($item) {
-        //     return $item->estimations;
-        // })->filter(function ($item) {
-        //     return $item->picPo->customer !== null;
-        // })->first();
-
-        // $customer = null;
-
-        // if ($customerExist !== null) {
-        //     $customer = $customerExist->picPo->customer;
-        // }
-
-        if ($salesOrder->quotations !== null) {
-            if (count($salesOrder->quotations) > 0) {
-                foreach ($salesOrder->quotations as $quotation) {
-                    $quotation['shipping_code'] = 'D002';
-                    $quotation['shipping_description'] = strip_tags($quotation['description']);
-                    $quotation['shipping_information'] = '';
-                    $quotation['shipping_amount'] = 0;
-                    $quotation['shipping_unit'] = 'Pcs';
-                }
-            }
-        }
-
         $deliveryOrdersByCurrentDateCount = DeliveryOrder::query()->where('date', date("Y-m-d"))->get()->count();
         // return $estimationsByCurrentDateCount;
         $deliveryOrderNumber = 'DO-' . date('d') . date('m') . date("y") . sprintf('%04d', $deliveryOrdersByCurrentDateCount + 1);
 
         return view('delivery-order.v2.create', [
-            // 'customer' => $customer,
-            'sales_order' => $salesOrder,
             'delivery_order_number' => $deliveryOrderNumber,
         ]);
     }
@@ -281,6 +241,86 @@ class DeliveryOrderController extends Controller
         } catch (Exception $e) {
             $deliveryOrder->quotations()->detach();
             $deliveryOrder->delete();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function storeV2(Request $request)
+    {
+
+        $deliveryOrderWithNumber = DeliveryOrder::where('number', $request->number)->first();
+        if ($deliveryOrderWithNumber !== null) {
+            return response()->json([
+                'message' => 'number or code already used',
+                'code' => 400,
+                // 'errors' => $/e,
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $deliveryOrder = new DeliveryOrder;
+            // $deliveryOrder->number = $request->number;
+            $deliveryOrder->number = $request->number;
+            $deliveryOrder->date = $request->date;
+            $deliveryOrder->customer_id = $request->customer_id;
+            $deliveryOrder->warehouse = $request->warehouse;
+            $deliveryOrder->shipper = $request->shipper;
+            $deliveryOrder->number_of_vehicle = $request->number_of_vehicle;
+            $deliveryOrder->billing_address = $request->billing_address;
+            $deliveryOrder->shipping_address = $request->shipping_address;
+            $deliveryOrder->sales_order_id = $request->sales_order_id;
+            $deliveryOrder->description = $request->description;
+
+            $source = $request->source;
+
+            $items = $request->selected_items;
+
+            $deliveryOrder->save();
+
+            $newItems = collect($items)->mapWithKeys(function ($item) {
+                return [
+                    $item['id'] => [
+                        'code' => $item['shipping_code'],
+                        'amount' => $item['shipping_amount'],
+                        'unit' => $item['shipping_unit'],
+                        'description' => $item['shipping_description'],
+                        'information' => $item['shipping_information'],
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString(),
+                    ]
+                ];
+            });
+
+            if ($source == 'quotation') {
+                $deliveryOrder->v2QuotationItems()->attach($newItems);
+            } else if ($source == 'purchase_order') {
+                $deliveryOrder->cpoItems()->attach($newItems);
+            }
+
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $deliveryOrder,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Internal error',
                 'code' => 500,
@@ -537,8 +577,11 @@ class DeliveryOrderController extends Controller
     {
         $customerId = $request->query('customer_id');
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $salesOrders = V2SalesOrder::with(['v2Quotation.items.jobOrders', 'customerPurchaseOrder.items.jobOrders'])->select('v2_sales_orders.*')
-            ->get();
+        $salesOrders = V2SalesOrder::with(['v2Quotation.items' => function ($query) {
+            $query->with(['jobOrders', 'deliveryOrders']);
+        }, 'customerPurchaseOrder.items' => function ($query) {
+            $query->with(['jobOrders', 'deliveryOrders']);
+        }])->select('v2_sales_orders.*')->get();
         // ->filter(function ($quotation) {
         //     return count($quotation->salesOrders) < 1;
         // })->all();

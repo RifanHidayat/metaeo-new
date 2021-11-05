@@ -78,7 +78,14 @@
                         </div>
                         <div v-if="selectedData">
                             <div v-if="selectedData.source == 'sales_order'">
-                                <h1>Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h1>
+                                <!-- <h1>Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h1> -->
+                                <div class="row">
+                                    <div class="col-md-12 col-lg-6">
+                                        <div class="px-3 py-4 mb-3 rounded">
+                                            <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row">
                                     <div class="col-md-12 col-lg-4">
                                         <table class="table">
@@ -129,6 +136,7 @@
                                                 <th>Qty</th>
                                                 <th>Price</th>
                                                 <th>Amount</th>
+                                                <th>Diproduksi</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
@@ -145,9 +153,15 @@
                                                 <td class="text-right">@{{ toCurrencyFormat(item.quantity) }}</td>
                                                 <td class="text-right">@{{ toCurrencyFormat(item.price) }}</td>
                                                 <td class="text-right">@{{ toCurrencyFormat(item.amount) }}</td>
+                                                <td class="text-right">@{{ toCurrencyFormat(getProduced(item.job_orders)) }}</td>
                                                 <td class="text-center">
-                                                    <button v-if="selectedItem && selectedItem.id == item.id" type="button" @click="unselectItem()" class="btn btn-icon btn-warning btn-sm"><i class="flaticon2-writing"></i></button>
-                                                    <button v-else type="button" @click="selectItem(index)" class="btn btn-icon btn-primary btn-sm"><i class="flaticon2-writing"></i></button>
+                                                    <div v-if="getProduced(item.job_orders) < Number(item.quantity)">
+                                                        <button v-if="selectedItem && selectedItem.id == item.id" type="button" @click="unselectItem()" class="btn btn-icon btn-warning btn-sm"><i class="flaticon2-writing"></i></button>
+                                                        <button v-else type="button" @click="selectItem(index)" class="btn btn-icon btn-primary btn-sm"><i class="flaticon2-writing"></i></button>
+                                                    </div>
+                                                    <div v-else>
+                                                        <i class="flaticon2-protected text-success"></i>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -203,7 +217,7 @@
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
                                                         </div>
-                                                        <input type="text" v-model="date" id="date" class="form-control">
+                                                        <input type="date" v-model="date" ref="date" id="date" class="form-control">
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
@@ -220,7 +234,7 @@
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
                                                         </div>
-                                                        <input type="text" v-model="deliveryDate" id="delivery-date" class="form-control">
+                                                        <input type="date" v-model="deliveryDate" id="delivery-date" class="form-control">
                                                     </div>
                                                 </div>
                                             </div>
@@ -659,7 +673,17 @@
                 this.items.splice(index, 1);
             },
             selectItem: function(index) {
-                this.selectedItem = this.dataItems[index];
+                let vm = this;
+                let item = vm.dataItems[index];
+                vm.title = item.code + ' ' + item.name;
+                vm.deliveryDate = item.delivery_date;
+
+                const produced = vm.getProduced(item.job_orders);
+                const notProduced = item.quantity - produced;
+                console.log(notProduced);
+                vm.orderAmount = notProduced < 0 ? 0 : notProduced;
+
+                vm.selectedItem = item;
                 // this.selectedItem.source = this.dataItems[index].source;
                 // if (this.dataItems[index].hasOwnProperty('v2_quotation_id')) {
                 //     this.selectedItem.source = 'quotation';
@@ -675,6 +699,17 @@
                     number = 0;
                 }
                 return new Intl.NumberFormat('De-de').format(number);
+            },
+            getProduced: function(jobOrders, property = 'order_amount') {
+                if (typeof jobOrders !== "undefined") {
+                    return jobOrders.map(jobOrder => Number(jobOrder[property])).reduce((acc, cur) => {
+                        return acc + cur;
+                    }, 0);
+                } else {
+                    return 0;
+                }
+
+                return 0;
             }
         },
         computed: {
@@ -717,27 +752,37 @@
         },
         watch: {
             selectedItem: function(newVal) {
-                console.log(newVal)
-                if (newVal !== null) {
-                    $('#date').datepicker({
-                        format: 'yyyy-mm-dd',
-                        todayBtn: false,
-                        clearBtn: true,
-                        todayHighlight: true,
-                        orientation: "bottom left",
-                    }).on('changeDate', function(e) {
-                        app.$data.date = e.format(0, 'yyyy-mm-dd');
-                    });
+                let vm = this;
+                // console.log(newVal)
+                // if (newVal !== null) {
+                // $(vm.$refs.date).datepicker({
+                //     format: 'yyyy-mm-dd',
+                //     todayBtn: false,
+                //     clearBtn: true,
+                //     todayHighlight: true,
+                //     orientation: "bottom left",
+                // }).on('changeDate', function(e) {
+                //     app.$data.date = e.format(0, 'yyyy-mm-dd');
+                // });
 
-                    $('#delivery-date').datepicker({
-                        format: 'yyyy-mm-dd',
-                        todayBtn: false,
-                        clearBtn: true,
-                        todayHighlight: true,
-                        orientation: "bottom left",
-                    }).on('changeDate', function(e) {
-                        app.$data.deliveryDate = e.format(0, 'yyyy-mm-dd');
-                    });
+                // $('#delivery-date').datepicker({
+                //     format: 'yyyy-mm-dd',
+                //     todayBtn: false,
+                //     clearBtn: true,
+                //     todayHighlight: true,
+                //     orientation: "bottom left",
+                // }).on('changeDate', function(e) {
+                //     app.$data.deliveryDate = e.format(0, 'yyyy-mm-dd');
+                // });
+                // }
+            },
+            orderAmount: function(newVal) {
+                let vm = this;
+                let item = vm.selectedItem;
+                const produced = vm.getProduced(item.job_orders);
+                const notProduced = item.quantity - produced;
+                if (newVal > notProduced) {
+                    vm.orderAmount = notProduced;
                 }
             }
         }

@@ -6,10 +6,12 @@ use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use App\Models\V2SalesOrder;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class InvoiceController extends Controller
@@ -26,14 +28,9 @@ class InvoiceController extends Controller
 
     public function indexData()
     {
-        $invoices = Invoice::with(['quotations', 'salesOrder', 'customer', 'transactions'])->select('invoices.*');
+        $invoices = Invoice::with(['v2SalesOrder', 'transactions'])->select('invoices.*');
         return DataTables::of($invoices)
             ->addIndexColumn()
-            ->addColumn('quotation_number', function (Invoice $invoice) {
-                return $invoice->quotations->map(function ($quotation) {
-                    return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
-                })->implode("");
-            })
             ->addColumn('action', function ($row) {
                 $button = '
                 <div class="text-center">
@@ -101,51 +98,6 @@ class InvoiceController extends Controller
      */
     public function create(Request $request)
     {
-        // return printTest();
-
-        $salesOrderId = $request->query('so');
-        $salesOrder = SalesOrder::with(['quotations.selectedEstimation', 'customer', 'quotations.customer'])->find($salesOrderId);
-
-        if ($salesOrderId == null || $salesOrder == null) {
-            // abort(404);
-            return view('errors.custom-error', [
-                'title' => 'ID Sales Order Tidak Ditemukan',
-                'subtitle' => 'Pastikann id sales order atau url telah sesuai'
-            ]);
-        }
-
-        // return $salesOrder->quotations->pivot->estimation;
-
-        // return 
-
-        // $customerExist = $salesOrder->quotations->filter(function ($item) {
-        //     return $item->estimations !== null && count($item->estimations) > 0;
-        // })->flatMap(function ($item) {
-        //     return $item->estimations;
-        // })->filter(function ($item) {
-        //     return $item->picPo->customer !== null;
-        // })->first();
-
-        // $customer = null;
-
-        // if ($customerExist !== null) {
-        //     $customer = $customerExist->picPo->customer;
-        // }
-
-        if ($salesOrder->quotations !== null) {
-            if (count($salesOrder->quotations) > 0) {
-                foreach ($salesOrder->quotations as $quotation) {
-                    $quotation->pivot->estimation;
-                }
-            }
-        }
-
-        // return $salesOrder;
-
-        // return $customer;
-
-        // return $salesOrder;
-
         // $invoicesByCurrentDateCount = Invoice::query()->where('date', date("Y-m-d"))->get()->count();
         // $invoiceNumber = 'INV-' . date('d') . date('m') . date("y") . sprintf('%04d', $invoicesByCurrentDateCount + 1);
         $invoicesByCurrentYearCount = Invoice::query()->whereYear('date', date("Y"))->get()->count();
@@ -159,10 +111,8 @@ class InvoiceController extends Controller
 
         // return $salesOrder;
 
-        return view('invoice.create', [
-            // 'customer' => $customer,
-            'sales_order' => $salesOrder,
-            'invoice_number' => $invoiceNumber,
+        return view('invoice.v2.create', [
+            'number' => $invoiceNumber,
         ]);
     }
 
@@ -279,6 +229,91 @@ class InvoiceController extends Controller
         } catch (Exception $e) {
             $invoice->quotations()->detach();
             $invoice->delete();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function storeV2(Request $request)
+    {
+        $invoiceWithNumber = Invoice::query()->where('number', $request->number)->first();
+        if ($invoiceWithNumber !== null) {
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 400,
+                'error' => true,
+                'error_type' => 'exist_number',
+                'data' => [
+                    'swal' => [
+                        'title' => 'Kesalahan',
+                        'text' => 'Nomor faktur sudah digunakan',
+                        'icon' => 'warning'
+                    ],
+                ]
+                // 'errors' => $e,
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+
+            $invoice = new Invoice;
+            $invoice->number = $request->number;
+            // $invoice->number = getRecordNumber(new Invoice, 'INV');
+            $invoice->date = $request->date;
+            $invoice->due_date = $request->due_date;
+            $invoice->due_date_term = $request->due_date_term;
+            $invoice->tax_invoice_series = $request->tax_invoice_series;
+            $invoice->terms_of_payment = $request->terms_of_payment;
+            $invoice->gr_number = $request->gr_number;
+            $invoice->discount = $this->clearThousandFormat($request->discount);
+            $invoice->pic_po = $request->pic_po;
+            $invoice->pic_po_position = $request->pic_po_position;
+            $invoice->note = $request->note;
+            $invoice->netto = $request->netto;
+            $invoice->ppn = $request->ppn;
+            $invoice->pph = $request->pph;
+            $invoice->total = $request->total;
+            $invoice->terbilang = $request->terbilang;
+            $invoice->sales_order_id = $request->sales_order_id;
+            $invoice->customer_id = $request->customer_id;
+
+            $invoice->save();
+
+            $selectedDeliveryOrders = $request->selected_delivery_orders;
+
+            $deliveryOrders = collect($selectedDeliveryOrders)->mapWithKeys(function ($item) {
+                return [
+                    $item['id'] => [
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString(),
+                    ]
+                ];
+            });
+
+            $invoice->deliveryOrders()->attach($deliveryOrders);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $invoice,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Internal error',
                 'code' => 500,
@@ -619,5 +654,32 @@ class InvoiceController extends Controller
             }
         }
         return $returnValue;
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return Yajra\DataTables\Facades\DataTables;
+     */
+    public function datatablesSalesOrders(Request $request)
+    {
+        $customerId = $request->query('customer_id');
+        // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
+        $salesOrders = V2SalesOrder::with(['deliveryOrders' => function ($query) {
+            return $query->with(['cpoItems', 'v2QuotationItems', 'invoices']);
+        }])->select('v2_sales_orders.*')->get();
+        // ->filter(function ($quotation) {
+        //     return count($quotation->salesOrders) < 1;
+        // })->all();
+
+        return DataTables::of($salesOrders)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                return $button;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
 }

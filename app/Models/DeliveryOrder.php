@@ -10,10 +10,10 @@ class DeliveryOrder extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public function salesOrder()
-    {
-        return $this->belongsTo(SalesOrder::class);
-    }
+    // public function salesOrder()
+    // {
+    //     return $this->belongsTo(SalesOrder::class);
+    // }
 
     public function quotations()
     {
@@ -23,5 +23,25 @@ class DeliveryOrder extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function cpoItems()
+    {
+        return $this->belongsToMany(CpoItem::class)->withPivot('code', 'amount', 'unit', 'description', 'information');
+    }
+
+    public function v2QuotationItems()
+    {
+        return $this->belongsToMany(V2QuotationItem::class)->withPivot('code', 'amount', 'unit', 'description', 'information');
+    }
+
+    public function v2SalesOrder()
+    {
+        return $this->belongsTo(V2SalesOrder::class, 'sales_order_id');
+    }
+
+    public function invoices()
+    {
+        return $this->belongsToMany(Invoice::class);
     }
 }
