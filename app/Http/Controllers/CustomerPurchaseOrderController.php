@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\CpoItem;
 use App\Models\Customer;
 use App\Models\CustomerPurchaseOrder;
@@ -35,13 +36,13 @@ class CustomerPurchaseOrderController extends Controller
      */
     public function indexData()
     {
-        $quotations = CustomerPurchaseOrder::with(['items', 'v2SalesOrder'])->select('customer_purchase_orders.*');
-        return DataTables::eloquent($quotations)
+        $purchaseOrders = CustomerPurchaseOrder::with(['items', 'v2SalesOrder'])->select('customer_purchase_orders.*');
+        return DataTables::eloquent($purchaseOrders)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
                 $button = ' <div class="text-center">';
                 if ($row->v2SalesOrder == null) {
-                    $button .= ' <a href="/quotation/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                    $button .= ' <a href="/customer-purchase-order/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                   <rect x="0" y="0" width="24" height="24"></rect>
                   <path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "></path>
@@ -66,7 +67,7 @@ class CustomerPurchaseOrderController extends Controller
                             <!--begin::Navigation-->
                             <ul class="navi navi-hover">
                                 <li class="navi-item">
-                                    <a href="/quotation/print/' . $row->id . '" target="_blank" class="navi-link">
+                                    <a href="/customer-purchase-order/print/' . $row->id . '" target="_blank" class="navi-link">
                                         <span class="navi-icon">
                                             <i class="flaticon2-print"></i>
                                         </span>
@@ -125,6 +126,15 @@ class CustomerPurchaseOrderController extends Controller
             $cpo->number = $request->number;
             $cpo->date = $request->date;
             $cpo->description = $request->description;
+            $cpo->subtotal = $request->subtotal;
+            $cpo->ppn = $request->ppn;
+            $cpo->ppn_value = $request->ppn_value;
+            $cpo->ppn_amount = $request->ppn_amount;
+            $cpo->pph23 = $request->pph23;
+            $cpo->pph23_value = $request->pph23_value;
+            $cpo->pph23_amount = $request->pph23_amount;
+            $cpo->other_cost = $request->other_cost;
+            $cpo->other_cost_description = $request->other_cost_description;
             $cpo->total = $request->total;
             $cpo->customer_id = $request->customer_id;
             $cpo->save();
@@ -139,6 +149,7 @@ class CustomerPurchaseOrderController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'amount' => $item['amount'],
+                    'tax_code' => $item['taxCode'],
                     'created_at' => Carbon::now()->toDateTimeString(),
                     'updated_at' => Carbon::now()->toDateTimeString(),
                 ];
@@ -183,7 +194,27 @@ class CustomerPurchaseOrderController extends Controller
      */
     public function edit($id)
     {
-        //
+        $purchaseOrder = CustomerPurchaseOrder::with(['items'])->findOrFail($id);
+        $customers = Customer::all();
+
+        $items = collect($purchaseOrder->items)->map(function ($item) {
+            return [
+                'code' => $item->code,
+                'name' => $item->name,
+                'description' => $item->description,
+                'deliveryDate' => $item->delivery_date,
+                'quantity' => $item->quantity,
+                'price' => $item->price,
+                'amount' => $item->amount,
+                'taxCode' => $item->tax_code,
+            ];
+        })->all();
+
+        return view('customer-purchase-order.edit', [
+            'purchase_order' => $purchaseOrder,
+            'customers' => $customers,
+            'items' => $items,
+        ]);
     }
 
     /**
@@ -195,7 +226,72 @@ class CustomerPurchaseOrderController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $cpoWithNumber = CustomerPurchaseOrder::whereNotIn('id', [$id])->where('number', $request->number)->first();
+        if ($cpoWithNumber !== null) {
+            return response()->json([
+                'message' => 'number or code already used',
+                'code' => 400,
+                // 'errors' => $/e,
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+
+            $cpo = CustomerPurchaseOrder::find($id);
+            $cpo->number = $request->number;
+            $cpo->date = $request->date;
+            $cpo->description = $request->description;
+            $cpo->subtotal = $request->subtotal;
+            $cpo->ppn = $request->ppn;
+            $cpo->ppn_value = $request->ppn_value;
+            $cpo->ppn_amount = $request->ppn_amount;
+            $cpo->pph23 = $request->pph23;
+            $cpo->pph23_value = $request->pph23_value;
+            $cpo->pph23_amount = $request->pph23_amount;
+            $cpo->other_cost = $request->other_cost;
+            $cpo->other_cost_description = $request->other_cost_description;
+            $cpo->total = $request->total;
+            $cpo->customer_id = $request->customer_id;
+            $cpo->save();
+
+            $items = collect($request->items)->map(function ($item) use ($cpo) {
+                return [
+                    'customer_purchase_order_id' => $cpo->id,
+                    'code' => $item['code'],
+                    'name' => $item['name'],
+                    'description' => $item['description'],
+                    'delivery_date' => $item['deliveryDate'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'amount' => $item['amount'],
+                    'tax_code' => $item['taxCode'],
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ];
+            })->all();
+
+            $cpo->items()->delete();
+
+            DB::table('cpo_items')->insert($items);
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $cpo,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
     }
 
     /**
@@ -207,5 +303,42 @@ class CustomerPurchaseOrderController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function print($id)
+    {
+        $cpo = CustomerPurchaseOrder::with(['items', 'customer'])->findOrFail($id);
+        $mpdf = new \Mpdf\Mpdf([
+            'format' => 'A5',
+            'mode' => 'utf-8',
+            'orientation' => 'L',
+            'margin_left' => 3,
+            'margin_top' => 3,
+            'margin_right' => 3,
+            'margin_bottom' => 3,
+        ]);
+
+        $company = Company::all()->first();
+
+        if ($company == null) {
+            $newCompany = new Company;
+            $newCompany->save();
+            $company = Company::all()->first();
+        }
+
+
+        $html = view('customer-purchase-order.print', [
+            'company' => $company,
+            'cpo' => $cpo,
+        ]);
+
+        $mpdf->WriteHTML($html);
+        $mpdf->Output();
     }
 }

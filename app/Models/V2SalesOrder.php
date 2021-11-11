@@ -33,4 +33,9 @@ class V2SalesOrder extends Model
     {
         return $this->hasMany(Invoice::class, 'sales_order_id');
     }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }

@@ -429,7 +429,7 @@
                                             </div>
                                         </div>
                                         <div class="card-body">
-                                            <div v-if="dataItems.length < 1" class="text-center">
+                                            <div v-if="deliveryHistoryItems.length < 1" class="text-center">
                                                 <i class="flaticon2-open-box icon-4x"></i>
                                                 <p class="text-muted">Tidak ada item</p>
                                             </div>
@@ -607,7 +607,7 @@
                             <!--begin::Title-->
                             <div class="d-flex flex-column flex-grow-1 mr-2">
                                 <span class="font-weight-bold text-dark-75 font-size-lg mb-1">Alamat Customer</span>
-                                <span class="text-dark-50 font-weight-bold">@{{ customerAddress }}</span>
+                                <span class="text-dark-50 font-weight-bold"></span>
                             </div>
                             <!--end::Title-->
                             <!--begin::Lable-->
@@ -690,21 +690,20 @@
         data: {
             quotations: [],
             checkedQuotationsIds: [],
-            number: '',
-            date: '',
-            customer: '',
-            warehouse: '',
-            shipper: '',
-            numberOfVehicle: '',
-            billingAddress: ``,
-            shippingAddress: '',
-            salesOrderId: '',
+            number: '{{ $delivery_order->number }}',
+            date: '{{ $delivery_order->date }}',
+            customer: '{{ $delivery_order->customer_id }}',
+            warehouse: '{{ $delivery_order->warehouse }}',
+            shipper: '{{ $delivery_order->shipper }}',
+            numberOfVehicle: '{{ $delivery_order->number_of_vehicle }}',
+            billingAddress: '{{ $delivery_order->billing_address }}',
+            shippingAddress: '{{ $delivery_order->shipping_address }}',
+            salesOrderId: '{{ $delivery_order->sales_order_id }}',
             warehouses: [],
-            customerAddress: '',
             loading: false,
-            selectedData: null,
+            selectedData: JSON.parse(String.raw `{!! json_encode($selected_data) !!}`),
             checkedItemsIds: [],
-            description: '',
+            description: '{{ $delivery_order->description }}',
         },
         methods: {
             submitForm: function() {
@@ -787,7 +786,7 @@
                 return false;
             },
             selectCustomerAddress: function() {
-                this.shippingAddress = this.customerAddress;
+                this.shippingAddress = this.billingAddress;
                 this.closeWarehouseModal();
             },
             selectWarehouseAddress: function(index) {
@@ -841,7 +840,7 @@
             },
             dataItems: function() {
                 let vm = this;
-                if (vm.selectedData) {
+                if (vm.selectedData !== null) {
                     let items = [];
                     const {
                         source
@@ -923,12 +922,6 @@
                 items = data.v2_quotation.items;
             } else if (data.source == 'purchase_order') {
                 items = data.customer_purchase_order.items;
-            }
-
-            if (data.customer !== null && data.customer !== "undefined") {
-                app.$data.customerAddress = data.customer.address;
-                app.$data.billingAddress = data.customer.address;
-                app.$data.warehouses = data.customer.warehouses;
             }
 
             data.items = items.map(item => {

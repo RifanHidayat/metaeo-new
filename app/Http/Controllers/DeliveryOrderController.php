@@ -403,6 +403,39 @@ class DeliveryOrderController extends Controller
     }
 
     /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function editV2($id)
+    {
+        // $deliveryOrdersByCurrentDateCount = DeliveryOrder::query()->where('date', date("Y-m-d"))->get()->count();
+        // $deliveryOrderNumber = 'DO-' . date('d') . date('m') . date("y") . sprintf('%04d', $deliveryOrdersByCurrentDateCount + 1);
+        $deliveryOrder = DeliveryOrder::with(['v2SalesOrder' => function ($query) {
+            $query->with(['v2Quotation.items' => function ($query) {
+                $query->with(['deliveryOrders', 'jobOrders']);
+            }, 'customerPurchaseOrder.items' => function ($query) {
+                $query->with(['deliveryOrders', 'jobOrders']);
+            }]);
+        }])->findOrFail($id);
+
+        $selectedData = null;
+        if ($deliveryOrder->v2SalesOrder !== null) {
+            $selectedData = [
+                'data' => $deliveryOrder->v2SalesOrder,
+                'source' => $deliveryOrder->v2SalesOrder->source,
+            ];
+        }
+
+        return view('delivery-order.v2.edit', [
+            'delivery_order' => $deliveryOrder,
+            'selected_data' => $selectedData,
+            // 'delivery_order_number' => $deliveryOrderNumber,
+        ]);
+    }
+
+    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -547,9 +580,36 @@ class DeliveryOrderController extends Controller
         }
     }
 
+    // public function print($id)
+    // {
+    //     $deliveryOrder = DeliveryOrder::with(['quotations', 'salesOrder'])->findOrFail($id);
+
+    //     $company = Company::all()->first();
+
+    //     if ($company == null) {
+    //         $newCompany = new Company;
+    //         $newCompany->save();
+    //         $company = Company::all()->first();
+    //     }
+
+    //     $pdf = PDF::loadView('delivery-order.print', [
+    //         'delivery_order' => $deliveryOrder,
+    //         'company' => $company,
+    //     ]);
+    //     $pdf->setPaper('a5', 'landscape');
+    //     return $pdf->stream($deliveryOrder->number . '.pdf');
+    // }
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
     public function print($id)
     {
-        $deliveryOrder = DeliveryOrder::with(['quotations', 'salesOrder'])->findOrFail($id);
+        $deliveryOrder = DeliveryOrder::with(['v2SalesOrder' => function ($query) {
+            $query->with(['v2Quotation', 'customerPurchaseOrder']);
+        }, 'cpoItems', 'v2QuotationItems'])->findOrFail($id);
 
         $company = Company::all()->first();
 
@@ -559,12 +619,26 @@ class DeliveryOrderController extends Controller
             $company = Company::all()->first();
         }
 
-        $pdf = PDF::loadView('delivery-order.print', [
+        $mpdf = new \Mpdf\Mpdf([
+            'format' => 'A5',
+            'mode' => 'utf-8',
+            'orientation' => 'L',
+            'margin_left' => 3,
+            'margin_top' => 3,
+            'margin_right' => 3,
+            'margin_bottom' => 3,
+        ]);
+
+        // return $finishingItems;
+
+        $html = view('delivery-order.v2.print', [
             'delivery_order' => $deliveryOrder,
             'company' => $company,
         ]);
-        $pdf->setPaper('a5', 'landscape');
-        return $pdf->stream($deliveryOrder->number . '.pdf');
+
+        // return $jobOrder;
+        $mpdf->WriteHTML($html);
+        $mpdf->Output();
     }
 
     /**
@@ -581,7 +655,7 @@ class DeliveryOrderController extends Controller
             $query->with(['jobOrders', 'deliveryOrders']);
         }, 'customerPurchaseOrder.items' => function ($query) {
             $query->with(['jobOrders', 'deliveryOrders']);
-        }])->select('v2_sales_orders.*')->get();
+        }, 'customer.warehouses'])->select('v2_sales_orders.*')->get();
         // ->filter(function ($quotation) {
         //     return count($quotation->salesOrders) < 1;
         // })->all();

@@ -56,7 +56,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Form Pesanan Pembelian</h3>
+                <h3 class="card-title">Form Sales Order</h3>
 
             </div>
             <!--begin::Form-->
@@ -192,7 +192,7 @@
                                                     <table class="table">
                                                         <tr>
                                                             <td>Customer</td>
-                                                            <td><strong>-</strong></td>
+                                                            <td><strong>@{{ selectedData.data.customer?.name }}</strong></td>
                                                         </tr>
                                                         <tr>
                                                             <td>Keterangan</td>
@@ -208,7 +208,8 @@
                                                             <th class="text-center">No</th>
                                                             <th>Kode</th>
                                                             <th class="text-center">Deskripsi</th>
-                                                            <th class="text-right">Tanggal Kirim</th>
+                                                            <th class="text-center">Tanggal Kirim</th>
+                                                            <th class="text-center">Kode Pajak</th>
                                                             <th class="text-right">Qty</th>
                                                             <th class="text-right">Price</th>
                                                             <th class="text-right">Amount</th>
@@ -220,6 +221,7 @@
                                                             <td>@{{ item.code }}</td>
                                                             <td><strong>@{{ item.name }}</strong> <br> <em class="text-dark-50">@{{ item.description }}</em></td>
                                                             <td class="text-center">@{{ item.delivery_date }}</td>
+                                                            <td class="text-center text-capitalize">@{{ item.tax_code }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.quantity) }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.price) }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.amount) }}</td>
@@ -227,7 +229,7 @@
                                                     </tbody>
                                                     <tfoot>
                                                         <tr>
-                                                            <td class="text-right" colspan="6"><strong>TOTAL</strong></td>
+                                                            <td class="text-right" colspan="7"><strong>TOTAL</strong></td>
                                                             <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.total) }}</strong></td>
                                                         </tr>
                                                     </tfoot>
@@ -256,7 +258,7 @@
                                                         </tr>
                                                         <tr>
                                                             <td>Customer</td>
-                                                            <td><strong>-</strong></td>
+                                                            <td><strong>@{{ selectedData.data.customer?.name }}</strong></td>
                                                         </tr>
                                                     </table>
                                                 </div>
@@ -284,6 +286,7 @@
                                                             <th>No</th>
                                                             <th>Kode</th>
                                                             <th>Deskripsi</th>
+                                                            <th class="text-center">Kode Pajak</th>
                                                             <th>Tanggal Kirim</th>
                                                             <th>Qty</th>
                                                             <th>Price</th>
@@ -295,6 +298,7 @@
                                                             <td>@{{ index + 1 }}</td>
                                                             <td>@{{ item.code }}</td>
                                                             <td>@{{ item.name }} <br> @{{ item.description }}</td>
+                                                            <td class="text-center text-uppercase">@{{ item.tax_code }}</td>
                                                             <td>@{{ item.delivery_date }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.quantity) }}</td>
                                                             <td class="text-right">@{{ toCurrencyFormat(item.price) }}</td>
@@ -303,7 +307,23 @@
                                                     </tbody>
                                                     <tfoot>
                                                         <tr>
-                                                            <td class="text-right" colspan="6"><strong>TOTAL</strong></td>
+                                                            <td class="text-right" colspan="7"><strong>Subtotal</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.subtotal) }}</strong></td>
+                                                        </tr>
+                                                        <tr v-if="selectedData.data.ppn == '1'">
+                                                            <td class="text-right" colspan="7"><strong>PPN @{{ selectedData.data.ppn_value }}%</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.ppn_amount) }}</strong></td>
+                                                        </tr>
+                                                        <tr v-if="selectedData.data.pph23 == '1'">
+                                                            <td class="text-right" colspan="7"><strong>PPh 23 @{{ selectedData.data.pph23_value }}</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.pph23_amount) }}</strong></td>
+                                                        </tr>
+                                                        <tr v-if="selectedData.data.other_cost > 0">
+                                                            <td class="text-right" colspan="7"><strong>Biaya Lain (@{{ selectedData.data.other_cost_description }})</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.other_cost) }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-right" colspan="7"><strong>TOTAL</strong></td>
                                                             <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.total) }}</strong></td>
                                                         </tr>
                                                     </tfoot>
@@ -317,13 +337,27 @@
                                 <div class="pt-5 pb-3">
                                     <div class="row">
                                         <div class="col-lg-6 col-md-12">
-                                            <div class="form-group">
+                                            <!-- <div class="form-group">
                                                 <label>File (Max. 2MB)</label>
                                                 <div class="custom-file">
                                                     <input type="file" id="customFile" accept=".jpg, .jpeg, .png, .pdf, .doc, .xls, .xlsx" class="custom-file-input" disabled>
                                                     <label id="file-upload-label" for="customFile" class="custom-file-label">Choose file</label>
                                                 </div>
-                                                <!---->
+                                            </div> -->
+                                            <div class="form-row">
+                                                <div class="form-group col-lg-6 col-md-12">
+                                                    <label>Syarat Pembayaran</label>
+                                                    <input type="text" v-model="termOfPayment" class="form-control">
+                                                </div>
+                                                <div class="form-group col-sm-6">
+                                                    <label>Due Date</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
+                                                        </div>
+                                                        <input type="date" v-model="dueDate" class="form-control">
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="form-group">
                                                 <label>Keterangan:</label>
@@ -430,6 +464,8 @@
             poId: '',
             poNumber: '',
             poDate: '',
+            termOfPayment: '',
+            dueDate: '',
             description: '',
             loading: false,
             selectedData: null,
@@ -457,6 +493,8 @@
                     po_number: vm.poNumber,
                     po_date: vm.poDate,
                     description: vm.description,
+                    term_of_payment: vm.termOfPayment,
+                    due_date: vm.dueDate,
                 };
 
                 let formData = new FormData();

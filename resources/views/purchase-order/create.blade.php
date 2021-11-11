@@ -12,6 +12,10 @@
         padding: 0.45rem 1rem;
     }
 
+    input.form-control:read-only {
+        background-color: #fafafa;
+    }
+
     /* table tbody td {
         vertical-align: middle;
     } */
@@ -67,7 +71,7 @@
                             <div class="form-group">
                                 <label>Supplier:</label>
                                 <select v-model="supplier" class="form-control" id="supplier-select">
-                                    <option value="">Pilih Pengiriman</option>
+                                    <option value="">Pilih Supplier</option>
                                     <option v-for="(supplier, index) in suppliers" :value="supplier.id">@{{ supplier.name }}</option>
                                 </select>
                             </div>
@@ -107,6 +111,14 @@
                                         <i class="flaticon-signs-1"></i>
                                     </span>
                                     <span class="nav-text">List Barang</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="other-cost-tab" data-toggle="tab" href="#other-cost">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">Biaya Lain</span>
                                 </a>
                             </li>
                             <li class="nav-item" role="presentation">
@@ -174,6 +186,13 @@
                                             </tr>
                                         </tbody>
                                     </table>
+                                    <!-- <div class="mt-20">
+                                        <div class="row justify-content-end">
+                                            <div class="col-lg-4 col-md-12">
+                                                
+                                            </div>
+                                        </div>
+                                    </div> -->
                                     <div class="mt-20">
                                         <div class="row justify-content-end">
                                             <div class="col-lg-3">
@@ -212,7 +231,81 @@
                                                     <div class="bg-success w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
                                                         <h4>Total</h4>
+                                                        <div v-if="ppn" class="row">
+                                                            <div class="col-sm-6">
+                                                                <span>PPN @{{ ppnValue }}%</span>
+                                                            </div>
+                                                            <div class="col-sm-6 text-right">
+                                                                <span>@{{ toCurrencyFormat(ppnAmount) }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div v-if="shippingCost > 0" class="row">
+                                                            <div class="col-sm-6">
+                                                                <span>Biaya Kirim</span>
+                                                            </div>
+                                                            <div class="col-sm-6 text-right">
+                                                                <span>@{{ toCurrencyFormat(shippingCost) }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div v-if="otherCost > 0" class="row">
+                                                            <div class="col-sm-6">
+                                                                <span>Biaya Lain (@{{ otherCostDescription }})</span>
+                                                            </div>
+                                                            <div class="col-sm-6 text-right">
+                                                                <span>@{{ toCurrencyFormat(otherCost) }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <!-- <p v-if="ppn" class="text-right"> </p> -->
                                                         <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(grandTotal) }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="other-cost" role="tabpanel" aria-labelledby="other-cost-tab">
+                                <div class="pt-5">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-12">
+                                            <div class="form-row align-items-center">
+                                                <div class="form-group col-md-4">
+                                                    <label class="checkbox">
+                                                        <input v-model="ppn" type="checkbox">
+                                                        <span></span>&nbsp;PPN
+                                                    </label>
+                                                </div>
+                                                <div class="form-group col-md-8">
+                                                    <div class="input-group">
+                                                        <input type="text" v-model="ppnValue" class="form-control text-right" placeholder="Tarif PPN" :readonly="!ppn">
+                                                        <div class="input-group-append">
+                                                            <span class="input-group-text"><strong class="text-dark-50">%</strong></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Ongkos Kirim:</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text"><strong class="text-dark-50">Rp</strong></span>
+                                                    </div>
+                                                    <input type="text" v-model="shippingCost" class="form-control text-right">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Biaya Lain:</label>
+                                                <div class="form-row">
+                                                    <div class="col-lg-6 col-md-12">
+                                                        <input type="text" v-model="otherCostDescription" class="form-control" placeholder="Keterangan Biaya Lain">
+                                                    </div>
+                                                    <div class="col-lg-6 col-md-12">
+                                                        <div class="input-group">
+                                                            <div class="input-group-prepend">
+                                                                <span class="input-group-text"><strong class="text-dark-50">Rp</strong></span>
+                                                            </div>
+                                                            <input type="text" v-model="otherCost" class="form-control text-right">
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -264,6 +357,7 @@
                                                     <option v-for="(fob, index) in fobItems" :value="fob.id">@{{ fob.name }}</option>
                                                 </select>
                                             </div>
+
                                             <div class="form-group">
                                                 <label>Keterangan:</label>
                                                 <textarea v-model="description" class="form-control"></textarea>
@@ -356,6 +450,11 @@
             description: '',
             selectedGoods: [],
             discount: 0,
+            ppn: false,
+            ppnValue: 10,
+            shippingCost: 0,
+            otherCost: 0,
+            otherCostDescription: '',
             loading: false,
         },
         methods: {
@@ -378,6 +477,12 @@
                         description: vm.description,
                         selected_goods: vm.selectedGoods,
                         discount: vm.discount,
+                        ppn: vm.ppn ? 1 : 0,
+                        ppn_value: vm.ppnValue,
+                        ppn_amount: vm.ppnAmount,
+                        shipping_cost: vm.shippingCost,
+                        other_cost: vm.otherCost,
+                        other_cost_description: vm.otherCostDescription,
                         subtotal: vm.subtotal,
                         total: vm.grandTotal,
                     })
@@ -433,8 +538,17 @@
 
                 return subtotal;
             },
+            ppnAmount: function() {
+                let vm = this;
+                if (!vm.ppn) {
+                    return 0;
+                }
+
+                const ppn = (this.subtotal - Number(this.discount)) * (Number(vm.ppnValue) / 100);
+                return Math.round(ppn);
+            },
             grandTotal: function() {
-                const grandTotal = this.subtotal - Number(this.discount);
+                const grandTotal = this.subtotal - Number(this.discount) + this.ppnAmount + Number(this.shippingCost) + Number(this.otherCost);
                 return grandTotal;
             }
         },

@@ -550,40 +550,29 @@
     let app = new Vue({
         el: '#app',
         data: {
-            number: '',
-            estimationNumber: '',
-            date: '',
-            title: '',
-            orderAmount: '',
-            deliveryDate: '',
-            printType: '',
-            dummy: '',
-            okl: '',
-            oklNth: '',
-            designer: '',
-            preparer: '',
-            examiner: '',
-            production: '',
-            finishing: '',
-            warehouse: '',
-            description: '',
-            items: [{
-                item: '',
-                paper: '',
-                planoSize: '',
-                planoAmount: '',
-                cuttingSize: '',
-                cuttingAmount: '',
-                orderAmount: '',
-                printAmount: '',
-                color: '',
-                filmSet: '',
-                filmTotal: '',
-                printType: '',
-            }],
-            finishingItemCategories: JSON.parse(String.raw `{!! $finishing_item_categories !!}`),
-            selectedData: null,
-            selectedItem: null,
+            jobOrderId: '{{ $job_order->id }}',
+            number: '{{ $job_order->number }}',
+            estimationNumber: '{{ $job_order->estimation_number }}',
+            date: '{{ $job_order->date }}',
+            title: '{{ $job_order->title }}',
+            orderAmount: '{{ $job_order->order_amount }}',
+            deliveryDate: '{{ $job_order->delivery_date }}',
+            printType: '{{ $job_order->print_type }}',
+            dummy: '{{ $job_order->dummy }}',
+            okl: '{{ $job_order->okl }}',
+            oklNth: '{{ $job_order->okl_nth }}',
+            designer: '{{ $job_order->designer }}',
+            preparer: '{{ $job_order->preparer }}',
+            examiner: '{{ $job_order->examiner }}',
+            production: '{{ $job_order->production }}',
+            finishing: '{{ $job_order->finishing }}',
+            warehouse: '{{ $job_order->warehouse }}',
+            description: '{{ $job_order->description }}',
+            items: JSON.parse(String.raw `{!! json_encode($items) !!}`),
+            takenStocks: JSON.parse(String.raw `{!! json_encode($taken_stocks) !!}`),
+            finishingItemCategories: JSON.parse(String.raw `{!! json_encode($finishing_item_categories) !!}`),
+            selectedData: JSON.parse(String.raw `{!! json_encode($selected_data) !!}`),
+            selectedItem: JSON.parse(String.raw `{!! json_encode($selected_item) !!}`),
             loading: false,
             itemLoading: false,
             itemCategoryLoading: false,
@@ -619,10 +608,11 @@
                     warehouse: vm.warehouse,
                     description: vm.description,
                     sales_order_id: vm.selectedData.data.id,
-                    cpo_item_id: vm.selectedItem.source == 'purchase_order' ? vm.selectedItem.id : '',
-                    quotation_item_id: vm.selectedItem.source == 'quotation' ? vm.selectedItem.id : '',
+                    cpo_item_id: vm.selectedData.data.source == 'purchase_order' ? vm.selectedItem.id : '',
+                    quotation_item_id: vm.selectedData.data.source == 'quotation' ? vm.selectedItem.id : '',
                     customer_id: vm.selectedData.data.customer_id,
                     items: vm.items,
+                    taken_stocks: vm.takenStocks,
                     finishing_items: vm.finishingItemCategories.map(item => item.finishing_items).flat(),
                 }
 
@@ -631,7 +621,7 @@
                 //     formData.append(key, data[key]);
                 // }
 
-                axios.post('/job-order', data)
+                axios.post('/job-order/{{ $job_order->id }}', data)
                     .then(function(response) {
                         vm.loading = false;
                         Swal.fire({
@@ -704,8 +694,9 @@
                 return new Intl.NumberFormat('De-de').format(number);
             },
             getProduced: function(jobOrders, property = 'order_amount') {
+                let vm = this;
                 if (typeof jobOrders !== "undefined") {
-                    return jobOrders.map(jobOrder => Number(jobOrder[property])).reduce((acc, cur) => {
+                    return jobOrders.filter(jobOrder => jobOrder.id !== Number(vm.jobOrderId)).map(jobOrder => Number(jobOrder[property])).reduce((acc, cur) => {
                         return acc + cur;
                     }, 0);
                 } else {
@@ -776,21 +767,29 @@
             },
             dataItems: function() {
                 let vm = this;
-                if (vm.selectedData) {
+                if (vm.selectedData !== null) {
                     let items = [];
                     const {
                         source
                     } = vm.selectedData.data;
                     if (source == 'quotation') {
-                        items = vm.selectedData.data.v2_quotation.items.map(item => {
-                            item.source = 'quotation';
-                            return item;
-                        });
+                        if (typeof(vm.selectedData.data.v2_quotation.items) !== "undefined") {
+                            items = vm.selectedData.data.v2_quotation.items.map(item => {
+                                item.source = 'quotation';
+                                return item;
+                            });
+                        } else {
+                            items = [];
+                        }
                     } else if (source == 'purchase_order') {
-                        items = vm.selectedData.data.customer_purchase_order.items.map(item => {
-                            item.source = 'purchase_order';
-                            return item;
-                        });
+                        if (typeof(vm.selectedData.data.customer_purchase_order.items) !== "undefined") {
+                            items = vm.selectedData.data.customer_purchase_order.items.map(item => {
+                                item.source = 'purchase_order';
+                                return item;
+                            });
+                        } else {
+                            items = [];
+                        }
                     }
                     // if (vm.selectedData.data.v2_quotation && vm.selectedData.data.customer_purchase_order == null) {
                     //     items = vm.selectedData.data.v2_quotation.items;

@@ -71,14 +71,7 @@ class InvoiceController extends Controller
                                         <span class="navi-text">Cetak</span>
                                     </a>
                                 </li>
-                                <li class="navi-item">
-                                    <a href="/invoice/print-v2/' . $row->id . '" target="_blank" class="navi-link">
-                                        <span class="navi-icon">
-                                            <i class="flaticon2-print"></i>
-                                        </span>
-                                        <span class="navi-text">Cetak Berdasarkan Delivery Order</span>
-                                    </a>
-                                </li>
+                                
                             </ul>
                             <!--end::Navigation-->
                         </div>
@@ -588,9 +581,53 @@ class InvoiceController extends Controller
         }
     }
 
+    // public function print($id)
+    // {
+    //     $invoice = Invoice::with(['quotations', 'customer', 'salesOrder'])->findOrFail($id);
+
+    //     $company = Company::all()->first();
+
+    //     if ($company == null) {
+    //         $newCompany = new Company;
+    //         $newCompany->save();
+    //         $company = Company::all()->first();
+    //     }
+
+    //     $pdf = PDF::loadView('invoice.print', [
+    //         'invoice' => $invoice,
+    //         'company' => $company,
+    //     ]);
+    //     $pdf->setPaper('a5', 'landscape');
+    //     return $pdf->stream($invoice->number . '.pdf');
+    // }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
     public function print($id)
     {
-        $invoice = Invoice::with(['quotations', 'customer', 'salesOrder'])->findOrFail($id);
+        $invoice = Invoice::with(['deliveryOrders' => function ($query) {
+            $query->with(['cpoItems', 'v2QuotationItems']);
+        }, 'v2SalesOrder'])->findOrFail($id);
+
+        $items = collect($invoice->deliveryOrders)->flatMap(function ($do) use ($invoice) {
+            if ($invoice->v2SalesOrder == null) {
+                return [];
+            }
+
+            if ($invoice->v2SalesOrder->source == 'quotation') {
+                return $do->v2QuotationItems;
+            } else if ($invoice->v2SalesOrder->source == 'purchase_order') {
+                return $do->cpoItems;
+            } else {
+                return $do;
+            }
+        });
+
+        // return $items;
 
         $company = Company::all()->first();
 
@@ -600,12 +637,27 @@ class InvoiceController extends Controller
             $company = Company::all()->first();
         }
 
-        $pdf = PDF::loadView('invoice.print', [
+        $mpdf = new \Mpdf\Mpdf([
+            'format' => 'A5',
+            'mode' => 'utf-8',
+            'orientation' => 'L',
+            'margin_left' => 3,
+            'margin_top' => 3,
+            'margin_right' => 3,
+            'margin_bottom' => 3,
+        ]);
+
+        // return $finishingItems;
+
+        $html = view('invoice.v2.print', [
             'invoice' => $invoice,
             'company' => $company,
+            'items' => $items,
         ]);
-        $pdf->setPaper('a5', 'landscape');
-        return $pdf->stream($invoice->number . '.pdf');
+
+        // return $jobOrder;
+        $mpdf->WriteHTML($html);
+        $mpdf->Output();
     }
 
     public function printByDeliveryOrder($id)

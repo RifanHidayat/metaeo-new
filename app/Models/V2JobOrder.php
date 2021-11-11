@@ -14,12 +14,12 @@ class V2JobOrder extends Model
         return $this->belongsToMany(FinishingItem::class)->withPivot('description');
     }
 
-    public function cpoItems()
+    public function cpoItem()
     {
         return $this->belongsTo(CpoItem::class);
     }
 
-    public function v2QuotationItems()
+    public function v2QuotationItem()
     {
         return $this->belongsTo(V2QuotationItem::class);
     }
@@ -27,5 +27,15 @@ class V2JobOrder extends Model
     public function v2SalesOrder()
     {
         return $this->belongsTo(V2SalesOrder::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(V2JobOrderItem::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

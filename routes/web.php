@@ -9,6 +9,8 @@ use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\EstimationController;
 use App\Http\Controllers\FinanceAccountController;
 use App\Http\Controllers\FinanceTransactionController;
+use App\Http\Controllers\FinishingItemCategoryController;
+use App\Http\Controllers\FinishingItemController;
 use App\Http\Controllers\FobItemController;
 use App\Http\Controllers\GoodsCategoryController;
 use App\Http\Controllers\GoodsController;
@@ -34,6 +36,8 @@ use App\Http\Controllers\v2\QuotationController as V2QuotationController;
 use App\Http\Controllers\v2\SalesOrderController as V2SalesOrderController;
 use App\Http\Controllers\WarehouseController;
 use App\Models\DeliveryOrder;
+use App\Models\FinishingItem;
+use App\Models\FinishingItemCategory;
 use App\Models\PurchaseReturn;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
@@ -172,7 +176,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [CustomerPurchaseOrderController::class, 'index']);
         Route::get('/create', [CustomerPurchaseOrderController::class, 'create']);
         Route::get('/edit/{id}', [CustomerPurchaseOrderController::class, 'edit']);
+        Route::get('/print/{id}', [CustomerPurchaseOrderController::class, 'print']);
         Route::post('/', [CustomerPurchaseOrderController::class, 'store']);
+        Route::post('/{id}', [CustomerPurchaseOrderController::class, 'update']);
         Route::patch('/{id}', [CustomerPurchaseOrderController::class, 'update']);
         Route::delete('/{id}', [CustomerPurchaseOrderController::class, 'destroy']);
     });
@@ -203,6 +209,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{id}', [V2QuotationController::class, 'edit']);
         Route::get('/print/{id}', [V2QuotationController::class, 'print']);
         Route::post('/', [V2QuotationController::class, 'store']);
+        Route::post('/{id}', [V2QuotationController::class, 'update']);
         Route::patch('/{id}', [V2QuotationController::class, 'update']);
         Route::delete('/{id}', [V2QuotationController::class, 'destroy']);
     });
@@ -233,6 +240,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{id}', [JobOrderController::class, 'edit']);
         Route::get('/print/{id}', [JobOrderController::class, 'print']);
         Route::post('/', [JobOrderController::class, 'store']);
+        Route::post('/{id}', [JobOrderController::class, 'update']);
         Route::patch('/{id}', [JobOrderController::class, 'update']);
         Route::delete('/{id}', [JobOrderController::class, 'destroy']);
     });
@@ -240,10 +248,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('/delivery-order')->group(function () {
         Route::get('/', [DeliveryOrderController::class, 'index']);
         Route::get('/create', [DeliveryOrderController::class, 'createV2']);
-        Route::get('/edit/{id}', [DeliveryOrderController::class, 'edit']);
+        Route::get('/edit/{id}', [DeliveryOrderController::class, 'editV2']);
         Route::get('/print/{id}', [DeliveryOrderController::class, 'print']);
         Route::post('/', [DeliveryOrderController::class, 'storeV2']);
-        Route::patch('/{id}', [DeliveryOrderController::class, 'update']);
+        Route::patch('/{id}', [DeliveryOrderController::class, 'updateV2']);
         Route::delete('/{id}', [DeliveryOrderController::class, 'destroy']);
     });
 
@@ -307,6 +315,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [WarehouseController::class, 'store']);
         Route::patch('/{id}', [WarehouseController::class, 'update']);
         Route::delete('/{id}', [WarehouseController::class, 'destroy']);
+    });
+
+    Route::prefix('/finishing-item')->group(function () {
+        Route::post('/', [FinishingItemController::class, 'store']);
+        Route::patch('/{id}', [FinishingItemController::class, 'update']);
+        Route::delete('/{id}', [FinishingItemController::class, 'destroy']);
+    });
+
+    Route::prefix('/finishing-item-category')->group(function () {
+        Route::post('/', [FinishingItemCategoryController::class, 'store']);
+        Route::patch('/{id}', [FinishingItemCategoryController::class, 'update']);
+        Route::delete('/{id}', [FinishingItemCategoryController::class, 'destroy']);
     });
 
     Route::prefix('/setting')->group(function () {
@@ -389,6 +409,18 @@ Route::prefix('/datatables')->group(function () {
         Route::get('/quotations-unfiltered', [SalesOrderController::class, 'datatablesQuotationsUnfiltered']);
     });
     Route::prefix('/v2')->group(function () {
+        Route::prefix('/purchase-orders')->group(function () {
+            Route::get('/', [PurchaseOrderController::class, 'indexData']);
+        });
+        Route::prefix('/purchase-receives')->group(function () {
+            Route::get('/', [PurchaseReceiveController::class, 'indexData']);
+        });
+        Route::prefix('/purchase-returns')->group(function () {
+            Route::get('/', [PurchaseReturnController::class, 'indexData']);
+        });
+        Route::prefix('/purchase-transactions')->group(function () {
+            Route::get('/', [PurchaseTransactionController::class, 'indexData']);
+        });
         Route::prefix('/sales-orders')->group(function () {
             Route::get('/', [V2SalesOrderController::class, 'indexData']);
             Route::get('/quotations', [V2SalesOrderController::class, 'datatablesQuotations']);

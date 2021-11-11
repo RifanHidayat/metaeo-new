@@ -18,4 +18,9 @@ class V2Quotation extends Model
     {
         return $this->hasOne(V2SalesOrder::class);
     }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }

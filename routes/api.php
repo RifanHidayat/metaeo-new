@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\api\PurchaseOrderApiController;
+use App\Http\Controllers\api\SalesOrderApiController;
 use App\Http\Controllers\api\SupplierApiController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SupplierController;
@@ -32,4 +33,9 @@ Route::prefix('/purchase-orders')->group(function () {
 
 Route::prefix('/suppliers')->group(function () {
     Route::get('/{id}/purchase-orders', [SupplierApiController::class, 'getAllPurchaseOrders']);
+});
+
+Route::prefix('/sales-orders')->group(function () {
+    Route::get('/', [SalesOrderApiController::class, 'index']);
+    Route::get('/{id}', [SalesOrderApiController::class, 'show']);
 });

@@ -26,7 +26,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Pesanan Pembelian</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Penerimaan</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -34,7 +34,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Pesanan Pembelian</a>
+                        <a href="" class="text-muted">Penerimaan</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Tambah</a>
@@ -56,7 +56,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Form Pesanan Pembelian</h3>
+                <h3 class="card-title">Form Penerimaan</h3>
 
             </div>
             <!--begin::Form-->
@@ -199,6 +199,7 @@
                                                 <th>Nama Barang</th>
                                                 <th>Kode #</th>
                                                 <th>Satuan</th>
+                                                <th>Qty Pesanan</th>
                                                 <th>Diterima</th>
                                                 <th>Kuantitas</th>
                                             </tr>
@@ -214,7 +215,7 @@
                                             </tr>
                                             <tr v-for="(good, index) in selectedGoods">
                                                 <td class="text-center align-middle">
-                                                    <label class="checkbox justify-content-center">
+                                                    <label v-if="good.finish == 0" class="checkbox justify-content-center">
                                                         <input type="checkbox" v-model="checkedGoodsIds" :value="good.id">
                                                         <span></span>
                                                     </label>
@@ -222,8 +223,14 @@
                                                 <td style="vertical-align: middle;">@{{ good.name }}</td>
                                                 <td style="vertical-align: middle;">@{{ good.number }}</td>
                                                 <td style="vertical-align: middle;">@{{ good.unit }}</td>
+                                                <td style="vertical-align: middle;" class="text-center">@{{ good.pivot.quantity }}</td>
                                                 <td style="vertical-align: middle;" class="text-center">@{{ good.received_quantity }}</td>
-                                                <td><input type="text" v-model="good.receive_quantity" class="form-control form-control-sm text-right"></td>
+                                                <td>
+                                                    <input v-if="good.finish == 0" type="text" v-model="good.receive_quantity" class="form-control form-control-sm text-right">
+                                                    <div v-else class="text-center">
+                                                        <span class="label label-success label-inline mr-2">Selesai</span>
+                                                    </div>
+                                                </td>
                                                 <!-- <td style="vertical-align: middle;" class="text-center">
                                                     <a href="#" @click.prevent="removeGoods(index)"><i class="flaticon2-trash text-danger"></i></a>
                                                 </td> -->
@@ -267,7 +274,7 @@
                                                 <div class="border">
                                                     <div class="bg-success w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
-                                                        <strong>Total Akan Diterima</strong>
+                                                        <strong>Total Penerimaan</strong>
                                                         <p class="text-right font-size-h4">@{{ toCurrencyFormat(totalWillBeReceived) }}</p>
                                                     </div>
                                                 </div>
@@ -458,7 +465,11 @@
             selectedGoods: {
                 handler: function(newval, oldval) {
                     this.selectedGoods.forEach(goods => {
-                        goods.total = (Number(goods.price) * Number(goods.quantity)) - Number(goods.discount);
+                        // goods.total = (Number(goods.price) * Number(goods.quantity)) - Number(goods.discount);
+                        const availableQuantity = goods.pivot.quantity - goods.received_quantity;
+                        if (goods.receive_quantity > (availableQuantity)) {
+                            goods.receive_quantity = availableQuantity;
+                        }
                     });
                 },
                 deep: true

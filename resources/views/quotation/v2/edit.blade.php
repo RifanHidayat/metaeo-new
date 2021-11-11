@@ -26,7 +26,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Quotation</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Pesanan Pembelian</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -34,7 +34,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Quotation</a>
+                        <a href="" class="text-muted">Pesanan Pembelian</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Tambah</a>
@@ -56,7 +56,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Form Quotation</h3>
+                <h3 class="card-title">Form Pesanan Pembelian</h3>
 
             </div>
             <!--begin::Form-->
@@ -405,22 +405,22 @@
     let app = new Vue({
         el: '#app',
         data: {
-            up: '',
-            title: '',
-            note: '',
-            customer: '',
-            number: '',
-            date: '',
-            description: '',
+            up: '{{ $quotation->up }}',
+            title: '{{ $quotation->title }}',
+            note: '{{ $quotation->note }}',
+            customer: '{{ $quotation->customer_id }}',
+            number: '{{ $quotation->number }}',
+            date: '{{ $quotation->date }}',
+            description: '{{ $quotation->description }}',
             loading: false,
-            items: [],
-            ppn: false,
-            ppnValue: 10,
-            pph23: false,
-            pph23Value: 2,
-            shippingCost: 0,
-            otherCost: 0,
-            otherCostDescription: '',
+            items: JSON.parse(String.raw `{!! json_encode($items) !!}`),
+            ppn: Number('{{ $quotation->ppn }}') == 1 ? true : false,
+            ppnValue: '{{ $quotation->ppn_value }}',
+            pph23: Number('{{ $quotation->pph23 }}') == 1 ? true : false,
+            pph23Value: '{{ $quotation->pph23_value }}',
+            shippingCost: '{{ $quotation->shipping_cost }}',
+            otherCost: '{{ $quotation->other_cost }}',
+            otherCostDescription: '{{ $quotation->other_cost_description }}',
         },
         methods: {
             submitForm: function() {
@@ -430,7 +430,7 @@
                 // console.log('submitted');
                 let vm = this;
                 vm.loading = true;
-                axios.post('/quotation', {
+                axios.post('/quotation/{{ $quotation->id }}', {
                         customer_id: vm.customer,
                         up: vm.up,
                         title: vm.title,

@@ -26,7 +26,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Pesanan Pembelian</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Purchase Order</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -34,7 +34,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Pesanan Pembelian</a>
+                        <a href="" class="text-muted">Purchase Order</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Tambah</a>
@@ -56,7 +56,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Form Pesanan Pembelian</h3>
+                <h3 class="card-title">Form Purchase Order</h3>
 
             </div>
             <!--begin::Form-->
@@ -112,6 +112,14 @@
                                 </a>
                             </li>
                             <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="other-cost-tab" data-toggle="tab" href="#other-cost">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">Biaya Lain</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
                                 <a class="nav-link" id="other-tab" data-toggle="tab" href="#other">
                                     <span class="nav-icon">
                                         <i class="flaticon-information"></i>
@@ -146,6 +154,7 @@
                                                         <th>Qty</th>
                                                         <th>Price</th>
                                                         <th>Amount</th>
+                                                        <th>Kode Pajak</th>
                                                     </tr>
                                                     <tr>
                                                         <th rowspan="2" class="align-middle text-center">@{{ index + 1 }}</th>
@@ -182,6 +191,13 @@
                                                         <td class="text-right align-middle">
                                                             <span class="text-dark-75"><strong>@{{ toCurrencyFormat(item.amount) }}</strong></span>
                                                         </td>
+                                                        <td class="align-middle">
+                                                            <select v-model="item.taxCode" class="form-control form-control-sm">
+                                                                <option value=""></option>
+                                                                <option value="p">P</option>
+                                                                <option value="ps">PS</option>
+                                                            </select>
+                                                        </td>
                                                     </tr>
                                                     <tr>
                                                         <td colspan="6">
@@ -212,12 +228,100 @@
                                         </table>
                                         <div class="mt-20">
                                             <div class="row justify-content-end">
-                                                <div class="col-lg-3">
+                                                <div class="col-lg-4 col-md-12">
                                                     <div class="border">
                                                         <div class="bg-success w-100" style="height: 5px;"></div>
                                                         <div class="p-3">
                                                             <h4>Total</h4>
+                                                            <div class="row">
+                                                                <div class="col-sm-6">
+                                                                    <span>Subtotal</span>
+                                                                </div>
+                                                                <div class="col-sm-6 text-right">
+                                                                    <span>@{{ toCurrencyFormat(subtotal) }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div v-if="ppn" class="row">
+                                                                <div class="col-sm-6">
+                                                                    <span>PPN @{{ ppnValue }}%</span>
+                                                                </div>
+                                                                <div class="col-sm-6 text-right">
+                                                                    <span>@{{ toCurrencyFormat(ppnAmount) }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div v-if="pph23" class="row">
+                                                                <div class="col-sm-6">
+                                                                    <span>PPh 23 @{{ pph23Value }}%</span>
+                                                                </div>
+                                                                <div class="col-sm-6 text-right">
+                                                                    <span>(@{{ toCurrencyFormat(pph23Amount) }})</span>
+                                                                </div>
+                                                            </div>
+                                                            <div v-if="otherCost > 0" class="row">
+                                                                <div class="col-sm-6">
+                                                                    <span>Biaya Lain (@{{ otherCostDescription }})</span>
+                                                                </div>
+                                                                <div class="col-sm-6 text-right">
+                                                                    <span>@{{ toCurrencyFormat(otherCost) }}</span>
+                                                                </div>
+                                                            </div>
                                                             <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(grandTotal) }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="other-cost" role="tabpanel" aria-labelledby="other-cost-tab">
+                                <div class="pt-5">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-12">
+                                            <div class="form-row align-items-center">
+                                                <div class="form-group col-md-4">
+                                                    <label class="checkbox">
+                                                        <input v-model="ppn" type="checkbox">
+                                                        <span></span>&nbsp;PPN
+                                                    </label>
+                                                </div>
+                                                <div class="form-group col-md-8">
+                                                    <div class="input-group">
+                                                        <input type="text" v-model="ppnValue" class="form-control text-right" placeholder="Tarif PPN" :readonly="!ppn">
+                                                        <div class="input-group-append">
+                                                            <span class="input-group-text"><strong class="text-dark-50">%</strong></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-row align-items-center">
+                                                <div class="form-group col-md-4">
+                                                    <label class="checkbox">
+                                                        <input v-model="pph23" type="checkbox">
+                                                        <span></span>&nbsp;PPh 23
+                                                    </label>
+                                                </div>
+                                                <div class="form-group col-md-8">
+                                                    <div class="input-group">
+                                                        <input type="text" v-model="pph23Value" class="form-control text-right" placeholder="Tarif PPN" :readonly="!ppn">
+                                                        <div class="input-group-append">
+                                                            <span class="input-group-text"><strong class="text-dark-50">%</strong></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Biaya Lain:</label>
+                                                <div class="form-row">
+                                                    <div class="col-lg-6 col-md-12">
+                                                        <input type="text" v-model="otherCostDescription" class="form-control" placeholder="Keterangan Biaya Lain">
+                                                    </div>
+                                                    <div class="col-lg-6 col-md-12">
+                                                        <div class="input-group">
+                                                            <div class="input-group-prepend">
+                                                                <span class="input-group-text"><strong class="text-dark-50">Rp</strong></span>
+                                                            </div>
+                                                            <input type="text" v-model="otherCost" class="form-control text-right">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -288,6 +392,13 @@
             description: '',
             loading: false,
             items: [],
+            ppn: false,
+            ppnValue: 10,
+            pph23: false,
+            pph23Value: 2,
+            shippingCost: 0,
+            otherCost: 0,
+            otherCostDescription: '',
         },
         methods: {
             submitForm: function() {
@@ -302,6 +413,15 @@
                         number: vm.number,
                         date: vm.date,
                         description: vm.description,
+                        subtotal: vm.subtotal,
+                        ppn: vm.ppn ? 1 : 0,
+                        ppn_value: vm.ppnValue,
+                        ppn_amount: vm.ppnAmount,
+                        pph23: vm.pph23 ? 1 : 0,
+                        pph23_value: vm.pph23Value,
+                        pph23_amount: vm.pph23Amount,
+                        other_cost: vm.otherCost,
+                        other_cost_description: vm.otherCostDescription,
                         total: vm.grandTotal,
                         items: vm.items,
                     })
@@ -339,6 +459,7 @@
                     quantity: 1,
                     price: 0,
                     amount: 0,
+                    taxCode: '',
                 })
             },
             removeItem: function(index) {
@@ -350,12 +471,37 @@
             }
         },
         computed: {
-            grandTotal: function() {
+            subtotal: function() {
                 const grandTotal = this.items.map(item => Number(item.amount)).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0);
 
                 return grandTotal;
+            },
+            ppnAmount: function() {
+                let vm = this;
+                if (!vm.ppn) {
+                    return 0;
+                }
+
+                const ppn = this.subtotal * (Number(vm.ppnValue) / 100);
+                return Math.round(ppn);
+            },
+            pph23Amount: function() {
+                let vm = this;
+                if (!vm.pph23) {
+                    return 0;
+                }
+
+                const pph23 = this.subtotal * (Number(vm.pph23Value) / 100);
+                return Math.round(pph23);
+            },
+            grandTotal: function() {
+                const grandTotal = this.items.map(item => Number(item.amount)).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0);
+
+                return grandTotal + this.ppnAmount - this.pph23Amount + Number(this.otherCost);
             }
         },
         watch: {

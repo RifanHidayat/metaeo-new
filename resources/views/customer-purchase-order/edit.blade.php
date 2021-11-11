@@ -26,7 +26,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Quotation</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Edit Purchase Order</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -34,7 +34,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Quotation</a>
+                        <a href="" class="text-muted">Purchase Order</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Tambah</a>
@@ -56,7 +56,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Form Quotation</h3>
+                <h3 class="card-title">Form Pesanan Pembelian</h3>
 
             </div>
             <!--begin::Form-->
@@ -97,16 +97,6 @@
                                         <option value="{{ $customer->id }}">{{ $customer->name }}</option>
                                         @endforeach
                                     </select>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>UP:</label>
-                                    <input type="text" v-model="up" class="form-control">
-                                </div>
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>Title:</label>
-                                    <input type="text" v-model="title" class="form-control">
                                 </div>
                             </div>
                         </div>
@@ -152,8 +142,7 @@
                                                         <p class="text-center">
                                                             <i class="flaticon2-open-box font-size-h1"></i>
                                                         </p>
-                                                        <p class="text-center text-dark-50"><strong>Belum ada item</strong></p>
-
+                                                        <p class="text-center">Belum ada item</p>
                                                     </td>
                                                 </tr>
                                                 <template v-for="(item, index) in items">
@@ -223,10 +212,6 @@
                                                             <div class="form-group">
                                                                 <label><strong>Deskripsi Item</strong></label>
                                                                 <textarea v-model="item.description" rows="5" class="form-control form-control-sm"></textarea>
-                                                            </div>
-                                                            <div class="row">
-                                                                <div class="col-md-12 col-lg-6">
-                                                                </div>
                                                             </div>
                                                             <div class="text-right">
                                                                 <button type="button" class="btn btn-danger" @click="removeItem(index)">Hapus</button>
@@ -358,10 +343,6 @@
                                                 <!---->
                                             </div>
                                             <div class="form-group">
-                                                <label>Note:</label>
-                                                <textarea v-model="note" class="form-control"></textarea>
-                                            </div>
-                                            <div class="form-group">
                                                 <label>Keterangan:</label>
                                                 <textarea v-model="description" class="form-control"></textarea>
                                             </div>
@@ -405,22 +386,19 @@
     let app = new Vue({
         el: '#app',
         data: {
-            up: '',
-            title: '',
-            note: '',
-            customer: '',
-            number: '',
-            date: '',
-            description: '',
+            customer: '{{ $purchase_order->customer_id }}',
+            number: '{{ $purchase_order->number }}',
+            date: '{{ $purchase_order->date }}',
+            description: '{{ $purchase_order->description }}',
             loading: false,
-            items: [],
-            ppn: false,
-            ppnValue: 10,
-            pph23: false,
-            pph23Value: 2,
-            shippingCost: 0,
-            otherCost: 0,
-            otherCostDescription: '',
+            items: JSON.parse(String.raw `{!! json_encode($items) !!}`),
+            ppn: Number('{{ $purchase_order->ppn }}') == 1 ? true : false,
+            ppnValue: '{{ $purchase_order->ppn_value }}',
+            pph23: Number('{{ $purchase_order->pph23 }}') == 1 ? true : false,
+            pph23Value: '{{ $purchase_order->pph23_value }}',
+            shippingCost: '{{ $purchase_order->shipping_cost }}',
+            otherCost: '{{ $purchase_order->other_cost }}',
+            otherCostDescription: '{{ $purchase_order->other_cost_description }}',
         },
         methods: {
             submitForm: function() {
@@ -430,11 +408,8 @@
                 // console.log('submitted');
                 let vm = this;
                 vm.loading = true;
-                axios.post('/quotation', {
+                axios.post('/customer-purchase-order/{{ $purchase_order->id }}', {
                         customer_id: vm.customer,
-                        up: vm.up,
-                        title: vm.title,
-                        note: vm.note,
                         number: vm.number,
                         date: vm.date,
                         description: vm.description,

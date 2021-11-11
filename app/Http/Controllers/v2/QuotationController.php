@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v2;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Quotation;
 use App\Models\V2Quotation;
@@ -124,6 +125,15 @@ class QuotationController extends Controller
             $quotation->title = $request->title;
             $quotation->note = $request->note;
             $quotation->description = $request->description;
+            $quotation->subtotal = $request->subtotal;
+            $quotation->ppn = $request->ppn;
+            $quotation->ppn_value = $request->ppn_value;
+            $quotation->ppn_amount = $request->ppn_amount;
+            $quotation->pph23 = $request->pph23;
+            $quotation->pph23_value = $request->pph23_value;
+            $quotation->pph23_amount = $request->pph23_amount;
+            $quotation->other_cost = $request->other_cost;
+            $quotation->other_cost_description = $request->other_cost_description;
             $quotation->total = $request->total;
             $quotation->customer_id = $request->customer_id;
             $quotation->save();
@@ -132,11 +142,13 @@ class QuotationController extends Controller
                 return [
                     'v2_quotation_id' => $quotation->id,
                     'code' => $item['code'],
+                    'name' => $item['name'],
                     'description' => $item['description'],
                     'delivery_date' => $item['deliveryDate'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'amount' => $item['amount'],
+                    'tax_code' => $item['taxCode'],
                     'created_at' => Carbon::now()->toDateTimeString(),
                     'updated_at' => Carbon::now()->toDateTimeString(),
                 ];
@@ -181,7 +193,27 @@ class QuotationController extends Controller
      */
     public function edit($id)
     {
-        //
+        $quotation = V2Quotation::with(['items'])->findOrFail($id);
+        $customers = Customer::all();
+
+        $items = collect($quotation->items)->map(function ($item) {
+            return [
+                'code' => $item->code,
+                'name' => $item->name,
+                'description' => $item->description,
+                'deliveryDate' => $item->delivery_date,
+                'quantity' => $item->quantity,
+                'price' => $item->price,
+                'amount' => $item->amount,
+                'taxCode' => $item->tax_code,
+            ];
+        })->all();
+
+        return view('quotation.v2.edit', [
+            'quotation' => $quotation,
+            'customers' => $customers,
+            'items' => $items,
+        ]);
     }
 
     /**
@@ -193,7 +225,75 @@ class QuotationController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $quotationWithNumber = V2Quotation::whereNotIn('id', [$id])->where('number', $request->number)->first();
+        if ($quotationWithNumber !== null) {
+            return response()->json([
+                'message' => 'number or code already used',
+                'code' => 400,
+                // 'errors' => $/e,
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+
+            $quotation = V2Quotation::find($id);
+            $quotation->number = $request->number;
+            $quotation->date = $request->date;
+            $quotation->up = $request->up;
+            $quotation->title = $request->title;
+            $quotation->note = $request->note;
+            $quotation->description = $request->description;
+            $quotation->subtotal = $request->subtotal;
+            $quotation->ppn = $request->ppn;
+            $quotation->ppn_value = $request->ppn_value;
+            $quotation->ppn_amount = $request->ppn_amount;
+            $quotation->pph23 = $request->pph23;
+            $quotation->pph23_value = $request->pph23_value;
+            $quotation->pph23_amount = $request->pph23_amount;
+            $quotation->other_cost = $request->other_cost;
+            $quotation->other_cost_description = $request->other_cost_description;
+            $quotation->total = $request->total;
+            $quotation->customer_id = $request->customer_id;
+            $quotation->save();
+
+            $items = collect($request->items)->map(function ($item) use ($quotation) {
+                return [
+                    'v2_quotation_id' => $quotation->id,
+                    'code' => $item['code'],
+                    'name' => $item['name'],
+                    'description' => $item['description'],
+                    'delivery_date' => $item['deliveryDate'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'amount' => $item['amount'],
+                    'tax_code' => $item['taxCode'],
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ];
+            })->all();
+
+            $quotation->items()->delete();
+
+            DB::table('v2_quotation_items')->insert($items);
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $quotation,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
     }
 
     /**
@@ -205,5 +305,42 @@ class QuotationController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function print($id)
+    {
+        $quotation = V2Quotation::with(['items', 'customer'])->findOrFail($id);
+        $mpdf = new \Mpdf\Mpdf([
+            'format' => 'A5',
+            'mode' => 'utf-8',
+            'orientation' => 'L',
+            'margin_left' => 3,
+            'margin_top' => 3,
+            'margin_right' => 3,
+            'margin_bottom' => 3,
+        ]);
+
+        $company = Company::all()->first();
+
+        if ($company == null) {
+            $newCompany = new Company;
+            $newCompany->save();
+            $company = Company::all()->first();
+        }
+
+
+        $html = view('quotation.v2.print', [
+            'company' => $company,
+            'quotation' => $quotation,
+        ]);
+
+        $mpdf->WriteHTML($html);
+        $mpdf->Output();
     }
 }

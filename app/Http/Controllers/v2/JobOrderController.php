@@ -14,6 +14,9 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use \Mpdf\Mpdf;
+
+// use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
 
 class JobOrderController extends Controller
 {
@@ -174,7 +177,7 @@ class JobOrderController extends Controller
                         continue;
                     }
 
-                    $goods->stock = $goods->stock - $goods['planoAmount'];
+                    $goods->stock = $goods->stock - $item['planoAmount'];
                     $goods->save();
                 }
             }
@@ -231,7 +234,97 @@ class JobOrderController extends Controller
      */
     public function edit($id)
     {
-        //
+        $jobOrder = V2JobOrder::with(['v2SalesOrder' => function ($query) {
+            $query->with(['v2Quotation.items.jobOrders', 'customerPurchaseOrder.items.jobOrders']);
+        }, 'cpoItem', 'v2QuotationItem', 'items.goods'])->findOrFail($id);
+        $customers = Customer::all();
+        $goods = Goods::with(['goodsCategory'])->get();
+
+        $selectedData = null;
+        $selectedItem = null;
+        if ($jobOrder->v2SalesOrder !== null) {
+            $selectedData = [
+                'data' => $jobOrder->v2SalesOrder,
+                'source' => 'sales_order',
+            ];
+
+            if ($jobOrder->v2SalesOrder->source == 'quotation') {
+                if ($jobOrder->v2QuotationItem !== null) {
+                    $selectedItem = $jobOrder->v2QuotationItem;
+                }
+            } else if ($jobOrder->v2SalesOrder->source == 'purchase_order') {
+                if ($jobOrder->cpoItem !== null) {
+                    $selectedItem = $jobOrder->cpoItem;
+                }
+            }
+        }
+
+        $items = collect($jobOrder->items)->map(function ($item) {
+            return [
+                'item' => $item['item'],
+                'paper' => $item['paper'],
+                'planoSize' => $item['plano_size'],
+                'planoAmount' => $item['plano_amount'],
+                'cuttingSize' => $item['cutting_size'],
+                'cuttingAmount' => $item['cutting_amount'],
+                'orderAmount' => $item['order_amount'],
+                'printAmount' => $item['print_amount'],
+                'color' => $item['color'],
+                'filmSet' => $item['film_set'],
+                'filmTotal' => $item['film_total'],
+                'printType' => $item['print_type'],
+            ];
+        })->all();
+
+        $takenStocks = collect($jobOrder->items)->map(function ($item) {
+            return [
+                'goods_id' => $item['goods']['id'],
+                'quantity' => $item['plano_amount'],
+            ];
+        })->all();
+        // return $takenStocks;
+
+        $selectedFinishingItem = $jobOrder->finishingItems;
+
+        $finishingItemCategories = FinishingItemCategory::with(['finishingItems'])->get()
+            ->map(function ($category) use ($selectedFinishingItem) {
+                $finishingItems = collect($category->finishingItems)->map(function ($item) use ($selectedFinishingItem) {
+                    $checked = false;
+                    $description = '';
+
+                    $exist = collect($selectedFinishingItem)->where('id', $item->id)->first();
+
+                    if ($exist !== null) {
+                        $checked = true;
+                        $description = $exist['pivot']['description'];
+                    }
+
+                    $item['checked'] = $checked;
+                    $item['description'] = $description;
+
+                    return $item;
+                })->all();
+
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'created_at' => $category->created_at,
+                    'updated_at' => $category->updated_at,
+                    'finishing_items' => $finishingItems,
+                ];
+            })->all();
+
+        // return $finishingItemCategories;
+        return view('job-order.edit', [
+            'job_order' => $jobOrder,
+            'selected_data' => $selectedData,
+            'selected_item' => $selectedItem,
+            'items' => $items,
+            'taken_stocks' => $takenStocks,
+            'goods' => $goods,
+            'customers' => $customers,
+            'finishing_item_categories' => $finishingItemCategories,
+        ]);
     }
 
     /**
@@ -243,7 +336,118 @@ class JobOrderController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $jobOrderWithNumber = V2JobOrder::whereNotIn('id', [$id])->where('number', $request->number)->first();
+        if ($jobOrderWithNumber !== null) {
+            return response()->json([
+                'message' => 'number or code already used',
+                'code' => 400,
+                // 'errors' => $/e,
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+
+            $jobOrder = V2JobOrder::find($id);
+            $jobOrder->number = $request->number;
+            $jobOrder->date = $request->date;
+            $jobOrder->estimation_number = $request->estimation_number;
+            $jobOrder->title = $request->title;
+            $jobOrder->order_amount = $request->order_amount;
+            $jobOrder->delivery_date = $request->delivery_date;
+            $jobOrder->print_type = $request->print_type;
+            $jobOrder->dummy = $request->dummy;
+            $jobOrder->okl = $request->okl;
+            $jobOrder->okl_nth = $request->okl_nth;
+            $jobOrder->designer = $request->designer;
+            $jobOrder->preparer = $request->preparer;
+            $jobOrder->examiner = $request->examiner;
+            $jobOrder->production = $request->production;
+            $jobOrder->finishing = $request->finishing;
+            $jobOrder->warehouse = $request->warehouse;
+            $jobOrder->description = $request->description;
+            $jobOrder->v2_sales_order_id = $request->sales_order_id;
+            $jobOrder->cpo_item_id = $request->cpo_item_id;
+            $jobOrder->v2_quotation_item_id = $request->quotation_item_id;
+            $jobOrder->customer_id = $request->customer_id;
+            $jobOrder->save();
+
+            $jobOrderItems = $request->items;
+
+            $items = collect($jobOrderItems)->map(function ($item) use ($jobOrder) {
+                return [
+                    'v2_job_order_id' => $jobOrder->id,
+                    'item' => $item['item'],
+                    'paper' => $item['paper'],
+                    'plano_size' => $item['planoSize'],
+                    'plano_amount' => $item['planoAmount'],
+                    'cutting_size' => $item['cuttingSize'],
+                    'cutting_amount' => $item['cuttingAmount'],
+                    'order_amount' => $item['orderAmount'],
+                    'print_amount' => $item['printAmount'],
+                    'color' => $item['color'],
+                    'film_set' => $item['filmSet'],
+                    'film_total' => $item['filmTotal'],
+                    'print_type' => $item['printType'],
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ];
+            })->all();
+
+            $jobOrder->items()->delete();
+
+            if (count($items) > 0) {
+                DB::table('v2_job_order_items')->insert($items);
+
+                $takenStocks = $request->taken_stocks;
+                $addedGoods = [];
+                foreach ($jobOrderItems as $item) {
+                    $goods = Goods::find($item['paper']);
+                    if ($goods == null) {
+                        continue;
+                    }
+
+                    $oldTaken = collect($takenStocks)->whereNotIn('goods_id', $addedGoods)->where('goods_id', $item['paper'])->sum('quantity');
+                    array_push($addedGoods, $item['paper']);
+
+                    $goods->stock = ($goods->stock + $oldTaken) - $item['planoAmount'];
+                    $goods->save();
+                }
+            }
+
+            $finishingItems = $request->finishing_items;
+            $checkedFinishingItems = collect($finishingItems)
+                ->where('checked', true)
+                ->mapWithKeys(function ($item) {
+                    return [
+                        $item['id'] => [
+                            'description' => isset($item['description']) ? $item['description'] : '',
+                            'created_at' => Carbon::now()->toDateTimeString(),
+                            'updated_at' => Carbon::now()->toDateTimeString(),
+                        ]
+                    ];
+                });
+
+            $jobOrder->finishingItems()->detach();
+            $jobOrder->finishingItems()->attach($checkedFinishingItems);
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $jobOrder,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
     }
 
     /**
@@ -255,6 +459,44 @@ class JobOrderController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function print($id)
+    {
+        $jobOrder = V2JobOrder::with(['items', 'finishingItems.finishingItemCategory', 'v2SalesOrder' => function ($query) {
+            $query->with(['v2Quotation', 'customerPurchaseOrder']);
+        }, 'customer'])->findOrFail($id);
+        $mpdf = new Mpdf([
+            'format' => 'A4',
+            'mode' => 'utf-8',
+            'orientation' => 'L',
+            'margin_left' => 3,
+            'margin_top' => 3,
+            'margin_right' => 3,
+            'margin_bottom' => 3,
+        ]);
+
+        $finishingItems = collect($jobOrder->finishingItems)->groupBy(function ($item) {
+            return $item->finishingItemCategory->name;
+        })->all();
+
+        // return $finishingItems;
+
+        $html = view('job-order.print', [
+            'id' => $id,
+            'job_order' => $jobOrder,
+            'finishing_items' => $finishingItems,
+        ]);
+
+        // return $jobOrder;
+        $mpdf->WriteHTML($html);
+        $mpdf->Output();
     }
 
     /**

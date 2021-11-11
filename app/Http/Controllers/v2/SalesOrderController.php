@@ -185,6 +185,8 @@ class SalesOrderController extends Controller
             $salesOrder->customer_purchase_order_date = $request->purchase_order_date;
             $salesOrder->customer_purchase_order_id = $request->purchase_order_id;
             $salesOrder->description = $request->description;
+            $salesOrder->term_of_payment = $request->term_of_payment;
+            $salesOrder->due_date = $request->due_date;
 
             $salesOrder->save();
 
@@ -259,7 +261,7 @@ class SalesOrderController extends Controller
     {
         $customerId = $request->query('customer_id');
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $quotations = V2Quotation::with(['items', 'v2SalesOrder'])
+        $quotations = V2Quotation::with(['items', 'v2SalesOrder', 'customer'])
             ->get();
         // ->filter(function ($quotation) {
         //     return count($quotation->salesOrders) < 1;
@@ -289,7 +291,7 @@ class SalesOrderController extends Controller
     {
         $customerId = $request->query('customer_id');
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $customerPurchaseOrders = CustomerPurchaseOrder::with(['items', 'v2SalesOrder'])
+        $customerPurchaseOrders = CustomerPurchaseOrder::with(['items', 'v2SalesOrder', 'customer'])
             ->get();
         // ->filter(function ($quotation) {
         //     return count($quotation->salesOrders) < 1;

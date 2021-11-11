@@ -26,7 +26,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Pesanan Pembelian</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Pembayaran</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -34,7 +34,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Pesanan Pembelian</a>
+                        <a href="" class="text-muted">Pembayaran</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Tambah</a>
@@ -56,7 +56,7 @@
     <div class="col-lg-12">
         <div class="card card-custom gutter-b">
             <div class="card-header">
-                <h3 class="card-title">Form Pesanan Pembelian</h3>
+                <h3 class="card-title">Form Pembayaran</h3>
 
             </div>
             <!--begin::Form-->
@@ -176,7 +176,7 @@
                                                     <div class="bg-primary w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
                                                         <strong>Jumlah Pembayaran</strong>
-                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(subtotal) }}</p>
+                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(paymentAmount) }}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -184,12 +184,12 @@
                                                 <div class="border">
                                                     <div class="bg-danger w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
-                                                        <strong>Total Pembelian</strong>
-                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(grandTotal) }}</p>
+                                                        <strong>Total Sisa Bayar</strong>
+                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(remainingPayments) }}</p>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-lg-3">
+                                            <!-- <div class="col-lg-3">
                                                 <div class="border">
                                                     <div class="bg-success w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
@@ -197,7 +197,7 @@
                                                         <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(grandTotal) }}</p>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                         </div>
                                     </div>
                                 </div>
@@ -383,6 +383,11 @@
             }
         },
         computed: {
+            remainingPayments: function() {
+                return this.selectedPurchaseOrders.map(po => Number(po.total) - Number(po.total_payment)).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0)
+            },
             subtotal: function() {
                 const subtotal = 0;
 

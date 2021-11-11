@@ -11,7 +11,7 @@ class PurchaseOrder extends Model
 
     public function goods()
     {
-        return $this->belongsToMany(Goods::class)->withPivot('quantity', 'price', 'discount', 'total', 'description');
+        return $this->belongsToMany(Goods::class)->withPivot('id', 'quantity', 'price', 'discount', 'total', 'description');
     }
 
     public function supplier()
