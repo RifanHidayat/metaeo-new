@@ -168,10 +168,97 @@
                                     </div>
                                     <div v-if="selectedData">
                                         <div v-if="selectedData.source == 'purchase_order'">
+
+                                        <!-- quotations -->
+                                              <div v-if="selectedData.data.source=='quotation'">                                  
                                             <div class="row">
                                                 <div class="col-md-12 col-lg-12">
                                                     <div class="px-3 py-4 mb-3 rounded">
-                                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Purchase Order <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Purchase Order Quotation <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-12 col-lg-6">
+                                                    <table class="table">
+                                                        <tr>
+                                                            <td>Nomor PO  </td>
+                                                            <td><strong>@{{ selectedData.data.number }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Tanggal PO</td>
+                                                            <td><strong>@{{ selectedData.data.date }}</strong></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div class="col-md-12 col-lg-6">
+                                                    <table class="table">
+                                                        <tr>
+                                                            <td>Netto</td>
+                                                            <td><strong>@{{ toCurrencyFormat(selectedData.data.subtotal)}}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Keterangan</td>
+                                                            <td><strong>@{{ selectedData.data.description }}</strong></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                               <div class="my-3 text-right">
+                                        <button type="button" class="btn btn-success" @click="addItem"><i class="flaticon2-plus"></i> Tambah</button>
+                                    </div>
+                                            <div class="mt-5">
+                                                <table class="table table-bordered">
+                                                    <thead class="bg-light">
+                                                        <tr>
+                                                            <th class="text-center">No</th>
+                                                            
+                                                            <th class="text-center">PIC Event</th>
+                                                          
+                                                            <th class="text-center">Total</th>
+                                                            <th class="text-center">Action</th>
+                                                           
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="(item, index) in selectedData.data.event_quotations">
+                                                            <td class="text-center">@{{ index + 1 }}</td>
+                                                            <td>
+                                                                <select class="form-control" id="subitemId" required v-model="item.pic_event_id" @change="onChange($event,index)" >
+                                                                   
+                                                                         <option v-for="(pic,index) in picEvents" v-bind:value="pic.id">@{{pic.name}} | @{{pic.customer.name}}</option>
+                                                                         
+                                                                     </select>
+                                                            </td>
+                                                            <!-- <td>
+                                                               <input ut type="text" v-model="item.pic_event.customer.name" class="form-control form-control-sm text-right" >
+                                                            </td> -->
+                                                            <td class="text-center">
+                                                                  <input type="text" v-model="item.netto" class="form-control form-control-sm text-right"  >
+                                                            </td>
+                                                               
+                                                               <td class="text-center"> <button type="button" class="btn btn-danger" @click="removeItem(index)">Hapus</button></td>
+                                                    <
+                                                           
+                                                        </tr>
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td class="text-left" colspan="3"><strong>TOTAL</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(subtotalQuotation) }}</strong></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <!-- end quotation -->
+                                        <!-- cpo -->
+                                                  <div v-if="selectedData.data.source=='cpo'">
+                                      
+                                            <div class="row">
+                                                <div class="col-md-12 col-lg-12">
+                                                    <div class="px-3 py-4 mb-3 rounded">
+                                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Purchase Order CPO <a href="#">#@{{ selectedData.data.number }}</a></h3>
                                                     </div>
                                                 </div>
                                             </div>
@@ -236,6 +323,10 @@
                                                 </table>
                                             </div>
                                         </div>
+                                        <!-- end cpo -->
+
+
+                                        </div>
                                         <div v-if="selectedData.source == 'quotation'">
                                             <!-- <h1>Quotation <a href="#">#@{{ selectedData.data.number }}</a></h1> -->
                                             <div class="row">
@@ -284,7 +375,7 @@
                                                     <thead class="bg-light">
                                                         <tr>
                                                             <th>No</th>
-                                                            <th>Kode</th>
+                                                            <th>PIC Event</th>
                                                             <th>Deskripsi</th>
                                                             <th class="text-center">Kode Pajak</th>
                                                             <th>Tanggal Kirim</th>
@@ -469,6 +560,8 @@
             description: '',
             loading: false,
             selectedData: null,
+            picEvents:JSON.parse(String.raw`{!!$pic_events!!}`),
+           
         },
         methods: {
             submitForm: function() {
@@ -495,6 +588,7 @@
                     description: vm.description,
                     term_of_payment: vm.termOfPayment,
                     due_date: vm.dueDate,
+                    selected_data:vm.selectedData
                 };
 
                 let formData = new FormData();
@@ -502,7 +596,7 @@
                     formData.append(key, data[key]);
                 }
 
-                axios.post('/sales-order', formData)
+                axios.post('/sales-order',data)
                     .then(function(response) {
                         vm.loading = false;
                         Swal.fire({
@@ -532,7 +626,59 @@
                     number = 0;
                 }
                 return new Intl.NumberFormat('De-de').format(number);
-            }
+            },
+            addItem:function(){
+                
+               // console.log(this.selectedData.data.event_quotations)
+               var data={
+                   asf:"",
+                   number:"",
+                   netto:0,
+                   customer_id:0,
+                   pic_event_id:0,
+                   file:"",
+                   nonfee:0,
+                   commissionable_cost:0,
+                   discount:0,
+                   discount_percent:0,
+                   event_date:"",
+                   expired_date:"",
+                   id:0,
+                   number:"",
+                   pic_event_id:0,
+                   pic_po_id:0,
+                   subtotal:'',
+                   pic_event:""
+                  
+
+
+
+               };
+
+                console.log(this.selectedData.data.event_quotations[0]);
+
+                
+                // this.selectedData.data.event_quotations.push(this.selectedData.data.event_quotations[0]);
+                                this.selectedData.data.event_quotations.push(data);
+
+                
+
+            },
+            removeItem:function(index){
+                this.selectedData.data.event_quotations.splice(index,1)
+
+            },
+        onChange:function(pic,index){
+
+            console.log(pic.target.value);
+            var pic=this.picEvents.filter((item)=>{
+                return item.id==pic.target.value;
+            })[0]
+            this.selectedData.data.event_quotations.pic_event
+
+            this.selectedData.data.event_quotations[index]['pic_event']['customer']['name']=pic['customer']['name']
+
+        },
         },
         computed: {
             grandTotal: function() {
@@ -541,8 +687,17 @@
                 }, 0);
 
                 return grandTotal;
+            },
+            subtotalQuotation:function(){
+                const subtotal = this.selectedData.data.event_quotations.map(item => Number(item.netto)).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0);
+
+                return subtotal;
+
             }
         },
+        
     })
 </script>
 <script>
@@ -627,6 +782,14 @@
                 data,
                 source: 'purchase_order',
             };
+
+            console.log(app.$data.selectedData);
+            if (data.source=="quotation"){
+                console.log('data',data.event_quotations)
+                app.$data.quotations=data.event_quotations;
+              
+            }
+        
 
             app.$data.poNumber = app.$data.selectedData.data.number;
             const newDate = app.$data.selectedData.data.date;

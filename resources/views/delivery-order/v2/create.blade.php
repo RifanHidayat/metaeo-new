@@ -52,6 +52,7 @@
                 <div class="card-body">
                     <div class="my-3 text-right">
                         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#salesOrderModal"><i class="flaticon2-plus"></i> Pilih Sales Order</button>
+                          <button type="button" class="btn btn-success" data-toggle="modal" data-target="#bastModal"><i class="flaticon2-plus"></i> Pilih BAST</button>
                     </div>
                     <div v-if="!selectedData">
                         <p class="text-center">
@@ -60,9 +61,11 @@
                         <p class="text-center text-dark-50"><strong>Pilih sales order</strong></p>
                     </div>
                     <div v-if="selectedData">
+                    <div v-if="selectedData.source!='bast'">
                         <div>
                             <!-- <h1>Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h1> -->
                             <div class="row">
+                            <!-- sales order -->
                                 <div class="col-md-12 col-lg-6">
                                     <div class="px-3 py-4 mb-3 rounded">
                                         <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h3>
@@ -71,9 +74,11 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-12 col-lg-4">
+
+                                    
                                     <table class="table">
                                         <tr>
-                                            <td>Nomor SO</td>
+                                            <td>Nomor</td>
                                             <td><strong>@{{ selectedData.data.number }}</strong></td>
                                         </tr>
                                         <tr>
@@ -109,7 +114,83 @@
                             </div>
                         </div>
                     </div>
+
+                     <div v-if="selectedData.source=='bast'">
+                        <div>
+                            <!-- <h1>Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h1> -->
+                            <div class="row">
+                            <!-- sales order -->
+                                <div class="col-md-12 col-lg-6">
+                                    <div class="px-3 py-4 mb-3 rounded">
+                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 col-lg-4">
+
+                                    
+                                     <table class="table">
+                                        <tr>
+                                            <td>Nomor BAST</td>
+                                            <td><strong>@{{ selectedData.data.number }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tanggal BAST</td>
+                                            <td><strong>@{{ selectedData.data.date }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Nominal</td>
+                                            <td><strong>@{{ selectedData.data.amount }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Pic Event</td>
+                                            <td><strong>@{{ selectedData.data.pic_event }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Jabatan</td>
+                                            <td><strong>@{{ selectedData.data.pic_event_position }}</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-12 col-lg-4">
+                                      <table class="table">
+                                        <tr>
+                                            <td>Nomor Quotation</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.number }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tanggal Quotation</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.date}}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Title</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.title}}</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-12 col-lg-4">
+                                    <table class="table">
+                                        <tr>
+                                             <td>Nomor PO</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.po_quotation.number }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                         <td>Tangga; PO</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.po_quotation.date }}</strong></td>
+                                           
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <!-- begin sales order -->
                     <div v-if="selectedData" class="mt-20">
+
+                     <!-- begin sales order -->
+                     <div v-if="selectedData.source!='bast'" class="mt-20">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="delivery-item-tab" data-toggle="tab" href="#delivery-item">
@@ -357,6 +438,342 @@
                             <div class="tab-pane" id="goods" role="tabpanel" aria-labelledby="goods-tab">
                                 <div class="row justify-content-between mt-5">
                                     <div class="col-lg-6 col-sm-12">
+                                        <div class="form-group row" hidden>
+                                            <label class="col-lg-4 col-form-label text-lg-right">Nomor:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="number" class="form-control" placeholder="Masukkan nomor pengiriman" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Tanggal Pengiriman:</label>
+                                            <div class="col-lg-8">
+                                                <input type="date" v-model="date" class="form-control delivery-order-date" placeholder="Masukkan tanggal pengiriman" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Gudang:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="warehouse" class="form-control" placeholder="Masukkan nama gudang" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Pengirim:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="shipper" class="form-control" placeholder="Masukkan nama pengirim" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Nomor Kendaraan:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="numberOfVehicle" class="form-control" placeholder="Masukkan nomor kendaraan" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Tagihan Ke:</label>
+                                            <div class="col-lg-8">
+                                                <textarea rows="5" v-model="billingAddress" class="form-control" placeholder="Masukkan alamat tagihan"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Kirim Ke:</label>
+                                            <div class="col-lg-8">
+                                                <button type="button" class="btn btn-light-primary w-100 mb-3" data-toggle="modal" data-target="#modalWarehouse"><i class="flaticon2-pin-1"></i> Pilih Alamat</button>
+                                                <textarea rows="5" v-model="shippingAddress" class="form-control" placeholder="Masukkan alamat pengiriman"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="other" role="tabpanel" aria-labelledby="other-tab">
+                                <div class="mt-5">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-12">
+                                            <div class="form-group">
+                                                <label>Keterangan:</label>
+                                                <textarea v-model="description" class="form-control"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="complete" role="tabpanel" aria-labelledby="complete-tab">
+                                <div class="mt-5">
+                                    <!-- begin::Estimations List -->
+                                    <div class="card card-custom card-border">
+                                        <div class="card-header">
+                                            <div class="card-title">
+                                                <h3 class="card-label">
+                                                    Pengiriman Selesai
+                                                </h3>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div v-if="dataItems.length < 1" class="text-center">
+                                                <i class="flaticon2-open-box icon-4x"></i>
+                                                <p class="text-muted">Tidak ada item</p>
+                                            </div>
+                                            <div>
+                                                <div class="row justify-content-between mb-10" v-for="(item, index) in deliveryHistoryItems" :key="item.id">
+                                                    <div class="col-md-12 col-lg-6 card card-custom gutter-b card-stretch card-border">
+                                                        <div class="card-body pt-4">
+                                                            <!--begin::User-->
+                                                            <div class="d-flex align-items-center my-7">
+                                                                <!--begin::Title-->
+                                                                <div class="d-flex flex-column">
+                                                                    <a href="#" class="text-dark font-weight-bold text-hover-primary font-size-h4 mb-0">@{{ item.code }} - @{{ item.name }}</a>
+                                                                    <span class="text-muted font-weight-bold">Tanggal Kirim: @{{ item.delivery_date }}</span>
+                                                                </div>
+                                                                <!--end::Title-->
+
+                                                            </div>
+                                                            <!--end::User-->
+                                                            <div>
+                                                                <p>
+                                                                    <i class="flaticon2-layers-2"></i>
+                                                                    <strong class="text-muted">Quantity</strong>
+                                                                    <span>&nbsp;:&nbsp;</span>
+                                                                    <strong>@{{ item.quantity }}</strong>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <!--end::Body-->
+                                                    </div>
+                                                    <div class="col-md-12 col-lg-6">
+                                                        <div class="timeline timeline-3">
+                                                            <div class="timeline-items">
+                                                                <div v-for="(deliveryOrder, index) in item.delivery_orders" class="timeline-item">
+                                                                    <div class="timeline-media">
+                                                                        <i class="flaticon2-box text-success"></i>
+                                                                    </div>
+                                                                    <div class="timeline-content">
+                                                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                                                            <div class="mr-2">
+                                                                                <a href="#" class="text-dark-75 text-hover-primary font-weight-bold">
+                                                                                    Delivery Order <span class="text-primary">#@{{ deliveryOrder.number }}</span>
+                                                                                </a>
+                                                                                <span class="text-muted ml-2">
+                                                                                    @{{ deliveryOrder.date }}
+                                                                                </span>
+                                                                                <span class="label label-light-success font-weight-bolder label-inline ml-2">Selesai</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <!-- <p class="p-0"> -->
+                                                                        <div class="row mb-3">
+                                                                            <div class="col-lg-6 col-md-12">
+                                                                                <span>Jumlah: </span>
+                                                                                <strong>@{{ deliveryOrder.pivot.amount }}</strong>
+                                                                            </div>
+                                                                            <div class="col-lg-6 col-md-12">
+                                                                                <span>Pengirim: </span>
+                                                                                <strong>@{{ deliveryOrder.shipper }}</strong>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <span>Alamat:</span>
+                                                                            <strong>@{{ deliveryOrder.shipping_address }}</strong>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <span>Catatan:</span>
+                                                                            <strong>@{{ deliveryOrder.description }}</strong>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- Here -->
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            <div class="d-flex align-items-center flex-wrap">
+                                                <!--begin: Item-->
+                                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                    <span class="mr-4">
+                                                        <i class="flaticon2-layers-1 icon-2x text-muted font-weight-bold"></i>
+                                                    </span>
+                                                    <div class="d-flex flex-column text-dark-75">
+                                                        <span class="font-weight-bolder font-size-sm">Quantity</span>
+                                                        <span class="font-weight-bolder font-size-h5">
+                                                            @{{ Intl.NumberFormat('de-DE').format(totalQuantity) }}
+                                                            <span class="text-dark-50 font-weight-bold">Pcs</span></span>
+                                                    </div>
+                                                </div>
+                                                <!--end: Item-->
+                                                <!--begin: Item-->
+                                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                    <span class="mr-4">
+                                                        <i class="flaticon2-reload icon-2x text-muted font-weight-bold"></i>
+                                                    </span>
+                                                    <div class="d-flex flex-column text-dark-75">
+                                                        <span class="font-weight-bolder font-size-sm">Quantity Produksi</span>
+                                                        <span class="font-weight-bolder font-size-h5">
+                                                            @{{ Intl.NumberFormat('de-DE').format(totalProduced) }}
+                                                            <span class="text-dark-50 font-weight-bold">Pcs</span></span>
+                                                    </div>
+                                                </div>
+                                                <!--end: Item-->
+                                                <!--begin: Item-->
+                                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                    <span class="mr-4">
+                                                        <i class="flaticon2-lorry icon-2x text-muted font-weight-bold"></i>
+                                                    </span>
+                                                    <div class="d-flex flex-column text-dark-75">
+                                                        <span class="font-weight-bolder font-size-sm">Quantity Akan Dikirim</span>
+                                                        <span class="font-weight-bolder font-size-h5">
+                                                            @{{ Intl.NumberFormat('de-DE').format(totalShipping) }}
+                                                            <span class="text-dark-50 font-weight-bold">Pcs</span></span>
+                                                    </div>
+                                                </div>
+                                                <!--end: Item-->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- end::Estimations List -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- end sales order -->
+
+                     <!-- begin bast -->
+                     <div v-if="selectedData.source=='bast'" class="mt-20">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="delivery-item-tab" data-toggle="tab" href="#delivery-item">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">Item Pengiriman&nbsp;<span class="label label-primary mr-2">@{{ dataItems.length }}</span></span>
+
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="goods-tab" data-toggle="tab" href="#goods">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">Info Delivery Order</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="other-tab" data-toggle="tab" href="#other">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">Info Lainnya</span>
+                                </a>
+                            </li>
+                            <!-- <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="complete-tab" data-toggle="tab" href="#complete">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">Riwayat Pengiriman&nbsp;<span class="label label-primary mr-2">@{{ deliveryHistoryItems.length }}</span></span>
+                                </a>
+                            </li> -->
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="delivery-item" role="tabpanel" aria-labelledby="delivery-item-tab">
+                                <div class="mt-5">
+                                    <!-- begin::Estimations List -->
+                                    <div class="card card-custom card-border">
+                                        <div class="card-header">
+                                            <div class="card-title">
+                                                <h3 class="card-label">
+                                                    List Item
+                                                </h3>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <!-- <div v-if="dataItems.length < 1" class="text-center">
+                                                <i class="flaticon2-open-box icon-4x"></i>
+                                                <p class="text-muted">Tidak ada item</p>
+                                            </div> -->
+                                            <div>
+                                                <!-- begin quotation other -->
+                                                                      <div v-if="selectedData.data.event_quotation.type=='other'">
+                                                                    <table class="table table-bordered" style="width: 100%;">
+                                                                       
+                                                                       
+                                                                        <template  v-for="(item ,index) in invoiceItems" >
+                                                                         <thead  class="bg-light">
+                                                                            <tr>
+                                                                              <th class="text-left"  >#</th>
+                                                                                <th class="text-left"  >Kode</th>
+                                                                             
+                                                                                <th class="text-left" >Quantity</th>
+                                                                                <th class="text-left" >KTS</th>
+                                                                                  
+                                                                                <th class="text-left" >Satuan</th>
+                                                                                
+                                                                                
+                                                                            </tr>
+                                                                        </thead>
+                                                                         <tr>
+                                                                            <td rowspan="5">@{{Number(index)+1}}</td>
+                                                                            <td><input class="form-control text-left" v-model="item.number"></td>
+                                                                         
+                                                                             
+                                                                             <td><input class="form-control text-right" v-model="item.quantity" disabled></td>
+                                                                             <td><input class="form-control text-right"v-model="item.frequency" disabled></td>
+                                                                            
+                                                                            <td><input class="form-control text-left"v-model="item.unit" ></td>
+                                                                    
+                                                                        </tr>
+                                                                        <tr class="bg-light">
+
+                                                                        <th class="text-left" colspan="5" >name</th>
+                                                                         
+                                                                        </tr>
+                                                                        <tr>
+                                                                        
+                                                                           <td colspan="5">
+                                                                            <textarea v-model="item.name" class="form-control" rows="4"></textarea>
+                                                                           
+                                                                           </td>
+                                                                        </tr>
+                                                                         <tr class="bg-light">
+
+                                                                        <th class="text-left" colspan="5" >Deskripsi</th>
+                                                                         
+                                                                        </tr>
+                                                                        <tr>
+                                                                        
+                                                                           <td colspan="5">
+                                                                            <textarea v-model="item.description" class="form-control" rows="1"></textarea>
+                                                                           
+                                                                           </td>
+                                                                        </tr>
+                                                                         <tr>
+                                                        <td colspan="5">
+                                                            <div style="height: 5px;" class="w-100 bg-gray-200"></div>
+                                                        </td>
+                                                    </tr>
+                                                                           
+                                                                        
+                                                                        </template>
+                                                                     
+                                                                           
+                                                                        
+                                                                    </table>
+                                                                </div>
+                                                                <!-- end quotation other -->
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                         
+                                        </div>
+                                    </div>
+                                    <!-- end::Estimations List -->
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="goods" role="tabpanel" aria-labelledby="goods-tab">
+                                <div class="row justify-content-between mt-5">
+                                    <div class="col-lg-6 col-sm-12">
                                         <div class="form-group row">
                                             <label class="col-lg-4 col-form-label text-lg-right">Nomor:</label>
                                             <div class="col-lg-8">
@@ -555,6 +972,13 @@
                             </div>
                         </div>
                     </div>
+                     <!-- end bast -->
+                    </div>
+                   
+
+                    
+
+                
 
                 </div>
 
@@ -564,7 +988,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || checkedItemsIds.length < 1">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -675,6 +1099,32 @@
             </div>
         </div>
     </div>
+            <div class="modal fade" id="bastModal" tabindex="-1" aria-labelledby="salesOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="salesOrderModalLabel">Pilih  BAST</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                   
+                </div>
+                <div class="modal-body">
+                    <table class="table" id="bast-table">
+                        <thead>
+                            <th>Nomor</th>
+                            <th>Tanggal</th>
+                             <th>Nomor Po</th>
+                            <th>Action</th>
+                        </thead>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -690,6 +1140,7 @@
         data: {
             quotations: [],
             checkedQuotationsIds: [],
+             invoiceItems:[],
             number: '',
             date: '',
             customer: '',
@@ -699,6 +1150,7 @@
             billingAddress: ``,
             shippingAddress: '',
             salesOrderId: '',
+            bastId:'',
             warehouses: [],
             customerAddress: '',
             loading: false,
@@ -724,11 +1176,13 @@
                     number_of_vehicle: vm.numberOfVehicle,
                     billing_address: vm.billingAddress,
                     shipping_address: vm.shippingAddress,
-                    sales_order_id: vm.selectedData.data.id,
+                    sales_order_id: vm.salesOrderId,
                     source: vm.selectedData.data.source,
                     description: vm.description,
                     // selected_quotations: vm.checkedQuotations,
                     selected_items: vm.checkedItems,
+                    delivery_items:vm.invoiceItems,
+                    bast_id:vm.bastId
                 }
 
                 axios.post('/delivery-order', data)
@@ -910,13 +1364,17 @@
                     data: 'action',
                     name: 'action',
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                      render:function(data,type){
+                        return `<div class="text-center">${data}</div>`                    }
                 },
             ]
         });
 
         $('#sales-order-table tbody').on('click', '.btn-choose', function() {
             const data = salesOrdersTable.row($(this).parents('tr')).data();
+             app.$data.bastId=0
+              app.$data.salesOrderId = data.id;
 
             let items = [];
             if (data.source == 'quotation') {
@@ -981,6 +1439,87 @@
             orientation: "bottom left",
         }).on('changeDate', function(e) {
             app.$data.date = e.format(0, 'yyyy-mm-dd');
+        });
+    })
+</script>
+
+<script>
+    $(function() {
+        bast = $('#bast-table').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            ajax: '/datatables/v2/delivery-orders/bast',
+            columns: [{
+                    data: 'number',
+                    name: 'number',
+                    render: function(data, type) {
+                        return `<a href="#">${data}</a>`;
+                    }
+                },
+                {
+                    data: 'date',
+                    name: 'date'
+                },
+                {
+                    data:'po_quotation_number',
+                    name:'po_quotation_number'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ]
+        });
+
+        $('#bast-table tbody').on('click', '.btn-choose', function() {
+            const data = bast.row($(this).parents('tr')).data();
+             app.$data.salesOrderId = 0;
+            let division=data.amount/Number(data.event_quotation.netto)
+            app.$data.grNumber=data.gr_number;
+            app.$data.bastId=data.id
+            app.$data.source="bast"
+            // app.$data.asf =division * data.event_quotation.asf;
+            // app.$data.netto=division *data.event_quotation.netto;
+            // app.$data.discount=division *data.event_quotation.discount;
+            // app.$data.ppn=division * data.event_quotation.ppn_amount;
+            // app.$data.pph23=division * data.event_quotation.pph23_amount
+            // app.$data.total=division * data.event_quotation.total;
+            app.$data.selectedData = {
+                data,
+                source: 'bast',
+            };
+              app.$data.invoiceItems={
+                ...data.other_quotation_items
+            }
+
+           
+           
+            $('#bastModal').modal('hide');
+        });
+
+
+        $('#invoice-date').datepicker({
+            format: 'yyyy-mm-dd',
+            todayBtn: false,
+            clearBtn: true,
+            todayHighlight: true,
+            orientation: "bottom left",
+        }).on('changeDate', function(e) {
+            app.$data.date = e.format(0, 'yyyy-mm-dd');
+        });
+
+        $('.due-date').datepicker({
+            format: 'yyyy-mm-dd',
+            todayBtn: false,
+            clearBtn: true,
+            todayHighlight: true,
+            orientation: "bottom left",
+        }).on('changeDate', function(e) {
+            app.$data.dueDateTerm = 'custom';
+            app.$data.dueDate = e.format(0, 'yyyy-mm-dd');
         });
     })
 </script>

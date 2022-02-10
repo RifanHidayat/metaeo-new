@@ -44,4 +44,7 @@ class DeliveryOrder extends Model
     {
         return $this->belongsToMany(Invoice::class);
     }
+     public function bast(){
+        return $this->belongsTo(Bast::class);
+    }
 }

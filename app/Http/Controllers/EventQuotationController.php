@@ -1,0 +1,891 @@
+<?php
+
+namespace App\Http\Controllers  ;
+
+use App\Http\Controllers\Controller;
+use App\Models\Company;
+use App\Models\Customer;
+use App\Models\EventQuotation;
+use App\Models\Goods;
+use App\Models\PicEvent;
+use App\Models\PicPo;
+use App\Models\Item;
+use App\Models\PoQuotation;
+use App\Models\V2Quotation;
+use Carbon\Carbon;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use PHPMailer\PHPMailer\PHPMailer;
+use Yajra\DataTables\Facades\DataTables;
+
+use function GuzzleHttp\Promise\each;
+
+class EventQuotationController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+                // all data
+        // $eventQuotations=EventQuotation::with(['items','subItems','picPo','picEvent','customer'])->where('id',18)->get();
+        // $eventQuotations=collect($eventQuotations)->each(function($quotation){
+        //     $items=collect($quotation['items'])->each(function($item) use ($quotation){ 
+        //         $subitems=collect($quotation['subItems'])->filter(function($value) use ($item){
+        //             return $value['item_id']==$item['id'];
+
+        //         });
+        //         $item['pivot']=$item['pivot'];
+        //         $item['sub_items']=$subitems;
+                
+                
+         
+        //     });
+            
+        // })->first();
+
+
+        return view('event-quotation.index');
+    }
+
+      private function formatDate($date = "", $format = "Y-m-d")
+    {
+        return date_format(date_create($date), $format);
+    }
+
+    /**
+     * Send datatable form.
+     *
+     * @return \Yajra\DataTables\Facades\DataTables
+     */
+    public function indexData()
+    {
+        $quotations = EventQuotation::with('poQuotation')->select('event_quotations.*')->where('type','event');
+        //return $quotations;
+        return DataTables::eloquent($quotations)
+            ->addIndexColumn()
+            ->addColumn('po_quotation_number',function($row){
+                return $row->poQuotation!=null?$row->poQuotation->number:"";
+            })
+            ->addColumn('bast_remaining',function($row){
+                return $row->netto-$row->total_bast;
+            })
+            
+            ->addColumn('action', function ($row) {
+               $poNumber='<li class="navi-item">
+                                    <a  href="/event-quotation/detail/' . $row->id . '"" class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon2-list-2"></i>
+                                        </span>
+                                        <span class="navi-text">Detail</span>
+                                    </a>
+                                </li>';
+                
+                $button = ' <div class="text-center">';   
+                    $button .= ' <a href="/quotation/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <rect x="0" y="0" width="24" height="24"></rect>
+                  <path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "></path>
+                  <rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"></rect>
+                </g>
+              </svg> </span> </a>';
+
+                    $button .= '<a href="#" data-id="' . $row->id . '" class="btn btn-sm btn-clean btn-icon btn-delete" title="Delete"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <rect x="0" y="0" width="24" height="24"></rect>
+                  <path d="M6,8 L6,20.5 C6,21.3284271 6.67157288,22 7.5,22 L16.5,22 C17.3284271,22 18,21.3284271 18,20.5 L18,8 L6,8 Z" fill="#000000" fill-rule="nonzero"></path>
+                  <path d="M14,4.5 L14,4 C14,3.44771525 13.5522847,3 13,3 L11,3 C10.4477153,3 10,3.44771525 10,4 L10,4.5 L5.5,4.5 C5.22385763,4.5 5,4.72385763 5,5 L5,5.5 C5,5.77614237 5.22385763,6 5.5,6 L18.5,6 C18.7761424,6 19,5.77614237 19,5.5 L19,5 C19,4.72385763 18.7761424,4.5 18.5,4.5 L14,4.5 Z" fill="#000000" opacity="0.3"></path>
+                </g>
+              </svg> </span> </a>';
+
+            
+                
+
+                $button .= '<div class="dropdown dropdown-inline" data-toggle="tooltip" title="" data-placement="left" data-original-title="Quick actions">
+                        <a href="#" class="btn btn-clean btn-hover-light-primary btn-sm btn-icon btn-po" 
+                        data-id="' . $row->id .'" 
+                           data-number="' . $row->po_quotation_id .'" 
+                          
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="ki ki-bold-more-hor"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                            <!--begin::Navigation-->
+                            <ul class="navi navi-hover">
+                                <li class="navi-item">
+                                    <a href="/event-quotation/print/' . $row->id . '" target="_blank" class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon2-print"></i>
+                                        </span>
+                                        <span class="navi-text">Cetak</span>
+                                    </a>
+                                </li>
+                               
+                                 <li class="navi-item">
+                                    <a href="/event-quotation/email/' . $row->id . '"" class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon2-email"></i>
+                                        </span>
+                                        <span class="navi-text">Email</span>
+                                    </a>
+                                </li>
+
+                               '.$poNumber.'
+
+                                
+                            </ul>
+                            <!--end::Navigation-->
+                        </div>
+                    </div>';
+
+                $button .= '</div>';
+
+                return $button;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+
+       
+
+        $customers = Customer::all();      
+        $eventPics=PicEvent::with('customer')->get();
+       
+        //return $eventPics;
+        $eventPics = $eventPics->map(function ($item, $key) {
+            return ['id' => $item->id, 'text' => $item->name.' | '.$item->customer->name,'customer'=>$item->customer->name];
+        });
+        $eventPics->prepend(['id' => '', 'text' => 'Choose Event Pic']);
+        $poPics=PicPo::with('customer')->get();
+        $poPics = $poPics->map(function ($item, $key) {
+            return ['id' => $item->id, 'text' => $item->name .' | '.$item->customer->name,'customer'=>$item->customer->name];
+        });
+        $poPics->prepend(['id' => '', 'text' => 'Choose PO Pic']);
+        $eventPic=PicEvent::with('customer')->get();
+
+        $goods=Goods::all();
+        
+        $eventPic=collect($eventPic)->map(function($value,$key){
+           return [
+               'id'=>$value['id'],
+               'customer_id'=>$value['customer']['id'],
+               'customer_name'=>$value['customer']['name'],
+               'ppn'=>$value['customer']['with_ppn'],
+               'pph23'=>$value['customer']['with_pph'],
+            ];
+
+          
+
+        });
+
+        return view('event-quotation.create', [
+            'customers' => $customers,
+            'eventPics'=>$eventPics,
+            'poPics'=>$poPics,
+            'eventPic'=>$eventPic,
+            'goods'=>$goods,
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+         $transactionsByCurrentDateCount = EventQuotation::query()->where('date', $request->date)->get()->count();
+        $number = 'QE'.'-' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+        
+
+        DB::beginTransaction();
+
+          $transactionsByCurrentDateCount = EventQuotation::query()->where('date', $request->date)->get()->count();
+            $number = 'QE-' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+
+        try {
+
+            $quotation = new EventQuotation();
+            $selectedItems=$request->selected_items;
+            $quotation->number = $number;
+            $quotation->date = $request->date;
+            $quotation->event_date = $request->event_date;
+            $quotation->commissionable_cost = $request->commissionable_cost;
+            $quotation->nonfee_cost = $request->nonfee_cost;
+            $quotation->asf = $request->asf_amount;
+            $quotation->asf_percent = $request->percent_asf;
+            $quotation->discount =$request->discount_amount;
+            $quotation->discount_percent = $request->percent_discount;
+            $quotation->ppn = $request->ppn;
+            $quotation->ppn_amount = $request->ppn_amount;
+            $quotation->pph = $request->pph23;
+            $quotation->pph23_amount = $request->pph23_amount;
+            $quotation->total=$request->total;
+            $quotation->netto=$request->netto;
+            $quotation->customer_id=$request->customer_id;
+            $quotation->file="1";
+            $quotation->title=$request->title;
+            $quotation->venue=$request->venue;
+            $quotation->subtotal=$request->commissionable_cost+$request->nonfee_cost;
+            $quotation->pic_po_id=$request->po_pic_id;
+            $quotation->pic_event_id=$request->event_pic_id;
+            $quotation->customer_id = $request->customer_id;
+           // return $selectedItems;
+            $quotation->save();
+
+            // $items = collect($selectedItems)->map(function ($item) use ($quotation) {
+            //     return [
+            //         'item_id' => $item['id'],
+            //         'event_quotatiom_id' => $quotation->id,
+            //         'type'=>$item['type'],
+            //         'created_at' => Carbon::now()->toDateTimeString(),
+            //         'updated_at' => Carbon::now()->toDateTimeString(),
+            //     ];
+            // })->all();
+
+             foreach ($selectedItems as $item){
+                foreach ($item['items'] as $sub_item ){
+
+                    if ($sub_item['isStock']!=0){
+                    $goodsRow = Goods::find($sub_item['subItemId']);
+                     if ($goodsRow == null) {
+                        continue;
+                     }
+                     $goodsRow->stock=$goodsRow->stock-$sub_item['quantity'];
+                     $goodsRow->save();
+                    }
+                }
+            }
+
+             $items = collect($selectedItems)->map(function ($item) use ($quotation) {
+                return [
+                    'item_id' => $item['id'],
+                    'event_quotation_id' => $quotation->id,
+                    'type'=>$item['type'],
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ];
+            })->all();
+
+             DB::table('event_quotation_item')->insert($items);
+
+            collect($selectedItems)->map(function($item) use($quotation){
+                $subitem=collect($item['items'])->where('isStock',0)->map(function($value) use ($quotation){
+                    return [
+                        'sub_item_id'=>$value['subItemId'],
+                        'event_quotation_id'=>$quotation->id,
+                        'quantity'=>$value['quantity'],
+                        'frequency'=>$value['frequency'],
+                        'rate'=>$value['rate'],
+                        'subtotal'=>$value['subtotal'],
+                        'is_stock'=>$value['isStock'],
+                        
+
+                    ];
+
+                })->all();
+
+                 $goods=collect($item['items'])->where('isStock',1)->map(function($value) use ($quotation,$item){
+                    return [
+                        'goods_id'=>$value['subItemId'],
+                        'event_quotation_id'=>$quotation->id,
+                        'quantity'=>$value['quantity'],
+                        'frequency'=>$value['frequency'],
+                        'rate'=>$value['rate'],
+                        'subtotal'=>$value['subtotal'],
+                        'is_stock'=>$value['isStock'],
+                        'item_id'=>$item['id'],
+
+                    ];
+
+                })->all();
+                  DB::table('event_quotation_goods')->insert($goods);
+                  DB::table('event_quotation_sub_item')->insert($subitem);
+            });
+
+            
+          
+            DB::commit();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $quotation,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        $quotation = V2Quotation::with(['items'])->findOrFail($id);
+        $customers = Customer::all();
+
+        $items = collect($quotation->items)->map(function ($item) {
+            return [
+                'code' => $item->code,
+                'name' => $item->name,
+                'description' => $item->description,
+                'deliveryDate' => $item->delivery_date,
+                'quantity' => $item->quantity,
+                'price' => $item->price,
+                'amount' => $item->amount,
+                'taxCode' => $item->tax_code,
+            ];
+        })->all();
+
+        return view('quotation.v2.edit', [
+            'quotation' => $quotation,
+            'customers' => $customers,
+            'items' => $items,
+        ]);
+    }
+
+        public function detail($id)
+    {
+    
+         $customers = Customer::all();      
+        $eventPics=PicEvent::with('customer')->get();
+       
+        //return $eventPics;
+        $eventPics = $eventPics->map(function ($item, $key) {
+            return ['id' => $item->id, 'text' => $item->name.' | '.$item->customer->name,'customer'=>$item->customer->name];
+        });
+        $eventPics->prepend(['id' => '', 'text' => 'Choose Event Pic']);
+        $poPics=PicPo::with('customer')->get();
+        $poPics = $poPics->map(function ($item, $key) {
+            return ['id' => $item->id, 'text' => $item->name .' | '.$item->customer->name,'customer'=>$item->customer->name];
+        });
+        $poPics->prepend(['id' => '', 'text' => 'Choose PO Pic']);
+        $eventPic=PicEvent::with('customer')->get();
+
+        $goods=Goods::all();
+
+          $eventPic=collect($eventPic)->map(function($value,$key){
+           return [
+               'id'=>$value['id'],
+               'customer_id'=>$value['customer']['id'],
+               'customer_name'=>$value['customer']['name'],
+               'ppn'=>$value['customer']['with_ppn'],
+               'pph23'=>$value['customer']['with_pph'],
+            ];
+
+          
+
+        });
+
+      
+
+        $eventQuotations=EventQuotation::with(['items','subItems','picPo','picEvent','customer','goods'])->where('id',$id)->get();
+        //return $eventQuotations;
+        
+    
+      //  return $eventQuotations;
+        $eventQuotations=collect($eventQuotations)->each(function($quotation){
+            $items=collect($quotation['items'])->each(function($item) use ($quotation){ 
+                $subitems=collect($quotation['subItems'])->filter(function($value) use ($item){
+                    return $value['item_id']==$item['id'];
+                })->values();
+                $goods=collect($quotation['goods'])->filter(function($value) use ($item){
+                    return $value['pivot']['item_id']==$item['id'];
+                })->values();
+          
+                 $sum=collect($quotation['subItems'])->filter(function($value) use ($item){
+                    return $value['item_id']==$item['id'];
+                })->sum('pivot.subtotal');
+                $sum1=collect($quotation['goods'])->filter(function($value) use ($item){
+                     return $value['pivot']['item_id']==$item['id'];
+                })->sum('pivot.subtotal');
+                $item['subtotal']=$sum+$sum1;
+                $item['pivot']=$item['pivot'];
+                $item['sub_items']=$subitems->merge($goods);
+            });
+            
+        })->first();
+       // return $eventQuotations;
+
+        $cost =collect($eventQuotations->items)->filter(function($item){
+            return $item['type']=='cost';
+        })->each(function($value){
+        })->values()->all();
+
+         $non =collect($eventQuotations->items)->filter(function($item){
+            return $item['type']=='non';
+        })->values()->all();
+      $company = Company::all()->first();
+
+        if ($company == null) {
+            $newCompany = new Company;
+            $newCompany->save();
+            $company = Company::all()->first();
+        }
+        
+        return view('event-quotation.detail', [
+             'company' => $company,
+            'quotation' => $eventQuotations,
+            'cost'=>$cost,
+            'non'=>$non,
+            'cost_length'=>collect($cost)->count(),
+            'non_length'=>collect($non)->count(),
+            'customers' => $customers,
+            'eventPics'=>$eventPics,
+            'poPics'=>$poPics,
+            'eventPic'=>$eventPic,
+            'goods'=>$goods,
+            // 'items' => $items,
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+     
+        $quotationWithNumber = V2Quotation::whereNotIn('id', [$id])->where('number', $request->number)->first();
+        if ($quotationWithNumber !== null) {
+            return response()->json([
+                'message' => 'number or code already used',
+                'code' => 400,
+                // 'errors' => $/e,
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+
+            $quotation = V2Quotation::find($id);
+            $quotation->number = $request->number;
+            $quotation->date = $request->date;
+            $quotation->up = $request->up;
+            $quotation->title = $request->title;
+            $quotation->note = $request->note;
+            $quotation->description = $request->description;
+            $quotation->subtotal = $request->subtotal;
+            $quotation->ppn = $request->ppn;
+            $quotation->ppn_value = $request->ppn_value;
+            $quotation->ppn_amount = $request->ppn_amount;
+            $quotation->pph23 = $request->pph23;
+            $quotation->pph23_value = $request->pph23_value;
+            $quotation->pph23_amount = $request->pph23_amount;
+            $quotation->other_cost = $request->other_cost;
+            $quotation->other_cost_description = $request->other_cost_description;
+            $quotation->total = $request->total;
+            $quotation->customer_id = $request->customer_id;
+            $quotation->save();
+
+            $items = collect($request->items)->map(function ($item) use ($quotation) {
+                return [
+                    'v2_quotation_id' => $quotation->id,
+                    'code' => $item['code'],
+                    'name' => $item['name'],
+                    'description' => $item['description'],
+                    'delivery_date' => $item['deliveryDate'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'amount' => $item['amount'],
+                    'tax_code' => $item['taxCode'],
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ];
+            })->all();
+
+            $quotation->items()->delete();
+
+            DB::table('v2_quotation_items')->insert($items);
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $quotation,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e,
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+       // return "tes";
+        DB::beginTransaction();
+        // 
+        try{
+        $quotationEvent=EventQuotation::with(['subItems','goods'])->findOrFail($id);
+      //  return  $quotationEvent->subItems[0]->pivot->sub_item_id;
+        foreach ($quotationEvent->subItems as $subitem){
+        if ($subitem->pivot->is_stock==1){
+            $goodsRow = Goods::find($subitem->pivot->sub_item_id);
+                     if ($goodsRow == null) {
+                        continue;
+                     }
+                     $goodsRow->stock=$goodsRow->stock+$subitem->pivot->quantity;
+                     $goodsRow->save();           
+        }
+        }
+        $quotationEvent->delete();
+        $quotationEvent->items()->detach();
+         $quotationEvent->goods()->detach();
+        $quotationEvent->subItems()->detach();
+
+
+        DB::commit();
+            return response()->json([
+                'message' => 'Data has been deleted',
+                'code' => 200,
+                'error' => false,
+                'data' => null,
+            ]);
+
+        }catch(Exception $e){
+             DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+
+        }
+            
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function print($id)
+    {
+        $eventQuotations=EventQuotation::with(['items','subItems','picPo','picEvent','customer','goods'])->where('id',$id)->get();
+        //return $eventQuotations;
+        
+    
+      //  return $eventQuotations;
+        $eventQuotations=collect($eventQuotations)->each(function($quotation){
+            $items=collect($quotation['items'])->each(function($item) use ($quotation){ 
+                $subitems=collect($quotation['subItems'])->filter(function($value) use ($item){
+                    return $value['item_id']==$item['id'];
+                })->values();
+                $goods=collect($quotation['goods'])->filter(function($value) use ($item){
+                    return $value['pivot']['item_id']==$item['id'];
+                })->values();
+              
+                
+                 $sum=collect($quotation['subItems'])->filter(function($value) use ($item){
+                    return $value['item_id']==$item['id'];
+                })->sum('pivot.subtotal');
+                $sum1=collect($quotation['goods'])->filter(function($value) use ($item){
+                     return $value['pivot']['item_id']==$item['id'];
+                })->sum('pivot.subtotal');
+                $item['subtotal']=$sum+$sum1;
+                $item['pivot']=$item['pivot'];
+                $item['sub_items']=$subitems->merge($goods);
+            });
+            
+        })->first();
+       // return $eventQuotations;
+        
+
+         
+
+
+        $cost =collect($eventQuotations->items)->filter(function($item){
+            return $item['type']=='cost';
+        })->each(function($value){
+        })->values()->all();
+
+         $non =collect($eventQuotations->items)->filter(function($item){
+            return $item['type']=='non';
+        })->values()->all();
+      
+
+       
+
+        $mpdf = new \Mpdf\Mpdf([
+            'format' => 'A4',
+            'mode' => 'utf-8',
+            'orientation' => 'P',
+            'margin_left' => 3,
+            'margin_top' => 3,
+            'margin_right' => 3,
+            'margin_bottom' => 3,
+        ]);
+
+        $company = Company::all()->first();
+
+        if ($company == null) {
+            $newCompany = new Company;
+            $newCompany->save();
+            $company = Company::all()->first();
+        }
+        
+        $html = view('event-quotation.print', [
+            'company' => $company,
+            'quotation' => $eventQuotations,
+            'cost'=>$cost,
+            'non'=>$non,
+            'cost_length'=>collect($cost)->count(),
+            'non_length'=>collect($non)->count(),
+        ]   );
+
+        $mpdf->WriteHTML($html);
+        $mpdf->Output();
+    }
+
+    public function email($id){
+       // return $id;
+       $eventQuotation=EventQuotation::with(['picEvent','picPo'])->findOrFail($id);
+        return view('event-quotation.email', [
+            'event_quotation'=>$eventQuotation,
+            'id'=>$id
+        ]);
+    }
+
+    public function sendEmail(Request $request,$id){
+           require base_path("vendor/autoload.php");
+        $mail = new PHPMailer(true);     // Passing `true` enables exceptions
+      //  return  $request->body;
+
+       // return $request->all();
+
+        try {
+
+            // Email server settings
+            $mail->SMTPDebug = 0;
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';             //  smtp host
+            $mail->SMTPAuth = true;
+            $mail->Username = 'rezha.arenzha@gmail.com';   //  sender username
+            $mail->Password = 'pajak123';       // sender password
+            $mail->SMTPSecure = 'tls';                  // encryption - ssl/tls
+            $mail->Port = 587;                          // port - 587/465
+            //email pengirim
+            $mail->setFrom('rezha.arenzha@gmail.com', 'Magenta EO');
+            $mail->addReplyTo('rezha.arenzha@gmail.com', 'MagentaEO');
+            // Add a recipient
+            $mail->addAddress($request->event_pic_email); //email penerima
+            $mail->addAddress($request->po_pic_email);
+            
+            
+        $eventQuotations=EventQuotation::with(['items','subItems','picPo','picEvent','customer'])->where('id',$id)->get();
+      //  return $eventQuotations;
+        $eventQuotations=collect($eventQuotations)->each(function($quotation){
+            $items=collect($quotation['items'])->each(function($item) use ($quotation){ 
+                $subitems=collect($quotation['subItems'])->filter(function($value) use ($item){
+                    return $value['item_id']==$item['id'];
+                })->values()->all();
+                // $sum=collect($quotation['subItems'])->sum('pivot.subtotal');
+                 $sum=collect($quotation['subItems'])->filter(function($value) use ($item){
+                    return $value['item_id']==$item['id'];
+                })->sum('pivot.subtotal');
+                $item['subtotal']=$sum;
+                $item['pivot']=$item['pivot'];
+                $item['sub_items']=$subitems;
+            });  
+        })->first();
+
+
+
+        $cost =collect($eventQuotations->items)->filter(function($item){
+            return $item['type']=='cost';
+        })->each(function($value){
+        })->values()->all();
+         $non =collect($eventQuotations->items)->filter(function($item){
+            return $item['type']=='non';
+        })->values()->all();
+
+        $mpdf = new \Mpdf\Mpdf([
+            'format' => 'A4',
+            'mode' => 'utf-8',
+            'orientation' => 'P',
+            'margin_left' => 3,
+            'margin_top' => 3,
+            'margin_right' => 3,
+            'margin_bottom' => 3,
+        ]);
+
+        $company = Company::all()->first();
+
+        if ($company == null) {
+            $newCompany = new Company;
+            $newCompany->save();
+            $company = Company::all()->first();
+        }
+        
+        $html = view('event-quotation.print', [
+            'company' => $company,
+            'quotation' => $eventQuotations,
+            'cost'=>$cost,
+            'non'=>$non,
+            'cost_length'=>collect($cost)->count(),
+            'non_length'=>collect($non)->count(),
+        ]   );
+
+        $mpdf->WriteHTML($html);// Set email content format to HTML
+
+        $pdf = $mpdf->output("", "S");
+        $mail->Subject = $request->subject;
+        $mail->addStringAttachment($pdf, "laporan" . ".pdf");
+        // Set email format to HTML
+        $mail->isHTML(true);
+           $mail->Body = $request->body;
+            if( !$mail->send() ) {
+                //return back()->with("failed", "Email not sent.")->withErrors($mail->ErrorInfo);
+                return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => 'e',
+            ], 500);
+            }
+            
+            else {
+                //return back()->with("success", "Email has been sent.");
+
+                  return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => null,
+            ]);
+            }
+
+        } catch (Exception $e) {
+             //return back()->with('error','Message could not be sent.');
+             return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+        }
+    }
+
+    public function po(Request $request,$id){
+       // return "tes";
+       DB::beginTransaction();
+        try{
+        $eventQuoation=EventQuotation::find($id);
+        if ($eventQuoation->po_quotation_id==null){
+        $poQuotation=new PoQuotation;
+        $poQuotation->number=$request->number;
+        $poQuotation->date=$request->date;
+        $poQuotation->title=$request->title;
+        $poQuotation->amount=$request->amount;
+        $poQuotation->save();
+        $eventQuoation->po_quotation_id=$poQuotation->id;
+        $eventQuoation->save();
+
+        }else{
+        $poQuotation=PoQuotation::find($eventQuoation->po_quotation_id);
+        $poQuotation->number=$request->number;
+        $poQuotation->date=$request->date;
+        $poQuotation->title=$request->title;
+        $poQuotation->amount=$request->amount;
+        $poQuotation->save();
+
+        }
+
+       
+   DB::commit();
+  return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => null,
+            ]);
+
+
+
+        }catch(Exception $e){
+                DB::rollBack();
+             return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+
+        }
+
+    }
+
+    public function datatablesEventQuotationItems()
+    {
+       
+        $goods=Goods::all();
+        $quotations = Item::with(['subitems'])->get();
+        $quotations=collect($quotations)->each(function($item) use ($goods){
+            if ($item['is_stock']==1){
+                $item['goods']=$goods;
+            }
+        });
+        return DataTables::of($quotations)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                // $button='<label class="checkbox"> <input v-model="ppn" class="btn-choose" type="checkbox" value="false">   <span></span>&nbsp;  </label>';
+                return $button;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+}

@@ -93,6 +93,7 @@ class QuotationController extends Controller
         $quotationNumber = 'QO-' . date('d') . date('m') . date("y") . sprintf('%04d', $quotationsByCurrentDateCount + 1);
 
         $customers = Customer::all();
+        
 
         return view('quotation.create', [
             'quotation_number' => $quotationNumber,

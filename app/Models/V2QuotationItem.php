@@ -23,4 +23,5 @@ class V2QuotationItem extends Model
     {
         return $this->belongsToMany(DeliveryOrder::class)->withPivot('code', 'amount', 'unit', 'description', 'information');
     }
+    
 }

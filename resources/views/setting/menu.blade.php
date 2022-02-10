@@ -16,8 +16,8 @@
                     </span>
                 </div>
                 <div class="wizard-label">
-                    <h3 class="wizard-title">Akun</h3>
-                    <div class="wizard-desc">Atur Detail Akun</div>
+                    <h3 class="wizard-title">Mapping Akun</h3>
+                    <div class="wizard-desc">Atur Mapping Akun</div>
                 </div>
             </div>
         </a>

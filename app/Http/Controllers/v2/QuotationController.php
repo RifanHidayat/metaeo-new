@@ -91,6 +91,7 @@ class QuotationController extends Controller
     public function create()
     {
         $customers = Customer::all();
+        
 
         return view('quotation.v2.create', [
             'customers' => $customers,

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BastController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPurchaseOrderController;
@@ -17,6 +18,8 @@ use App\Http\Controllers\GoodsController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InOutTransactionController;
 use App\Http\Controllers\InvoiceController;
+
+use App\Http\Controllers\PicEventController;
 use App\Http\Controllers\PicPoController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\PurchaseReceiveController;
@@ -31,16 +34,24 @@ use App\Http\Controllers\SpkController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\EventQuotationController;
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\OtherQuotationController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\QuotationItemController;
 use App\Http\Controllers\v2\JobOrderController;
 use App\Http\Controllers\v2\QuotationController as V2QuotationController;
 use App\Http\Controllers\v2\SalesOrderController as V2SalesOrderController;
 use App\Http\Controllers\WarehouseController;
+use App\Models\CustomerPurchaseOrder;
 use App\Models\DeliveryOrder;
+use App\Models\EventQuotation;
 use App\Models\FinishingItem;
 use App\Models\FinishingItemCategory;
 use App\Models\PurchaseReturn;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
+use Maatwebsite\Excel\Row;
 
 /*
 |--------------------------------------------------------------------------
@@ -177,10 +188,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [CustomerPurchaseOrderController::class, 'create']);
         Route::get('/edit/{id}', [CustomerPurchaseOrderController::class, 'edit']);
         Route::get('/print/{id}', [CustomerPurchaseOrderController::class, 'print']);
-        Route::post('/', [CustomerPurchaseOrderController::class, 'store']);
+        Route::post('/', [CustomerPurchaseOrderController::class, 'storeQuotation']);
         Route::post('/{id}', [CustomerPurchaseOrderController::class, 'update']);
         Route::patch('/{id}', [CustomerPurchaseOrderController::class, 'update']);
         Route::delete('/{id}', [CustomerPurchaseOrderController::class, 'destroy']);
+
+        Route::prefix('/quotation')->group(function(){
+            Route::get('/create',[CustomerPurchaseOrderController::class,'createQuotation']);
+            Route::get('/edit/{id}',[CustomerPurchaseOrderController::class,'editQuotation']);
+            Route::post('/',[CustomerPurchaseOrderController::class,'storeQuotation']);
+            Route::patch('/{id}',[CustomerPurchaseOrderController::class,'updateQuotation']);
+        });
     });
 
     Route::prefix('/pic-po')->group(function () {
@@ -213,6 +231,70 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{id}', [V2QuotationController::class, 'update']);
         Route::delete('/{id}', [V2QuotationController::class, 'destroy']);
     });
+
+     Route::prefix('/event-quotation')->group(function () {
+        Route::get('/', [EventQuotationController::class, 'index']);
+        Route::get('/create', [EventQuotationController::class, 'create']);
+        Route::get('/edit/{id}', [EventQuotationController::class, 'edit']);
+        Route::get('/detail/{id}', [EventQuotationController::class, 'detail']);
+        Route::get('/print/{id}', [EventQuotationController::class, 'print']);
+        Route::get('/email/{id}', [EventQuotationController::class, 'email']);
+        Route::post('/email/{id}', [EventQuotationController::class, 'sendEmail']);
+        Route::post('/po/{id}', [EventQuotationController::class, 'po']);
+        Route::post('/', [EventQuotationController::class, 'store']);
+        Route::patch('/{id}', [EventQuotationController::class, 'update']);
+        Route::delete('/{id}', [EventQuotationController::class, 'destroy']);
+    });
+
+       Route::prefix('/other-quotation')->group(function () {
+        Route::get('/', [OtherQuotationController::class, 'index']);
+        Route::get('/create', [OtherQuotationController::class, 'create']);
+        Route::get('/edit/{id}', [OtherQuotationController::class, 'edit']);
+        Route::get('/print/{id}', [OtherQuotationController::class, 'print']);
+        Route::get('/email/{id}', [OtherQuotationController::class, 'email']);
+        Route::post('/email/{id}', [OtherQuotationController::class, 'sendEmail']);
+        Route::post('/', [OtherQuotationController::class, 'store']);
+        Route::patch('/{id}', [OtherQuotationController::class, 'update']);
+        Route::delete('/{id}', [OtherQuotationController::class, 'destroy']);
+    });
+
+         Route::prefix('/project')->group(function () {
+        Route::get('/', [ProjectController::class, 'index']);
+        Route::get('/create', [ProjectController::class, 'create']);
+        Route::get('/edit/{id}', [ProjectController::class, 'edit']);
+        Route::get('/print/{id}', [ProjectController::class, 'print']);
+        Route::get('/mapping/{id}', [ProjectController::class, 'mapping']);
+        Route::post('/out', [ProjectController::class, 'out']);
+        Route::post('/', [ProjectController::class, 'store']);
+        Route::post('/member', [ProjectController::class, 'member']);
+        Route::post('/task', [ProjectController::class, 'task']);
+        Route::post('/budget', [ProjectController::class, 'budget']);
+        Route::patch('/{id}', [ProjectController::class, 'update']);
+        Route::delete('/{id}', [ProjectController::class, 'destroy']);
+
+        Route::prefix('/profit-lost')->group(function(){
+        Route::get('/{id}', [ProjectController::class, 'profitLost']);
+        Route::post('/', [ProjectController::class, 'outStore']);
+        Route::delete('/{id}', [ProjectController::class, 'outDestroy']);
+        Route::patch('/{id}', [ProjectController::class, 'outUpdate']);
+
+        });
+    });
+
+
+        Route::prefix('/bast')->group(function () {
+        Route::get('/', [BastController::class, 'index']);
+        Route::get('/create', [BastController::class, 'create']);
+        Route::get('/edit/{id}', [BastController::class, 'edit']);
+        Route::get('/print/{id}', [BastController::class, 'print']);
+        Route::get('/email/{id}', [BastController::class, 'email']);
+        Route::post('/email/{id}', [BastController::class, 'sendEmail']);
+        Route::post('/', [BastController::class, 'store']);
+      
+        Route::patch('/{id}', [BastController::class, 'update']);
+        Route::delete('/{id}', [BastController::class, 'destroy']);
+    });
+
 
     Route::prefix('/sales-order')->group(function () {
         Route::get('/', [V2SalesOrderController::class, 'index']);
@@ -329,6 +411,38 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [FinishingItemCategoryController::class, 'destroy']);
     });
 
+    Route::prefix('/pic-event')->group(function () {
+        Route::get('/', [PicEventController::class, 'index']);
+        Route::get('/create', [PicEventController::class, 'create']);
+        Route::get('/edit/{id}', [PicEventController::class, 'edit']);
+        Route::post('/', [PicEventController::class, 'store']);
+        Route::patch('/{id}', [PicEventController::class, 'update']);
+        Route::delete('/{id}', [PicEventController::class, 'destroy']);
+
+    });
+
+      Route::prefix('/quotation-item')->group(function () {
+        Route::get('/', [ItemController::class, 'index']);
+        Route::get('/create', [ItemController::class, 'create']);
+        Route::get('/edit/{id}', [ItemController::class, 'edit']);  
+        Route::post('/', [ItemController::class, 'store']);
+        Route::patch('/{id}', [ItemController::class, 'update']);
+        Route::delete('/{id}', [ItemController::class, 'destroy']);
+
+
+        Route::prefix('/{item_id}/subitem')->group(function(){
+        Route::get('/', [ItemController::class, 'subitem']);
+        Route::get('/create', [ItemController::class, 'subitemCreate']);
+        Route::post('/', [ItemController::class, 'subitemStore']);
+        Route::get('/edit/{id}', [ItemController::class, 'subitemEdit']); 
+        Route::patch('/{id}', [ItemController::class, 'subitemUpdate']);
+        Route::delete('/{id}', [ItemController::class, 'subitemDestroy']);
+
+        });
+
+    });
+
+
     Route::prefix('/setting')->group(function () {
         Route::get('/', [SettingController::class, 'index']);
         Route::get('/account', [SettingController::class, 'account']);
@@ -403,6 +517,27 @@ Route::prefix('/datatables')->group(function () {
         Route::get('/', [QuotationController::class, 'indexData']);
         Route::get('/estimations', [QuotationController::class, 'datatablesEstimations']);
     });
+     Route::prefix('/event-quotations')->group(function () {
+        Route::get('/', [EventQuotationController::class, 'indexData']);
+        // Route::get('/estimations', [QuotationController::class, 'datatablesEstimations']);
+    });
+      Route::prefix('/projects')->group(function () {
+        Route::get('/', [ProjectController::class, 'indexData']);
+         Route::get('/quotations', [ProjectController::class, 'datatablesQuotations']);
+          Route::get('/sales-orders', [ProjectController::class, 'datatablesSalesOrders']);
+        // Route::get('/estimations', [QuotationController::class, 'datatablesEstimations']);
+    });
+     Route::prefix('/other-quotations')->group(function () {
+        Route::get('/', [OtherQuotationController::class, 'indexData']);
+        // Route::get('/estimations', [QuotationController::class, 'datatablesEstimations']);
+    });
+    Route::prefix('/bast')->group(function () {
+          Route::get('/', [BastController::class, 'indexData']);
+        Route::get('/quotations', [BastController::class, 'datatablesQuotations']);
+          Route::get('/sales-orders', [BastController::class, 'datatablesSalesOrders']);
+        // Route::get('/estimations', [QuotationController::class, 'datatablesEstimations']);
+    });
+
     Route::prefix('/sales-orders')->group(function () {
         Route::get('/', [SalesOrderController::class, 'indexData']);
         Route::get('/quotations', [SalesOrderController::class, 'datatablesQuotations']);
@@ -412,15 +547,19 @@ Route::prefix('/datatables')->group(function () {
         Route::prefix('/purchase-orders')->group(function () {
             Route::get('/', [PurchaseOrderController::class, 'indexData']);
         });
+        
         Route::prefix('/purchase-receives')->group(function () {
             Route::get('/', [PurchaseReceiveController::class, 'indexData']);
         });
+
         Route::prefix('/purchase-returns')->group(function () {
             Route::get('/', [PurchaseReturnController::class, 'indexData']);
         });
+
         Route::prefix('/purchase-transactions')->group(function () {
             Route::get('/', [PurchaseTransactionController::class, 'indexData']);
         });
+        
         Route::prefix('/sales-orders')->group(function () {
             Route::get('/', [V2SalesOrderController::class, 'indexData']);
             Route::get('/quotations', [V2SalesOrderController::class, 'datatablesQuotations']);
@@ -433,18 +572,27 @@ Route::prefix('/datatables')->group(function () {
         Route::prefix('/delivery-orders')->group(function () {
             Route::get('/', [DeliveryOrderController::class, 'indexData']);
             Route::get('/sales-orders', [DeliveryOrderController::class, 'datatablesSalesOrders']);
+             Route::get('/bast', [DeliveryOrderController::class, 'datatablesBast']);
         });
         Route::prefix('/invoices')->group(function () {
             Route::get('/', [InvoiceController::class, 'indexData']);
             Route::get('/sales-orders', [InvoiceController::class, 'datatablesSalesOrders']);
+            Route::get('/bast', [InvoiceController::class, 'datatablesBast']);
         });
         Route::prefix('/quotations')->group(function () {
             Route::get('/', [V2QuotationController::class, 'indexData']);
         });
         Route::prefix('/customer-purchase-orders')->group(function () {
             Route::get('/', [CustomerPurchaseOrderController::class, 'indexData']);
+             Route::get('/quotation', [CustomerPurchaseOrderController::class, 'datatablesQuotations']);
         });
+       
     });
+      Route::prefix('/event-quotation')->group(function () {
+          
+            Route::get('/item', [EventQuotationController::class, 'datatablesEventQuotationItems']);
+        });
+        
     Route::prefix('/spk')->group(function () {
         Route::get('/', [SpkController::class, 'indexData']);
     });

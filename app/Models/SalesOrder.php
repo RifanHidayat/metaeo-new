@@ -34,4 +34,8 @@ class SalesOrder extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+        public function eventQuotations()
+    {
+        return $this->belongsToMany(EventQuotation::class)->withPivot('event_quotation_id', 'v2_sales_order_id', 'pic_event_id','total');
+    }
 }

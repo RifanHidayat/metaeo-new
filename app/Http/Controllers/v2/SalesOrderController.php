@@ -5,9 +5,11 @@ namespace App\Http\Controllers\v2;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\CustomerPurchaseOrder;
+use App\Models\PicEvent;
 use App\Models\PurchaseOrder;
 use App\Models\V2Quotation;
 use App\Models\V2SalesOrder;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -146,11 +148,15 @@ class SalesOrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
     public function create()
     {
         $customers = Customer::all();
+        $picEvents=PicEvent::with('customer')->get();
+      
         return view('sales-order.v2.create', [
             'customers' => $customers,
+            'pic_events'=>$picEvents
         ]);
     }
 
@@ -162,6 +168,10 @@ class SalesOrderController extends Controller
      */
     public function store(Request $request)
     {
+      //  return $request->selected_data['data']['event_quotations'];
+      
+           DB::beginTransaction();
+        // return $request->selected_data['data']['event_quotations'];
         $salesOrderWithNumber = V2SalesOrder::where('number', $request->number)->first();
         if ($salesOrderWithNumber !== null) {
             return response()->json([
@@ -176,32 +186,76 @@ class SalesOrderController extends Controller
             $salesOrder = new V2SalesOrder();
             $salesOrder->number = $request->number;
             $salesOrder->date = $request->date;
-            $salesOrder->customer_id = $request->customer_id;
+         
             $salesOrder->source = $request->source;
             $salesOrder->quotation_number = $request->quotation_number;
             $salesOrder->quotation_date = $request->quotation_date;
             $salesOrder->v2_quotation_id = $request->quotation_id;
             $salesOrder->customer_purchase_order_number = $request->purchase_order_number;
             $salesOrder->customer_purchase_order_date = $request->purchase_order_date;
-            $salesOrder->customer_purchase_order_id = $request->purchase_order_id;
+           
             $salesOrder->description = $request->description;
             $salesOrder->term_of_payment = $request->term_of_payment;
             $salesOrder->due_date = $request->due_date;
+            if ($request->selected_data['data']['source']=="quotation"){
+                $salesOrder->customer_purchase_order_id = $request->selected_data['data']['id'];
+                $salesOrder->customer_id=0;
 
+            }else{
+                   $salesOrder->customer_id = $request->customer_id;
+                      $salesOrder->customer_purchase_order_id = $request->purchase_order_id;
+
+            }
             $salesOrder->save();
 
+            if ($request->selected_data['data']['source']=="quotation"){
+        //           $keyedQuotations = collect($request->selected_data['data']['event_quotations'])->mapWithKeys(function ($item) use($salesOrder) {
+        //     return [
+        //         $item['id']=>[
+
+        //             'v2_sales_order_id' => $salesOrder->id,
+                
+        //             'pic_event_id'=>$item['pic_event']['id'],
+        //             'total'=>$item['netto'],
+        //             'created_at' => Carbon::now()->toDateTimeString(),
+        //             'updated_at' => Carbon::now()->toDateTimeString(),
+
+        //         ]
+                  
+        //     ];
+        // })->all();
+        //      $salesOrder->eventQuotations()->attach($keyedQuotations);
+
+          $items = collect($request->selected_data['data']['event_quotations'])->map(function ($item) use ($salesOrder) {
+                return [
+                    'v2_sales_order_id' => $salesOrder['id'],
+                    'total'=>$item['netto'],
+                    'pic_event_id'=>$item['pic_event_id'],
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ];
+            })->all();
+
+             DB::table('v2_sales_order_items')->insert($items);
+      
+                
+
+             }
+ DB::commit();
             return response()->json([
                 'message' => 'Data has been saved',
                 'code' => 200,
                 'error' => false,
                 'data' => $salesOrder,
             ]);
+
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Internal error',
                 'code' => 500,
                 'error' => true,
-                'errors' => $e,
+                'errors' => $e.'',
             ], 500);
         }
     }
@@ -248,7 +302,48 @@ class SalesOrderController extends Controller
      */
     public function destroy($id)
     {
+        //return "Tes";
+         DB::beginTransaction();
         //
+        try{
+             $salesOrder = V2SalesOrder::findOrFail($id);
+         if ($salesOrder->source=='purchase_order'){
+              DB::table('v2_sales_order_items')->where('id', '==', $salesOrder)->delete();
+                $salesOrder->delete();
+               DB::commit();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+             
+            ]);
+             
+         }else{
+             
+               $salesOrder->delete();
+         }
+
+             return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $salesOrder,
+            ]);
+
+        }catch(Exception $e){
+              DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+
+
+        }
+        
+        
+
     }
 
     /**
@@ -291,8 +386,9 @@ class SalesOrderController extends Controller
     {
         $customerId = $request->query('customer_id');
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $customerPurchaseOrders = CustomerPurchaseOrder::with(['items', 'v2SalesOrder', 'customer'])
+        $customerPurchaseOrders = CustomerPurchaseOrder::with(['items', 'v2SalesOrder', 'customer','eventQuotations','eventQuotations.customer','eventQuotations.picEvent.customer'])
             ->get();
+            
         // ->filter(function ($quotation) {
         //     return count($quotation->salesOrders) < 1;
         // })->all();

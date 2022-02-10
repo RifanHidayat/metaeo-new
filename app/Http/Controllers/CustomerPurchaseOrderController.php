@@ -6,8 +6,10 @@ use App\Models\Company;
 use App\Models\CpoItem;
 use App\Models\Customer;
 use App\Models\CustomerPurchaseOrder;
+use App\Models\EventQuotation;
 use App\Models\FobItem;
 use App\Models\Goods;
+use App\Models\OtherQuotationItem;
 use App\Models\Shipment;
 use App\Models\Supplier;
 use App\Models\V2Quotation;
@@ -40,6 +42,8 @@ class CustomerPurchaseOrderController extends Controller
         return DataTables::eloquent($purchaseOrders)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
+                
+            
                 $button = ' <div class="text-center">';
                 if ($row->v2SalesOrder == null) {
                     $button .= ' <a href="/customer-purchase-order/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -137,6 +141,7 @@ class CustomerPurchaseOrderController extends Controller
             $cpo->other_cost_description = $request->other_cost_description;
             $cpo->total = $request->total;
             $cpo->customer_id = $request->customer_id;
+            $cpo->title=$request->title;
             $cpo->save();
 
             $items = collect($request->items)->map(function ($item) use ($cpo) {
@@ -294,6 +299,173 @@ class CustomerPurchaseOrderController extends Controller
         }
     }
 
+        public function updateQuotation(Request $request, $id)
+    {
+              // return $request->items;
+        // $cpoWithNumber = CustomerPurchaseOrder::where('number', $request->number)->first();
+        // if ($cpoWithNumber !== null) {
+        //     return response()->json([
+        //         'message' => 'number or code already used',
+        //         'code' => 400,
+        //         // 'errors' => $/e,
+        //     ], 400);
+        // }
+
+        DB::beginTransaction();
+
+        try {
+
+
+            $cpo = CustomerPurchaseOrder::findOrFail($id);
+            $cpo->number = $request->number;
+            $cpo->date = $request->date;
+            $cpo->description = $request->description;
+            $cpo->subtotal = $request->subtotal;
+            $cpo->ppn = $request->ppn;
+            $cpo->ppn_value = $request->ppn_value;
+            $cpo->ppn_amount = $request->ppn_amount;
+            $cpo->pph23 = $request->pph23;
+            $cpo->pph23_value = $request->pph23_value;
+            $cpo->pph23_amount = $request->pph23_amount;
+            $cpo->other_cost = $request->other_cost;
+            $cpo->other_cost_description = $request->other_cost_description;
+            $cpo->total = $request->total;
+             $cpo->source = 'quotation';
+            $cpo->customer_id = 0;
+            $cpo->save();
+            $cpo->eventQuotations()->detach();
+
+            // $items = collect($request->items)->map(function ($item) use ($cpo) {
+            //     return [
+            //         'customer_purchase_order_id' => $cpo->id,
+            //         'code' => $item['code'],
+            //         'name' => $item['name'],
+            //         'description' => $item['description'],
+            //         'delivery_date' => $item['deliveryDate'],
+            //         'quantity' => $item['quantity'],
+            //         'price' => $item['price'],
+            //         'amount' => $item['amount'],
+            //         'tax_code' => $item['taxCode'],
+            //         'created_at' => Carbon::now()->toDateTimeString(),
+            //         'updated_at' => Carbon::now()->toDateTimeString(),
+            //     ];
+            // })->all();
+
+                 $keyedQuotations = collect($request->items)->mapWithKeys(function ($item) use($cpo) {
+            return [
+                $item['id']=>[
+                    'customer_purchase_order_id' => $cpo->id,
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ]    
+            ];
+        })->all();
+             $cpo->eventQuotations()->attach($keyedQuotations);
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $cpo,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'1',
+            ], 500);
+        }
+    }
+
+    public function storeQuotation(Request $request)
+    {
+       // return $request->items;
+        $cpoWithNumber = CustomerPurchaseOrder::where('number', $request->number)->first();
+        if ($cpoWithNumber !== null) {
+            return response()->json([
+                'message' => 'number or code already used',
+                'code' => 400,
+                // 'errors' => $/e,
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+
+
+            $cpo = new CustomerPurchaseOrder();
+            $cpo->number = $request->number;
+            $cpo->date = $request->date;
+            $cpo->description = $request->description;
+            $cpo->subtotal = $request->subtotal;
+            $cpo->ppn = $request->ppn;
+            $cpo->ppn_value = $request->ppn_value;
+            $cpo->ppn_amount = $request->ppn_amount;
+            $cpo->pph23 = $request->pph23;
+            $cpo->pph23_value = $request->pph23_value;
+            $cpo->pph23_amount = $request->pph23_amount;
+            $cpo->other_cost = $request->other_cost;
+            $cpo->other_cost_description = $request->other_cost_description;
+            $cpo->total = $request->total;
+             $cpo->source = 'quotation';
+            $cpo->customer_id = 0;
+            $cpo->save();
+
+            // $items = collect($request->items)->map(function ($item) use ($cpo) {
+            //     return [
+            //         'customer_purchase_order_id' => $cpo->id,
+            //         'code' => $item['code'],
+            //         'name' => $item['name'],
+            //         'description' => $item['description'],
+            //         'delivery_date' => $item['deliveryDate'],
+            //         'quantity' => $item['quantity'],
+            //         'price' => $item['price'],
+            //         'amount' => $item['amount'],
+            //         'tax_code' => $item['taxCode'],
+            //         'created_at' => Carbon::now()->toDateTimeString(),
+            //         'updated_at' => Carbon::now()->toDateTimeString(),
+            //     ];
+            // })->all();
+
+                 $keyedQuotations = collect($request->items)->mapWithKeys(function ($item) use($cpo) {
+            return [
+                $item['id']=>[
+                    	
+                    'customer_purchase_order_id' => $cpo->id,
+               
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+
+                ]
+                  
+            ];
+        })->all();
+             $cpo->eventQuotations()->attach($keyedQuotations);
+
+            
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $cpo,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'1',
+            ], 500);
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      *
@@ -302,7 +474,38 @@ class CustomerPurchaseOrderController extends Controller
      */
     public function destroy($id)
     {
-        //
+           DB::beginTransaction();
+        $customerPurchaseOrder=CustomerPurchaseOrder::findOrFail($id);
+        try{
+            if ($customerPurchaseOrder->source=="quotation"){
+                $customerPurchaseOrder->eventQuotations()->detach();
+            $customerPurchaseOrder->delete();
+
+             DB::commit();
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' =>[],
+            ]);
+
+            }else{
+                  $customerPurchaseOrder->delete();
+                
+            }
+            
+         
+            
+        }catch(Exception $e){
+             DB::rollBack();
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'1',
+            ], 500);
+
+        }
     }
 
     /**
@@ -341,4 +544,71 @@ class CustomerPurchaseOrderController extends Controller
         $mpdf->WriteHTML($html);
         $mpdf->Output();
     }
+    //customer Purchase order quotati'
+
+    public function createQuotation(){
+       
+        
+
+        return view('customer-purchase-order.quotation.create', [
+           
+        ]);
+
+    }
+
+    public function editQuotation($id){
+       // return $id;
+
+        $customerPurchaseOrder=CustomerPurchaseOrder::with(['eventQuotations.customer','eventQuotations.picEvent'])->findOrFail($id);
+       // return $customerPurchaseOrder->eventQuotations;
+        return view('customer-purchase-order.quotation.edit', [
+            "customer_purchase_order"=>$customerPurchaseOrder,
+            "selected_data"=>$customerPurchaseOrder->eventQuotations,
+            "id"=>$id
+        ]);
+
+
+    }
+    
+    
+
+      public function datatablesQuotations(Request $request)
+    {
+    
+            
+        $customerId = $request->query('customer_id');
+        // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
+        $quotations = EventQuotation::with(['items','subItems' , 'picEvent','picPo','customer','poQuotation','customerPurchaseOrder'])
+       
+       
+        ->get();
+        //return $quotations;
+
+        return DataTables::of($quotations)
+            ->addIndexColumn()
+            ->addColumn('bastRemaining',function(EventQuotation $quotation){
+                return $quotation->netto - $quotation->total_bast;
+            })
+            ->addColumn('action', function ($row) {
+                if (count($row->customerPurchaseOrder) > 0) {
+                  
+                     $content = '<button class="btn btn-light-success"><i class="flaticon2-check-mark"></i></button>';
+                   
+                } else {
+                   
+                     $content = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                  
+                }
+                return $content;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+
+
+
 }
+
+
+  

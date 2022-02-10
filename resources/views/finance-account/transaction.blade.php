@@ -62,9 +62,9 @@
                     <i class="flaticon2-arrow-down icon-2x text-success font-weight-bold"></i>
                 </span>
                 <div class="d-flex flex-column text-dark-50">
-                    <span class="font-weight-bolder font-size-sm">Total In</span>
+                    <span class="font-weight-bolder font-size-sm">Total Debit</span>
                     <span class="font-weight-bolder font-size-h5">
-                        @{{ currencyFormat(totalIn) }}
+                        @{{ currencyFormat(debit) }}
                     </span>
                     <!-- <span class="text-dark-50 font-weight-bold">Pcs</span></span> -->
                 </div>
@@ -76,9 +76,9 @@
                     <i class="flaticon2-arrow-up icon-2x text-danger font-weight-bold"></i>
                 </span>
                 <div class="d-flex flex-column text-dark-50">
-                    <span class="font-weight-bolder font-size-sm">Total Out</span>
+                    <span class="font-weight-bolder font-size-sm">Total Credit</span>
                     <span class="font-weight-bolder font-size-h5">
-                        @{{ currencyFormat(totalOut) }}
+                        @{{ currencyFormat(credit) }}
                     </span>
                     <!-- <span class="text-dark-50 font-weight-bold">Pcs</span></span> -->
                 </div>
@@ -92,7 +92,7 @@
                 <div class="d-flex flex-column text-dark-50">
                     <span class="font-weight-bolder font-size-sm">Saldo</span>
                     <span class="font-weight-bolder font-size-h5">
-                        @{{ currencyFormat(totalIn - totalOut) }}
+                        @{{ currencyFormat(debit - credit) }}
                     </span>
                     <!-- <span class="text-dark-50 font-weight-bold">Pcs</span></span> -->
                 </div>
@@ -105,18 +105,26 @@
                 <tr class="text-center">
                     <th>Tanggal</th>
                     <th>Deskripsi</th>
-                    <th>In</th>
-                    <th>Out</th>
+                     <th>Note</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
                     <th>Saldo</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="transaction in transactions">
+
+                <tr v-for="transaction in account.account_transactions">
+
+                 
+              
                     <td style="width: 200px;">@{{ transaction.date }}</td>
                     <td>@{{ transaction.description }}</td>
-                    <td class="text-right">@{{ transaction.type == 'in' ? currencyFormat(transaction.amount) : '' }}</td>
-                    <td class="text-right">@{{ transaction.type == 'out' ? currencyFormat(transaction.amount) : '' }}</td>
-                    <td class="text-right">@{{ currencyFormat(transaction.balance) }}</td>
+                    <td>@{{ transaction.note }}</td>
+                    <td class="text-right">@{{ transaction.type == 'debit' ? currencyFormat(transaction.amount) : '' }}</td>
+                    <td class="text-right">@{{ transaction.type == 'credit' ? currencyFormat(transaction.amount) : '' }}</td>
+                    <td class="text-right">
+                    @{{transaction.type == 'debit'?balance=balance+transaction.amount:balance=balance-transaction.amount}}</td>
+                    
                 </tr>
             </tbody>
         </table>
@@ -136,6 +144,10 @@
         el: '#app',
         data: {
             transactions: [],
+            account:null,
+            balance:0,
+            debit:0,
+            credit:0,
             totalIn: 0,
             totalOut: 0,
             loading: true,
@@ -146,12 +158,13 @@
         methods: {
             getTransactions() {
                 let vm = this;
-                axios.get('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/accounts/{{ $id }}/transactions')
+                axios.get('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/account/{{ $id }}/transactions')
                     .then(res => {
-                        vm.transactions = res.data.data.transactions;
-                        vm.totalIn = res.data.data.total_in;
-                        vm.totalOut = res.data.data.total_out;
+                        vm.account = res.data.data;
+                        vm.debit = res.data.data.debit;
+                        vm.credit = res.data.data.credit;
                         vm.loading = false;
+                        console.log(res.data.data)
                     }).catch(err => {
                         console.log(err);
                         vm.loading(false);

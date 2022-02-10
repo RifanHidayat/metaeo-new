@@ -117,6 +117,10 @@
         </div>
     </div>
     <div style="margin-top: 10px; clear: both">
+
+    <!-- beignsales order -->
+    
+       @if($invoice->sales_order_id!=0)
         <table class="bordered-table" style="width: 100%">
             <thead>
                 <tr>
@@ -147,7 +151,7 @@
                     <td style="border: none; width: 100px;" colspan="5">
                         <span>Terbilang&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="text-transform: capitalize;"><?= $invoice->terbilang ?></span>
                     </td>
-                    <td style="text-align: right;">Total Sub :</td>
+                    <td style="text-align: right;">Subtotal :</td>
                     <td style="text-align: right;"><?= number_format($invoice->netto, 0, '', '.') ?></td>
                 </tr>
                 <tr>
@@ -174,6 +178,135 @@
                 </tr>
             </tfoot>
         </table>
+        @endif
+
+         @if($invoice->bast_id!=0)
+         @if ($invoice->bast->eventQuotation->type=="event")
+        <table class="bordered-table" style="width: 100%">
+            <thead>
+                <tr>
+                    <th style="width: 30px">No.</th>
+                    <th style="width: 70%;"  colspan="2">Description</th>
+                    <th>Total</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+               
+                <tr>
+                    <td style="text-align:center">1</td>
+                    <td colspan="2">Material -  {{$invoice->bast->eventQuotation->title}}</td>
+                    <td align="right" class="text-right" style="width: 20%;"><?= number_format($invoice->material, 0, '', '.') ?></td>
+                    
+                </tr>
+                   <tr>
+                    <td style="text-align:center">2</td>
+                    <td   colspan="2">Jasa - ASF</td>
+                    <td align="right" ><?= number_format($invoice->asf, 0, '', '.') ?></td>
+                   
+                    
+                </tr>
+               
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td style="border: none; width: 100px;" colspan="2">
+                        <span>Terbilang&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="text-transform: capitalize;"><?= $invoice->terbilang ?></span>
+                    </td>
+                   
+                    
+                    <td style="text-align: right;">Diskon :</td>
+                    <td style="text-align: right;"><?= number_format($invoice->discount, 0, '', '.') ?></td>
+                    
+                </tr>
+                <tr>
+                    <td style="border: none;" colspan="2"></td>
+                     <td style="text-align: right;">netto :</td>
+                    <td style="text-align: right;"><?= number_format($invoice->netto, 0, '', '.') ?></td>
+                </tr>
+                <tr>
+                    <td style="border: none;" colspan="2"></td>
+                    <td style="text-align: right;">PPN :</td>
+                    <td style="text-align: right;"><?= number_format($invoice->ppn, 0, '', '.') ?></td>
+                </tr>
+                <?php if ($invoice->pph > 0) : ?>
+                    <tr>
+                        <td style="border: none;" colspan="2"></td>
+                        <td style="text-align: right;">PPH 23 :</td>
+                        <td style="text-align: right;">(<?= number_format($invoice->pph, 0, '', '.') ?>)</td>
+                    </tr>
+                <?php endif; ?>
+                <tr>
+                    <td style="border: none;" colspan="2"></td>
+                    <td style="text-align: right;">Total Faktur :</td>
+                    <td style="text-align: right;"><?= number_format($invoice->total, 0, '', '.') ?></td>
+                </tr>
+            </tfoot>
+        </table>
+        @endif
+         @if ($invoice->bast->eventQuotation->type=="other")
+        <table class="bordered-table" style="width: 100%">
+            <thead>
+                <tr>
+                    <th style="width: 30px">No.</th>
+                    <th style="width: 10%;">Kode Barang</th>
+                    <th>Nama Barang</th>
+                    <th>Keterangan</th>
+                    <th>Qty</th>
+                    <th>Kts</th>
+                    <th>Harga Satuan</th>
+                    <th>Jumlah</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($invoice_items as $item)
+                <tr>
+                    <td style="text-align:center">{{ $loop->iteration }}</td>
+                    <td>{{ $item->number }}</td>
+                    <td style="width: 20%;">{{ $item->name }}</td>
+                    <td style="width: 20%;">{{ $item->description }}</td>
+                    <td style="text-align:center">{{$item->quantity}}</td>
+                    <td style="text-align:center">{{$item->frequency}}</td>
+                    <td style="text-align: right;"><?= number_format($item->price, 0, '', '.') ?></td>
+                    <td style="text-align: right;"><?= number_format($item->subtotal , 0, '', '.') ?></td>
+                </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td style="border: none; width: 100px;" colspan="6">
+                        <span>Terbilang&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="text-transform: capitalize;"><?= $invoice->terbilang ?></span>
+                    </td>
+                    <td style="text-align: right;">Subtotal :</td>
+                    <td style="text-align: right;"><?= number_format($invoice->netto, 0, '', '.') ?></td>
+                </tr>
+                <tr>
+                    <td style="border: none;" colspan="6"></td>
+                    <td style="text-align: right;">Diskon :</td>
+                    <td style="text-align: right;"><?= number_format($invoice->discount, 0, '', '.') ?></td>
+                </tr>
+                <tr>
+                    <td style="border: none;" colspan="6"></td>
+                    <td style="text-align: right;">PPN :</td>
+                    <td style="text-align: right;"><?= number_format($invoice->ppn, 0, '', '.') ?></td>
+                </tr>
+                <?php if ($invoice->pph > 0) : ?>
+                    <tr>
+                        <td style="border: none;" colspan="6"></td>
+                        <td style="text-align: right;">PPH 23 :</td>
+                        <td style="text-align: right;">(<?= number_format($invoice->pph, 0, '', '.') ?>)</td>
+                    </tr>
+                <?php endif; ?>
+                <tr>
+                    <td style="border: none;" colspan="6"></td>
+                    <td style="text-align: right;">Total Faktur :</td>
+                    <td style="text-align: right;"><?= number_format($invoice->total, 0, '', '.') ?></td>
+                </tr>
+            </tfoot>
+        </table>
+        @endif
+        @endif
+
     </div>
     <!-- <p>Terbilang: Dua Puluh Ribu Rupiah</p> -->
     <div class="footer" style=" margin-top: 5px">

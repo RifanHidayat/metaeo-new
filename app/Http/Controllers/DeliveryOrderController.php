@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bast;
 use App\Models\Company;
 use App\Models\DeliveryOrder;
+use App\Models\DeliveryOrderOtherQuotationItem;
+use App\Models\OtherQuotationItem;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use App\Models\V2SalesOrder;
@@ -26,12 +29,26 @@ class DeliveryOrderController extends Controller
     {
         return view('delivery-order.index');
     }
+       private function formatDate($date = "", $format = "Y-m-d")
+    {
+        return date_format(date_create($date), $format);
+    }
 
     public function indexData()
     {
-        $deliveryOrders = DeliveryOrder::with(['v2SalesOrder'])->select('delivery_orders.*');
+        $deliveryOrders = DeliveryOrder::with(['v2SalesOrder','bast'])->select('delivery_orders.*');
         return DataTables::eloquent($deliveryOrders)
             ->addIndexColumn()
+              ->addColumn('source_number',function($row){
+                if ($row->sales_order_id!==0){
+                    return $row->v2SalesOrder==null?"":$row->v2SalesOrder->number;
+
+                }else{
+                        return $row->bast==null?"":$row->bast->number;
+
+                }
+
+            })
             // ->addColumn('quotation_number', function (DeliveryOrder $deliveryOrder) {
             //     return $deliveryOrder->quotations->map(function ($quotation) {
             //         return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
@@ -171,6 +188,7 @@ class DeliveryOrderController extends Controller
      */
     public function store(Request $request)
     {
+        return $request->all();
         $deliveryOrder = new DeliveryOrder;
         // $deliveryOrder->number = $request->number;
         $deliveryOrder->number = getRecordNumber(new DeliveryOrder, 'DO');
@@ -182,11 +200,12 @@ class DeliveryOrderController extends Controller
         $deliveryOrder->billing_address = $request->billing_address;
         $deliveryOrder->shipping_address = $request->shipping_address;
         $deliveryOrder->sales_order_id = $request->sales_order_id;
+        $deliveryOrder->bast_id=$request->id;
 
         $quotations = $request->selected_quotations;
 
         try {
-            $deliveryOrder->save();
+            //$deliveryOrder->save();
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Internal error',
@@ -211,7 +230,7 @@ class DeliveryOrderController extends Controller
         });
 
         try {
-            $deliveryOrder->quotations()->attach($keyedQuotations);
+          //  $deliveryOrder->quotations()->attach($keyedQuotations);
         } catch (Exception $e) {
             $deliveryOrder->delete();
             return response()->json([
@@ -259,21 +278,24 @@ class DeliveryOrderController extends Controller
     public function storeV2(Request $request)
     {
 
-        $deliveryOrderWithNumber = DeliveryOrder::where('number', $request->number)->first();
-        if ($deliveryOrderWithNumber !== null) {
-            return response()->json([
-                'message' => 'number or code already used',
-                'code' => 400,
-                // 'errors' => $/e,
-            ], 400);
-        }
+        // $deliveryOrderWithNumber = DeliveryOrder::where('number', $request->number)->first();
+        // if ($deliveryOrderWithNumber !== null) {
+        //     return response()->json([
+        //         'message' => 'number or code already used',
+        //         'code' => 400,
+        //         // 'errors' => $/e,
+        //     ], 400);
+        // }
+
+        $transactionsByCurrentDateCount = DeliveryOrder::query()->where('date', $request->date)->get()->count();
+        $number = 'DO'.'' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '-' . sprintf('%05d', $transactionsByCurrentDateCount + 1);
 
         DB::beginTransaction();
 
         try {
             $deliveryOrder = new DeliveryOrder;
             // $deliveryOrder->number = $request->number;
-            $deliveryOrder->number = $request->number;
+            $deliveryOrder->number = $number;
             $deliveryOrder->date = $request->date;
             $deliveryOrder->customer_id = $request->customer_id;
             $deliveryOrder->warehouse = $request->warehouse;
@@ -283,6 +305,7 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->shipping_address = $request->shipping_address;
             $deliveryOrder->sales_order_id = $request->sales_order_id;
             $deliveryOrder->description = $request->description;
+            $deliveryOrder->bast_id=$request->bast_id;
 
             $source = $request->source;
 
@@ -309,6 +332,24 @@ class DeliveryOrderController extends Controller
             } else if ($source == 'purchase_order') {
                 $deliveryOrder->cpoItems()->attach($newItems);
             }
+
+             $items = collect($request->delivery_items)->map(function ($item) use ($deliveryOrder) {
+                return [
+                    'delivery_order_id' => $deliveryOrder->id,
+                    'number' => $item['number'],
+                    'name' => $item['name'],
+                    'description' => $item['description'],
+                    'quantity' => $item['quantity'],
+                    'frequency' => $item['frequency'],
+                    'unit' => $item['unit'],
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ];
+            })->all();
+
+            
+
+            DB::table('delivery_order_other_quotation_items')->insert($items);
 
 
             DB::commit();
@@ -553,6 +594,7 @@ class DeliveryOrderController extends Controller
                 $quotationRow->shipped = $quotationRow->shipped - $quotation->pivot->amount;
                 $quotationRow->save();
             }
+             DB::table('delivery_order_other_quotation_items')->where('delivery_order_id', $id)->delete();
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Internal error',
@@ -609,7 +651,16 @@ class DeliveryOrderController extends Controller
     {
         $deliveryOrder = DeliveryOrder::with(['v2SalesOrder' => function ($query) {
             $query->with(['v2Quotation', 'customerPurchaseOrder']);
-        }, 'cpoItems', 'v2QuotationItems'])->findOrFail($id);
+        }, 'cpoItems', 'v2QuotationItems','bast','bast.eventQuotation','bast.eventQuotation.poQuotation'])->findOrFail($id);
+
+        $deliveryOrderOtherQuotationItem=DeliveryOrderOtherQuotationItem::where('delivery_order_id',$id)->get();
+
+       // return $deliveryOrder;
+        //return $deliveryOrder;
+       //return $deliveryOrderOtherQuotationItem;
+    //   return
+
+ 
 
         $company = Company::all()->first();
 
@@ -634,6 +685,7 @@ class DeliveryOrderController extends Controller
         $html = view('delivery-order.v2.print', [
             'delivery_order' => $deliveryOrder,
             'company' => $company,
+            'items'=>$deliveryOrderOtherQuotationItem
         ]);
 
         // return $jobOrder;
@@ -667,6 +719,46 @@ class DeliveryOrderController extends Controller
                 return $button;
             })
             ->rawColumns(['action'])
+            ->make(true);
+    }
+       public function datatablesBast(Request $request)
+    {
+        $otherQuotationItems=OtherQuotationItem::all();
+        $otherQuotationItems=collect($otherQuotationItems)->each(function($item){
+          
+            $item['description']="";
+            $item['number']="";
+            $item['unit']="";
+        });
+          $basts = Bast::with(['eventQuotation','eventQuotation.poQuotation','deliveryOrder'])->select('basts.*')->get();
+          $basts=collect($basts)->each(function($bast) use ($otherQuotationItems){
+            $items=collect($otherQuotationItems)->filter(function($item) use ($bast){
+                return $item->event_quotation_id==$bast->event_quotation_id;
+            })->values()->all();
+            $bast['other_quotation_items']=$items;
+        
+          })->where('eventQuotation.type','other');
+         // return $basts;
+
+        return DataTables::of($basts)
+            ->addIndexColumn()
+            ->addColumn('po_quotation_number',function($row){
+                return $row->eventQuotation->po_quotation_id==null?"":$row->eventQuotation->poQuotation->number;
+            })
+            ->addColumn('action', function ($row) {
+              
+
+                   if ($row->deliveryOrder==null){
+               $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+
+                }else{
+                      $button = '<button class="btn btn-light-success"><i class="flaticon2-check-mark"></i></button>';
+
+                }
+                return $button;
+            })
+            ->rawColumns(['action'])
+        
             ->make(true);
     }
 }

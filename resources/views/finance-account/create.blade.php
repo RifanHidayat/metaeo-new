@@ -42,6 +42,7 @@
 </div>
 @endsection
 
+
 @section('content')
 <div class="row" id="app">
     <div class="col-lg-12">
@@ -53,34 +54,115 @@
             <!--begin::Form-->
             <form class="form" autocomplete="off" @submit.prevent="submitForm">
                 <div class="card-body">
-                    <div class="form-group row">
+                 <div class="form-group row">
+                    
+                        <div class="col-lg-6">
+                            <label>Nomor Akun:</label>
+                            <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">@{{categoryId}} -</span>
+                                        </div>
+                                        <input type="text" v-model="number" id="number" class="form-control">
+                                    </div>
+                        </div>
                         <div class="col-lg-6">
                             <label>Nama:<span class="text-danger">*</span></label>
                             <input v-model="name" type="text" class="form-control" placeholder="Enter account's name" required>
-                            <span class="form-text text-muted">Please enter account's name</span>
-                        </div>
-                        <div class="col-lg-6">
-                            <label>Nomor Akun:</label>
-                            <input v-model="number" type="text" class="form-control" placeholder="Enter account's number">
-                            <span class="form-text text-muted">Please enter account's number (Optional)</span>
+                            <!-- <span class="form-text text-muted">Please enter account's name</span> -->
                         </div>
                     </div>
                     <div class="form-group row">
+                    
                         <div class="col-lg-6">
-                            <label>Saldo Awal:<span class="text-danger">*</span></label>
-                            <input v-model="balance" type="number" class="form-control text-right" placeholder="Enter account's initial balance">
-                            <span class="form-text text-muted">Please enter account's initial balance (Optional)</span>
-                        </div>
-                        <div class="col-lg-6">
-                            <label>Jenis Akun:</label>
-                            <select v-model="type" class="form-control">
-                                <option value="all">Semua</option>
-                                <option value="eo">Event Organizer</option>
-                                <option value="metaprint">Metaprint</option>
+                            <label>Category:</label>         
+                            <select v-model="categoryId" class="form-control" @change="onChanged($event)">
+                                <option value="1"  selected>Asset</option>
+                                <option value="2">Liability</option>
+                                <option value="3">Equity</option>
+                                <option value="4">Income</option>
+                                <option value="5">Cost of Sales</option>
+                                <option value="6">Expense</option>
+                                <option value="8">Other Income</option>
+                                <option value="9">Other Expense</option>
                             </select>
-                            <span class="form-text text-muted">Please enter account's type</span>
+                        </div>
+
+                            <div class="col-lg-6">
+                            <label>Type:</label>         
+                            <select v-model="type" class="form-control" @hanged="onChanged($event)" >
+                                <option value="header"  selected>Header</option>
+                                <option value="detail" v-if="account.length>0" >Detail</option>
+                              
+                              
+                            </select>
+                        </div>
+                         
+                            <!-- <span class="form-text text-muted">Please enter account's number (Optional)</span> -->
+                        </div>
+                         <div class="form-group row">
+                        <div class="col-lg-6">
+                        <label>Level:<span class="text-danger">*</span></label>
+                         <select v-model="level" class="form-control" @change="onChangeLevel($event)">
+                                <option v-if="type=='header' || account.length<=0"  value="1">Level 1</option>
+                                <option v-if="account.length >  0" value="2">Level 2</option>
+                                <option v-if="account.length >0"  value="3">Level 3</option>
+                                <option  v-if="account.length >0"  value="4">level 4</option>
+                             
+                            </select>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label>Tanggal:</label>
+                                   <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
+                                        </div>
+                                        <input type="text" v-model="date" id="date" class="form-control">
+                                    </div>
                         </div>
                     </div>
+                      <div class="form-group row">
+                    
+                        <div class="col-lg-6">
+                            <label>Saldo Awal:</label>
+                            <input v-model="initBalance" type="text"class="form-control" >
+                            <!-- <span class="form-text text-muted">Please enter account's number (Optional)</span> -->
+                        </div>
+                        <div class="col-lg-6">
+                            <label>Saldo Sekarang:<span class="text-danger">*</span></label>
+                            <input v-model="balance" type="text" class="form-control">
+                            <!-- <span class="form-text text-muted">Please enter account's name</span> -->
+                        </div>
+                    </div>
+                        <div class="form-group row">
+                        <div class="col-lg-12">
+                            <label>Parent:<span class="text-danger">*</span></label>
+                             <select v-model="parentId" class="form-control">
+                                 <option v-for="account in accountLevels" :value="account.id">@{{account.name}}</option>
+                            </select>
+
+
+                        </div>
+
+                    
+                    </div>
+
+                      <div class="form-group row">
+                        <div class="col-lg-12">
+                            <label>Status:<span class="text-danger">*</span></label>
+                             <select v-model="status" class="form-control">
+                                <option value="1" selected>Active</option>
+                                <option value="0">In Active</option>
+                            </select>
+
+
+                        </div>
+
+                    
+                    </div>
+                    </div>
+                   
+                 
                     <!-- begin: Example Code-->
 
                     <!-- end: Example Code-->
@@ -91,7 +173,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                            <button type="submit" @click="sendData" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -163,9 +245,22 @@
         data: {
             name: '',
             number: '',
-            balance: '',
-            type: 'all',
+            balance: '0',
+            accountNumber:'0',
+            type:'',
+            level:'',
+            initBalance:'0',
+            category:'',
+            date:'',
+            parentId:'',
+            isActive:'1',
             loading: false,
+            account:[],
+            accounts:[],
+            accountLevels:[],
+            categories:[],
+            categoryId:'',
+            status:1
         },
         methods: {
             submitForm: function() {
@@ -173,12 +268,24 @@
             },
             sendData: function() {
                 // console.log('submitted');
+                //this.loading==false
+               
                 let vm = this;
                 vm.loading = true;
-                axios.post('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/accounts', {
+                
+                axios.post('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/account', {    
+                        number: `${this.categoryId}-${this.number}`,
                         name: this.name,
-                        number: this.number,
-                        init_balance: this.balance,
+                        date:this.date,
+                        type:this.type,
+                        level:this.level,
+                        init_balace:0,
+                        balance:0,
+                        parent_id:this.level==1?0:this.parentId,
+                        category_id:this.categoryId,
+                        is_active:this.isActive,
+                        account_number:"0",
+                        init_balance: 0,
                         type: this.type,
                     })
                     .then(function(response) {
@@ -193,40 +300,7 @@
                                 window.location.href = '/finance/account';
                             }
                         })
-                        // console.log(response);
-                        // const account = response.data.data;
-                        // const data = {
-                        //     date: '{{ date("Y-m-d") }}',
-                        //     description: 'Saldo Awal',
-                        //     amount: vm.balance,
-                        //     type: 'in',
-                        //     is_group: 0,
-                        //     account_id: account.id,
-                        // };
-                        // axios.post('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/account-transactions', data)
-                        //     .then(function(response) {
-                        //         vm.loading = false;
-                        //         Swal.fire({
-                        //             title: 'Success',
-                        //             text: 'Data has been saved',
-                        //             icon: 'success',
-                        //             allowOutsideClick: false,
-                        //         }).then((result) => {
-                        //             if (result.isConfirmed) {
-                        //                 // window.location.href = '/pic-po';
-                        //             }
-                        //         })
-                        //         // console.log(response);
-                        //     })
-                        //     .catch(function(error) {
-                        //         vm.loading = false;
-                        //         console.log(error);
-                        //         Swal.fire(
-                        //             'Oops!',
-                        //             'Something wrong',
-                        //             'error'
-                        //         )
-                        //     });
+                 
                     })
                     .catch(function(error) {
                         vm.loading = false;
@@ -237,8 +311,95 @@
                             'error'
                         )
                     });
+            },
+            onChanged:function(event){
+                this.categoryId=event.target.value;
+                this.getAccounts(this.categoryId)
+                this.onChangeAccountLevels();
+           
+            },
+            
+            onChangeLevel:function(event){
+                let level=event.target.value;
+                this.onChangeAccountLevels();
+
+             
+            
+
+            },
+            onChangeAccountLevels:function(){
+                let level=this.level;
+                   if (level==1){
+                
+                    this.accountLevels=[];
+                }
+                if (level==2){
+                    this.accountLevels=this.accounts.filter((item)=>{
+                    return item.level==1 &&  item.category_id==this.categoryId
+                })
+
+                }
+                if (level==3){
+                    this.accountLevels=this.accounts.filter((item)=>{
+                    return item.level==2 && item.category_id==this.categoryId
+                })
+
+                }
+                if (level==4){
+                    this.accountLevels=this.accounts.filter((item)=>{
+                    return item.level==3 && item.category_id==this.categoryId
+                })
+
+                }
+            },
+             getAccounts: async function(id) {
+                 await axios.get('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/account?category_id='+id)
+                 .then(response=>{
+                    this.account=response.data.data;
+                
+                 })
+                 .catch(e=>{
+
+                 })
+         
             }
-        }
+        },
+     async mounted(){
+         await axios.get('{{ env("MAGENTA_FINANCE_URL") }}/api/v1/account')
+         .then((response)=>{
+             this.accounts=response.data.data;      
+         }).catch(e=>{
+
+         });
+       
+         //get clasification
+
+         //get account
+
+    }
+    })
+</script>
+<script>
+   $(function() {
+        $('#date').datepicker({
+            format: 'yyyy-mm-dd',
+            todayBtn: false,
+            clearBtn: true,
+            todayHighlight: true,
+            orientation: "bottom left",
+        }).on('changeDate', function(e) {
+            app.$data.date = e.format(0, 'yyyy-mm-dd');
+        });
+
+        // $('#delivery-date').datepicker({
+        //     format: 'yyyy-mm-dd',
+        //     todayBtn: false,
+        //     clearBtn: true,
+        //     todayHighlight: true,
+        //     orientation: "bottom left",
+        // }).on('changeDate', function(e) {
+        //     app.$data.deliveryDate = e.format(0, 'yyyy-mm-dd');
+        // });
     })
 </script>
 @endsection

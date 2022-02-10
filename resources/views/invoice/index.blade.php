@@ -74,7 +74,7 @@
                 <tr class="text-center">
                     <th>Nomor Faktur</th>
                     <th>Tanggal Faktur</th>
-                    <th>Nomor SO</th>
+                    <th>Nomor SO/BAST</th>
                     <th>Unpaid</th>
                     <th>Action</th>
                 </tr>
@@ -167,8 +167,8 @@
                     }
                 },
                 {
-                    data: 'v2_sales_order.number',
-                    name: 'v2SalesOrder.number',
+                    data: 'source_number',
+                    name: 'source_number',
                     render: function(data, type, row) {
                         if (typeof data == "undefined") {
                             return "-";

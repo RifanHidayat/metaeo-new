@@ -74,6 +74,7 @@
                 <tr class="text-center">
                     <th>Nomor</th>
                     <th>Tanggal</th>
+                    <th>Nomor SO/BAST</th>
                     <th>Pengirim</th>
                     <th>Action</th>
                 </tr>
@@ -163,6 +164,16 @@
                     name: 'delivery_orders.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    }
+                },
+                  {
+                    data: 'source_number',
+                    name: 'source_number',
+                    render: function(data, type, row) {
+                        if (typeof data == "undefined") {
+                            return "-";
+                        }
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                 {

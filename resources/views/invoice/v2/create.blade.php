@@ -52,6 +52,7 @@
                 <div class="card-body">
                     <div class="my-3 text-right">
                         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#salesOrderModal"><i class="flaticon2-plus"></i> Pilih Sales Order</button>
+                         <button type="button" class="btn btn-success" data-toggle="modal" data-target="#bastModal"><i class="flaticon2-plus"></i> Pilih BAST</button>
                     </div>
                     <div v-if="!selectedData">
                         <p class="text-center">
@@ -60,6 +61,8 @@
                         <p class="text-center text-dark-50"><strong>Pilih sales order</strong></p>
                     </div>
                     <div v-if="selectedData">
+                    <!-- begin sales order -->
+                    <div v-if="selectedData.source!='bast'">
                         <div>
                             <div class="row">
                                 <div class="col-md-12 col-lg-6">
@@ -138,8 +141,83 @@
                                 </tbody>
                             </table>
                         </div>
+                        </div>
+                        <!-- end Sales Order -->
+
+                        <!-- begin bast -->
+                        <div v-if="selectedData.source=='bast'">
+                        <div>
+                            <div class="row">
+                                <div class="col-md-12 col-lg-6">
+                                    <div class="px-3 py-4 mb-3 rounded">
+                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> BAST <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 col-lg-4">
+                                    <table class="table">
+                                        <tr>
+                                            <td>Nomor BAST</td>
+                                            <td><strong>@{{ selectedData.data.number }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tanggal BAST</td>
+                                            <td><strong>@{{ selectedData.data.date }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Nominal</td>
+                                            <td><strong>@{{ selectedData.data.amount }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Pic Event</td>
+                                            <td><strong>@{{ selectedData.data.pic_event }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Jabatan</td>
+                                            <td><strong>@{{ selectedData.data.pic_event_position }}</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-12 col-lg-4">
+                                    <table class="table">
+                                        <tr>
+                                            <td>Nomor Quotation</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.number }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tanggal Quotation</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.date}}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Title</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.title}}</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-12 col-lg-4">
+                                    <table class="table">
+                                        <tr>
+                                            <td>Nomor PO</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.po_quotation.number }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tanggal PO</td>
+                                            <td><strong>@{{ selectedData.data.event_quotation.po_quotation.date }}</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>    
+                        </div>
+                        <!-- end bast -->                        
                     </div>
+
+
+                    <!-- sales order -->
                     <div v-if="selectedData" class="mt-20">
+                    <!-- begin sales order -->
+                    <div v-if="selectedData.source!='bast'">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="delivery-item-tab" data-toggle="tab" href="#delivery-item">
@@ -320,7 +398,7 @@
                                         <div class="form-group row">
                                             <label class="col-lg-4 col-form-label text-lg-right">Tanggal Faktur:</label>
                                             <div class="col-lg-8">
-                                                <input type="text" v-model="date" class="form-control invoice-date" placeholder="Masukkan tanggal faktur" required />
+                                                <input type="text" v-model="date" id="invoice-date"class="form-control invoice-date" placeholder="Masukkan tanggal faktur" required />
                                             </div>
                                         </div>
                                         <div class="form-group row">
@@ -386,7 +464,360 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
+                        <!-- end sales order -->
+
+                        
+                        <!-- begin bast -->
+                        <div v-if="selectedData.source=='bast'">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="delivery-item-tab" data-toggle="tab" href="#delivery-item">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">List Item&nbsp;<span class="label label-primary mr-2">@{{ selectedDeliveryOrders.length }}</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="info-tab" data-toggle="tab" href="#info">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">Info Invoice</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="other-tab" data-toggle="tab" href="#other">
+                                    <span class="nav-icon">
+                                        <i class="flaticon-signs-1"></i>
+                                    </span>
+                                    <span class="nav-text">Info Lainnya</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="delivery-item" role="tabpanel" aria-labelledby="delivery-item-tab">
+                                <div class="card card-custom card-border mt-5">
+                                    <div class="card-header">
+                                        <div class="card-title">
+                                            <h3 class="card-label">
+                                                List Quotation
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                       
+                                        <div>
+                                            <div class="row align-items-center" >
+                                                <div class="col-md-12 card card-custom gutter-b card-stretch card-border ribbon ribbon-top">
+                                                   
+                                                        <!--begin::User-->
+                                                        <div class="d-flex align-items-center my-7">
+                                                            <!--begin::Title-->
+                                                           
+                                                            <!--end::Title-->
+                                                        </div>
+                                                        <!--end::User-->
+                                                        <!--begin::Info-->
+                                                        <div class="mb-7">
+                                                            <div class="mt-5">
+
+                                                            <!-- quotaiton event -->
+                                                                <div v-if="selectedData.data.event_quotation.type=='event'">
+                                                                    <table class="table table-bordered">
+                                                                        <thead  class="bg-light">
+                                                                            <tr>
+                                                                                <th class="text-right" style="width: 5%;" >No</th>
+                                                                                <th style="width: 75%;">Description</th>
+                                                                                <th>Amount</th>
+                                                                                
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                      <tr>
+                                                                        <td>
+                                                                        1
+                                                                        </td>
+                                                                         <td>
+                                                                        Material - @{{selectedData.data.event_quotation.title}}
+                                                                        </td>
+                                                                          <td class="text-right">
+                                                                        @{{Intl.NumberFormat('de-DE').format(material) }}
+                                                                        </td>
+                                                                      </tr>
+
+                                                                        <tr>
+                                                                        <td>
+                                                                        2
+                                                                        </td>
+                                                                         <td>
+                                                                        Jasa - ASF
+                                                                        </td>
+                                                                          <td class="text-right">
+                                                                       @{{Intl.NumberFormat('de-DE').format(asf) }}
+                                                                        </td>
+                                                                      </tr>
+                                                                           
+                                                                           
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                                <!-- end quotation event -->
+
+                                                                <!-- begin quotation other -->
+                                                                      <div v-if="selectedData.data.event_quotation.type=='other'">
+                                                                    <table class="table table-bordered" style="width: 100%;">
+                                                                       
+                                                                       
+                                                                        <template  v-for="(item ,index) in invoiceItems" >
+                                                                         <thead  class="bg-light">
+                                                                            <tr>
+                                                                              <th class="text-left"  >#</th>
+                                                                                <th class="text-left"  >Kode</th>
+                                                                             
+                                                                                <th class="text-left" >Quantity</th>
+                                                                                <th class="text-left" >KTS</th>
+                                                                                  <th class="text-left" >Price</th>
+                                                                                <th class="text-left" >Subtotal</th>
+                                                                                
+                                                                                
+</tr>
+                                                                        </thead>
+                                                                         <tr>
+                                                                            <td rowspan="5">@{{Number(index)+1}}</td>
+                                                                            <td><input class="form-control text-left" v-model="item.number"></td>
+                                                                         
+                                                                             
+                                                                             <td><input class="form-control text-right" v-model="item.quantity" disabled></td>
+                                                                             <td><input class="form-control text-right"v-model="item.frequency" disabled></td>
+                                                                             <td><input class="form-control text-right"v-model="item.price" disabled></td>
+                                                                            <td><input class="form-control text-right"v-model="item.amount" disabled></td>
+                                                                    
+                                                                        </tr>
+                                                                        <tr class="bg-light">
+
+                                                                        <th class="text-left" colspan="6" >name</th>
+                                                                         
+                                                                        </tr>
+                                                                        <tr>
+                                                                        
+                                                                           <td colspan="6">
+                                                                            <textarea v-model="item.name" class="form-control" rows="4"></textarea>
+                                                                           
+                                                                           </td>
+                                                                        </tr>
+                                                                         <tr class="bg-light">
+
+                                                                        <th class="text-left" colspan="6" >Note</th>
+                                                                         
+                                                                        </tr>
+                                                                        <tr>
+                                                                        
+                                                                           <td colspan="6">
+                                                                            <textarea v-model="item.description" class="form-control" rows="1"></textarea>
+                                                                           
+                                                                           </td>
+                                                                        </tr>
+                                                                         <tr>
+                                                        <td colspan="6">
+                                                            <div style="height: 5px;" class="w-100 bg-gray-200"></div>
+                                                        </td>
+                                                    </tr>
+                                                                           
+                                                                        
+                                                                        </template>
+                                                                     
+                                                                           
+                                                                        
+                                                                    </table>
+                                                                </div>
+                                                                <!-- end quotation other -->
+
+                                                                
+                                                            </div>
+                                                        </div>
+                                                        <!--end::Info-->
+
+                                                    
+                                                    <!--end::Body-->
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="d-flex align-items-center flex-wrap">
+                                            <!--begin: Item-->
+                                            <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                <span class="mr-4">
+                                                    <i class="flaticon2-layers-1 icon-2x text-muted font-weight-bold"></i>
+                                                </span>
+                                                <div class="d-flex flex-column text-dark-75">
+                                                    <span class="font-weight-bolder font-size-sm">Subtotal</span>
+                                                    <span class="font-weight-bolder font-size-h5">
+                                                        <span class="text-dark-50 font-weight-bold">Rp </span>
+                                                        @{{ Intl.NumberFormat('de-DE').format(subtotal) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <!--end: Item-->
+                                            <!--begin: Item-->
+                                            <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                <span class="mr-4">
+                                                    <i class="flaticon2-pie-chart-4 icon-2x text-muted font-weight-bold"></i>
+                                                </span>
+                                                <div class="d-flex flex-column text-dark-75">
+                                                    <span class="font-weight-bolder font-size-sm">Diskon</span>
+                                                    <span class="font-weight-bolder font-size-h5">
+                                                        <span class="text-dark-50 font-weight-bold">Rp </span>
+                                                        (@{{ Intl.NumberFormat('de-DE').format(clearCurrencyMask(discount)) }})
+                                                    </span>
+                                                </div>
+                                            </div>
+                                               <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                <span class="mr-4">
+                                                    <i class="flaticon2-pie-chart-4 icon-2x text-muted font-weight-bold"></i>
+                                                </span>
+                                                <div class="d-flex flex-column text-dark-75">
+                                                    <span class="font-weight-bolder font-size-sm">Netto</span>
+                                                    <span class="font-weight-bolder font-size-h5">
+                                                        <span class="text-dark-50 font-weight-bold">Rp </span>
+                                                        @{{ Intl.NumberFormat('de-DE').format(clearCurrencyMask(netto)) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <!--end: Item-->
+                                            <!--begin: Item-->
+                                            <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                <span class="mr-4">
+                                                    <i class="flaticon2-file-1 icon-2x text-muted font-weight-bold"></i>
+                                                </span>
+                                                <div class="d-flex flex-column text-dark-75">
+                                                    <span class="font-weight-bolder font-size-sm">PPN</span>
+                                                    <span class="font-weight-bolder font-size-h5">
+                                                        <span class="text-dark-50 font-weight-bold">Rp </span>
+                                                        @{{ Intl.NumberFormat('de-DE').format(ppn) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <!--end: Item-->
+                                            <!--begin: Item-->
+                                            <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                <span class="mr-4">
+                                                    <i class="flaticon2-file-1 icon-2x text-muted font-weight-bold"></i>
+                                                </span>
+                                                <div class="d-flex flex-column text-dark-75">
+                                                    <span class="font-weight-bolder font-size-sm">PPH</span>
+                                                    <span class="font-weight-bolder font-size-h5">
+                                                        <span class="text-dark-50 font-weight-bold">Rp </span>
+                                                        (@{{ Intl.NumberFormat('de-DE').format(pph23) }})
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                <span class="mr-4">
+                                                    <i class="flaticon2-tag icon-2x text-muted font-weight-bold"></i>
+                                                </span>
+                                                <div class="d-flex flex-column text-dark-75">
+                                                    <span class="font-weight-bolder font-size-sm">Total</span>
+                                                    <span class="font-weight-bolder font-size-h5">
+                                                        <span class="text-dark-50 font-weight-bold">Rp </span>
+                                                        @{{ Intl.NumberFormat('de-DE').format(total) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <!--end: Item-->
+                                        </div>
+                                        <div class="alert alert-light font-weight-bold mt-7" role="alert">
+                                            @{{ terbilang == '' ? 'Nol Rupiah' : terbilang + ' Rupiah' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="info" role="tabpanel" aria-labelledby="info-tab">
+                                <div class="row justify-content-between mt-5">
+                                    <div class="col-lg-6 col-sm-12">
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Nomor Faktur:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="number" class="form-control" placeholder="Masukkan nomor faktur" required />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Tanggal Faktur:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="date" class="form-control invoice-date" placeholder="Masukkan tanggal faktur" required />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Tenggat Waktu:</label>
+                                            <div class="col-lg-8">
+                                                <div class="input-group mb-3">
+                                                    <div class="input-group-prepend">
+                                                        <select class="form-control" v-model="dueDateTerm" @change="onChangeDueDateSelect($event)" style="border-radius: 0.42rem 0 0 0.42rem;">
+                                                            <option value="custom">Custom</option>
+                                                            @for($i = 15; $i <= 90; $i +=15) <option value="{{ $i }}" :disabled="!date">{{ $i }} Hari</option>
+                                                                @endfor
+                                                        </select>
+                                                    </div>
+                                                    <input type="text" v-model="dueDate" class="form-control due-date" placeholder="Masukkan tanggal faktur" required />
+                                                </div>
+                                                <em v-if="!isDueDateValid" class="text-muted"><i class="flaticon-warning text-warning"></i> Tanggal tidak valid</em>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Seri Faktur Pajak:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="taxInvoiceSeries" class="form-control" placeholder="Masukkan seri faktur pajak" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-sm-12">
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Nomor GR:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="grNumber" class="form-control" disabled placeholder="Masukkan nomor GR" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Syarat Pembayaran:</label>
+                                            <div class="col-lg-8">
+                                                <input type="text" v-model="termsOfPayment" class="form-control" placeholder="Masukkan syarat pembayaran" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Diskon:</label>
+                                            <div class="col-lg-8">
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">Rp</span>
+                                                    </div>
+                                                    <input disabled type="text" v-model="discount" v-cleave="cleaveCurrency" class="form-control text-right placeholder-left" placeholder="Masukkan diskon" required />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="other" role="tabpanel" aria-labelledby="other-tab">
+                                <div class="row justify-content-between mt-5">
+                                    <div class="col-lg-6 col-sm-12">
+                                        <div class="form-group">
+                                            <label>Note:</label>
+                                            <div>
+                                                <textarea rows="5" v-model="note" class="form-control" placeholder="Masukkan note"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                        <!-- end bast -->
                     </div>
+                    <!-- end sales order -->
+                    
                 </div>
 
                 <div class="card-footer">
@@ -395,7 +826,7 @@
 
                         </div>
                         <div class="col-lg-6 text-lg-right">
-                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || selectedDeliveryOrders.length < 1 || !isDueDateValid">
+                            <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading || !isDueDateValid">
                                 Save
                             </button>
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -411,16 +842,45 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="salesOrderModalLabel">Pilih Sales Order</h5>
+                    <h5 class="modal-title" id="salesOrderModalLabel">Pilih Sales Orderr</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
+                   
                 </div>
                 <div class="modal-body">
                     <table class="table" id="sales-order-table">
                         <thead>
                             <th>Nomor</th>
                             <th>Tanggal</th>
+                            <th>Action</th>
+                        </thead>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="modal fade" id="bastModal" tabindex="-1" aria-labelledby="salesOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="salesOrderModalLabel">Pilih  BAST</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                   
+                </div>
+                <div class="modal-body">
+                    <table class="table" id="bast-table">
+                        <thead>
+                            <th>Nomor</th>
+                           
+                             <th>Nomor SO</th>
+                              <th>Tanggal</th>
                             <th>Action</th>
                         </thead>
                     </table>
@@ -462,7 +922,9 @@
         el: '#app',
         data: {
             quotations: [],
+            source:'',
             checkedQuotationsIds: [],
+            invoiceItems:[],
             number: '{{ $number }}',
             date: '',
             dueDate: '',
@@ -476,7 +938,17 @@
             picPoPosition: '',
             note: '',
             salesOrderId: '',
+            bastId:'',
             loading: false,
+            netto:'',
+            ppn:'',
+            pph23:'',
+            discount:'',
+            material:'',
+            asf:'',
+            subtotal:'',
+            total:'',
+
             cleaveCurrency: {
                 delimiter: '.',
                 numeralDecimalMark: ',',
@@ -496,6 +968,7 @@
                 vm.loading = true;
 
                 const data = {
+                    bast_id:vm.bastId,
                     number: vm.number,
                     date: vm.date,
                     due_date: vm.dueDate,
@@ -505,8 +978,8 @@
                     terms_of_payment: vm.termsOfPayment,
                     gr_number: vm.grNumber,
                     discount: vm.discount,
-                    pic_po: vm.picPo,
-                    pic_po_position: vm.picPoPosition,
+                    pic_po: vm.selectedData.data.pic_event,
+                    pic_po_position: vm.selectedData.data.pic_event_position,
                     note: vm.note,
                     netto: vm.netto,
                     ppn: vm.ppn,
@@ -514,6 +987,11 @@
                     total: vm.total,
                     terbilang: vm.terbilang,
                     sales_order_id: vm.salesOrderId,
+                    source:vm.source,
+                    invoice_items:vm.invoiceItems,
+                    material:vm.material,
+                    asf:vm.asf,
+               
                     // customer_id: vm.customerId,
                     selected_delivery_orders: vm.selectedDeliveryOrders,
                 }
@@ -528,7 +1006,7 @@
                             allowOutsideClick: false,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // window.location.href = '/customer';
+                                 window.location.href = '/invoice';
                             }
                         })
                         // console.log(response);
@@ -837,7 +1315,10 @@
 
         $('#sales-order-table tbody').on('click', '.btn-choose', function() {
             const data = salesOrdersTable.row($(this).parents('tr')).data();
+            console.log(data)
             app.$data.salesOrderId = data.id;
+            app.$data.bastId=0
+            app.$data.source=data.source
             app.$data.selectedData = {
                 data,
                 source: data.source,
@@ -853,6 +1334,99 @@
 
 
         $('.invoice-date').datepicker({
+            format: 'yyyy-mm-dd',
+            todayBtn: false,
+            clearBtn: true,
+            todayHighlight: true,
+            orientation: "bottom left",
+        }).on('changeDate', function(e) {
+            app.$data.date = e.format(0, 'yyyy-mm-dd');
+        });
+
+        $('.due-date').datepicker({
+            format: 'yyyy-mm-dd',
+            todayBtn: false,
+            clearBtn: true,
+            todayHighlight: true,
+            orientation: "bottom left",
+        }).on('changeDate', function(e) {
+            app.$data.dueDateTerm = 'custom';
+            app.$data.dueDate = e.format(0, 'yyyy-mm-dd');
+        });
+    })
+</script>
+
+<script>
+    $(function() {
+        bast = $('#bast-table').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            ajax: '/datatables/v2/invoices/bast',
+            columns: [{
+                    data: 'number',
+                    name: 'number',
+                    render: function(data, type) {
+                        return `<a href="#">${data}</a>`;
+                    }
+                },
+                {
+                    data: 'v2_sales_order_item.v2_sales_order.number',
+                    name: 'so'
+                },
+                {
+                    data:'date',
+                    name:'date'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false,
+                     render:function(data,type){
+                        return `<div class="text-center">${data}</div>`                    }
+                
+                
+                },
+            ]
+        });
+
+        $('#bast-table tbody').on('click', '.btn-choose', function() {
+            const data = bast.row($(this).parents('tr')).data();
+             app.$data.salesOrderId = 0;
+            let division=data.amount/Number(data.event_quotation.netto)
+            app.$data.grNumber=data.gr_number;
+            app.$data.bastId=data.id
+            app.$data.source="bast"
+            app.$data.asf =Math.round(division * data.event_quotation.asf);
+            app.$data.netto=Math.round(division *data.event_quotation.netto);
+            app.$data.discount=Math.round(division *data.event_quotation.discount);
+            app.$data.ppn=Math.round(division * data.event_quotation.ppn_amount);
+            app.$data.pph23=Math.round(division * data.event_quotation.pph23_amount)
+            app.$data.total=Math.round(division * data.event_quotation.total);
+            app.$data.selectedData = {
+                data,
+                source: 'bast',
+            };
+
+            if (data.event_quotation.type=="event"){
+             app.$data.material=Math.round(Number(division) * ((data.event_quotation.commissionable_cost)+ (data.event_quotation.nonfee_cost)))
+             app.$data.subtotal=app.$data.asf+app.$data.material;
+           
+            }else{
+            app.$data.invoiceItems={
+                ...data.other_quotation_items
+            }
+            app.$data.subtotal=division*data.event_quotation.subtotal;
+
+
+            }
+           
+            $('#bastModal').modal('hide');
+        });
+
+
+        $('#invoice-date').datepicker({
             format: 'yyyy-mm-dd',
             todayBtn: false,
             clearBtn: true,

@@ -23,4 +23,8 @@ class CustomerPurchaseOrder extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+             public function eventQuotations()
+    {
+        return $this->belongsToMany(EventQuotation::class)->withPivot('event_quotation_id', 'customer_purchase_order_id');
+    }
 }

@@ -71,10 +71,11 @@
         <!--begin: Datatable-->
         <table class="table datatable datatable-bordered datatable-head-custom" id="quotation-table">
             <thead>
-                <tr class="text-center">
+                <tr class="text-left">
                     <th>Number</th>
                     <th>Tanggal</th>
-                    <th>Action</th>
+                      <th>Source</th>
+                    <th class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -165,6 +166,13 @@
                     },
                     className: 'text-center',
                 },
+               {
+                    data: 'source',
+                    name: 'customer_purchase_orders.source',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75">${data=="quotation"?"Quotation Event":"Quotation Metaprint"}</div>`;
+                    }
+                },
                 {
                     data: 'action',
                     name: 'action',
@@ -191,7 +199,7 @@
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true,
                 preConfirm: () => {
-                    return axios.delete('/quotation/' + id)
+                    return axios.delete('/customer-purchase-order/' + id)
                         .then(function(response) {
                             console.log(response.data);
                         })

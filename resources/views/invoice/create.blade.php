@@ -274,7 +274,7 @@
                         <div class="card-body">
                             <div v-if="quotations.length < 1" class="text-center">
                                 <i class="flaticon2-open-box icon-4x"></i>
-                                <p class="text-muted">Belum ada quotation terpilih</p>
+                                <p class="text-muted">Belum ada quotation terpilihh</p>
                             </div>
                             <div>
                                 <div class="row align-items-center" v-for="(quotation, index) in quotations" :key="quotation.id" :quotation="quotation">

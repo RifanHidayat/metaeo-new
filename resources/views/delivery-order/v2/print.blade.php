@@ -120,9 +120,9 @@
         <!-- <div style="float: left; width: 45%;"> -->
         <div style="width: 100%;">
             <div style="float: left; width: 45%;">
-                <table class="bordered-table">
+                <table class="bordered-table" style="width: 100%;">
                     <tr>
-                        <th>Tagihan Ke</th>
+                        <th align="left" >Tagihan Ke</th>
                     </tr>
                     <tr>
                         <td><?= $delivery_order->billing_address ?></td>
@@ -132,9 +132,9 @@
             <!-- </div> -->
             <!-- <div style="float: right; width: 45%; margin-left: 20px;"> -->
             <div style="float: right; width: 45%;">
-                <table class="bordered-table">
+                <table class="bordered-table" style="width: 100%;">
                     <tr>
-                        <th>Kirim Ke</th>
+                        <th align="left">Kirim Ke</th>
                     </tr>
                     <tr>
                         <td><?= $delivery_order->shipping_address ?></td>
@@ -146,6 +146,9 @@
     </div>
     <div style="width: 100%; height: 5px; clear: both;"></div>
     <div style="clear: both">
+
+    <!-- begin sales order -->
+      @if($delivery_order->sales_order_id!=0)
         <table class="bordered-table" style="width: 100%">
             <tr>
                 <th>No.</th>
@@ -171,11 +174,45 @@
                 <td class="text-center">{{ $item->pivot->code }}</td>
                 <td>{{ $item->pivot->description }}</td>
                 <td>{{ $item->pivot->information }}</td>
-                <td class="text-center">{{ number_format($item->pivot->amount, 0, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($item->pivot->amount, 0, ',', '.') }}</td>
                 <td class="text-center">{{ $item->pivot->unit }}</td>
             </tr>
             @endforeach
         </table>
+        @endif
+
+        <!-- end sales order -->
+
+         <!-- begin sales order -->
+      @if($delivery_order->bast_id!=0)
+        <table class="bordered-table" style="width: 100%">
+            <tr>
+                <th>No.</th>
+                <th>Kode Barang</th>
+                <th>Barang</th>
+                <th>Keterangan</th>
+                <th>Kts</th>
+                <th>Qty</th>
+                <th>Satuan</th>
+            </tr>
+            
+            @foreach($items as $item)
+            <tr>
+                <td class="text-right">{{ $loop->iteration }}</td>
+                <td class="text-left">{{ $item->number }}</td>
+                <td>{{ $item->name }}</td>
+                <td>{{ $item->description }}</td>
+                <td class="text-right">{{ $item->frequency }}</td>
+                <td class="text-right">{{ $item->quantity }}</td>
+                   <td class="text-center">{{ $item->unit }}</td>
+            </tr>
+            @endforeach
+        </table>
+        @endif
+
+        <!-- end sales order -->
+
+
     </div>
     <p style="margin-bottom: 0px"><strong><em>Barang diterima dalam keadaan baik dan cukup</em></strong></p>
     <div class="footer">

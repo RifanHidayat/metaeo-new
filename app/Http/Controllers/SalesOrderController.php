@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\PicEvent;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use Carbon\Carbon;
@@ -111,10 +112,12 @@ class SalesOrderController extends Controller
         $salesOrderNumber = 'SO-' . date('d') . date('m') . date("y") . sprintf('%04d', $salesOrdersByCurrentDateCount + 1);
 
         $customers = Customer::all();
+        $picEvents=PicEvent::all();
 
         return view('sales-order.create', [
             'sales_order_number' => $salesOrderNumber,
-            'customers' => $customers
+            'customers' => $customers,
+            'pic_event'=>$picEvents
         ]);
     }
 
@@ -126,6 +129,7 @@ class SalesOrderController extends Controller
      */
     public function store(Request $request)
     {
+      //  return "tes";
         $salesOrder = new SalesOrder;
         // $salesOrder->number = $request->number;
         $salesOrder->number = getRecordNumber(new SalesOrder, 'SO');

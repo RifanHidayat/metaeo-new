@@ -44,4 +44,7 @@ class Invoice extends Model
     {
         return $this->belongsTo(V2SalesOrder::class, 'sales_order_id');
     }
+    public function bast(){
+        return $this->belongsTo(Bast::class);
+    }
 }
