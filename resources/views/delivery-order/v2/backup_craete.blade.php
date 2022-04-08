@@ -121,14 +121,14 @@
                     <div v-if="selectedData" class="mt-20">
 
                      <!-- begin sales order -->
-                     <div v-if="selectedData.source=='metaprint'"  class="mt-20">
+                     <div v-if="selectedData.data.customer_purchase_order.source!='metaprint'"  class="mt-20">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="delivery-item-tab" data-toggle="tab" href="#delivery-item">
                                     <span class="nav-icon">
                                         <i class="flaticon-signs-1"></i>
                                     </span>
-                                    <span class="nav-text">Item Pengiriman META&nbsp;<span class="label label-primary mr-2">@{{ dataItems.length }}</span></span>
+                                    <span class="nav-text">Item Pengiriman&nbsp;<span class="label label-primary mr-2">@{{ dataItems.length }}</span></span>
 
                                 </a>
                             </li>
@@ -575,8 +575,7 @@
 
 
                     <!-- begin bast -->
-                    
-                     <div v-if="selectedData.source=='event'" class="mt-20">
+                     <div v-if="selectedData.data.customer_purchase_order.source=='event'" class="mt-20">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="delivery-item-tab" data-toggle="tab" href="#delivery-item">
@@ -970,7 +969,7 @@
 
 
                      <!-- begin other -->
-                        <div v-if="selectedData.source=='other'" class="mt-20">
+                        <div v-if="selectedData.data.customer_purchase_order.source=='other'" class="mt-20">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="delivery-item-tab" data-toggle="tab" href="#delivery-item">
@@ -982,7 +981,7 @@
                                 </a>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <a class="nav-link" id="goods-tab" data-toggle="tab" href="#info-item-event">
+                                <a class="nav-link" id="goods-tab" data-toggle="tab" href="#goods">
                                     <span class="nav-icon">
                                         <i class="flaticon-signs-1"></i>
                                     </span>
@@ -990,19 +989,11 @@
                                 </a>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <a class="nav-link" id="other-tab" data-toggle="tab" href="#info-other-other">
+                                <a class="nav-link" id="other-tab" data-toggle="tab" href="#other">
                                     <span class="nav-icon">
                                         <i class="flaticon-signs-1"></i>
                                     </span>
                                     <span class="nav-text">Info Lainnya</span>
-                                </a>
-                            </li>
-                              <li class="nav-item" role="presentation">
-                                <a class="nav-link" id="complete-tab" data-toggle="tab" href="#complete-other">
-                                    <span class="nav-icon">
-                                        <i class="flaticon-signs-1"></i>
-                                    </span>
-                                    <span class="nav-text">Riwayat Pengiriman&nbsp;
                                 </a>
                             </li>
                             <!-- <li class="nav-item" role="presentation">
@@ -1036,11 +1027,13 @@
                                                                       <div >
                                                                     <table class="table table-bordered" style="width: 100%;">
                                                                        
-                                                                             <template  v-for="(itemm ,index1) in eventQuotations" >
-                                                                                <thead>
+                                                                       
+                                                    
+                                                                             <template  v-for="(itemm ,index) in eventQuotations" >
+                                                                                      <thead>
                                                                                 <tr>
                                                                                 <th  colspan="5" class="text-left"  ><a href="#">#@{{itemm.number}}</th>
-                                                                                  <th class="align-middle text-center" style="width:20%;">
+                                                                                  <th class="align-middle text-center">
                                                                                 <div class="form-group col-md-4"  >
                                                                                 <label class="checkbox">
                                                                                     <input v-model="itemm.isShow" type="checkbox">
@@ -1051,11 +1044,10 @@
                                                                                     
                                                                            
                                                                             </thead> 
-                                                                            <template  v-for="(item ,index2) in itemm.other_quotation_items" >
+                                                                            <template  v-for="(item ,index) in itemm.other_quotation_items" >
                                                                         
                                                                             <template v-if="itemm.isShow==1 ">
-                                                                                <template v-if="Number(item.product_quantity-item.delivery_order_items.reduce((partialSum, a) => partialSum + a['frequency'], 0))>0">
-                                                                                      <thead  class="bg-light">
+                                                                                  <thead  class="bg-light">
                                                                             <tr>
                                                                               <th class="text-left"  >#</th>
                                                                                <th class="text-left"  >Kirim</th>
@@ -1070,11 +1062,11 @@
                                                                             </tr>
                                                                         </thead>
                                                                          <tr>
-                                                                            <td rowspan="6">@{{Number(index2)+1}}</td>
+                                                                            <td rowspan="5">@{{Number(index)+1}}</td>
                                                                             <td class="align-middle text-right">
                                                                                 <div class="form-group col-md-4"  >
                                                                                 <label class="checkbox">
-                                                                                    <input v-model="item.isSent" type="checkbox"  >
+                                                                                    <input v-model="is_checked" type="checkbox">
                                                                             <span></span>
                                                                            </label>
                                                                              </div>
@@ -1082,37 +1074,16 @@
                                                                             <td><input class="form-control text-left" v-model="item.number"></td>
                                                                          
                                                                              
-                                                                             <td><input class="form-control text-right" v-model="item.quantity" @input="validateQuantityItem(index1,index2)" >
-                                                                            </td>
+                                                                             <td><input class="form-control text-right" v-model="item.quantity" ></td>
 
 
-                                                                             <td><input class="form-control text-right"v-model="item.frequency" @input="validateFrequencyItem(index1,index2)">
-                                                                             
-                                                                            </td>
+                                                                             <td><input class="form-control text-right"v-model="item.frequency" ></td>
 
                                                                             
-                                                                            <td><input class="form-control text-left"v-model="item.unit" >
-                                                                            
-                                                                        
-                                                                        </td>
+                                                                            <td><input class="form-control text-left"v-model="item.unit" ></td>
                                                                     
                                                                         </tr>
-                                                                        <tr>
-                                                                            
-
-                                                                        <th class="text-left" ></th>
-                                                                        <th class="text-left" ></th>
-                                                                        <th class="text-left" >
-                                                                            <span class="text-danger">Sisa :@{{Number(item.product_quantity-item.delivery_order_items.reduce((partialSum, a) => partialSum + a['frequency'], 0))}}</span>
-                                                                        </th>
-                                                                        <th class="text-left" >
-                                                                            <span class="text-danger">Sisa :@{{Number(item.product_frequency-item.delivery_order_items.reduce((partialSum, a) => partialSum + a['frequency'], 0))}}</span>
-                                                                        </th>
-                                                                        <th class="text-left" ></th>
-                                                                         
-                                                                        </tr>
                                                                         <tr class="bg-light">
-                                                                            
 
                                                                         <th class="text-left" colspan="5" >name</th>
                                                                          
@@ -1141,8 +1112,6 @@
                                                             <div style="height: 5px;" class="w-100 bg-gray-200"></div>
                                                         </td>
                                                     </tr>
-                                                                                </template>
-                                                                          
                                                                             </template>  
                                                                        
                                                                            
@@ -1165,7 +1134,7 @@
                                     <!-- end::Estimations List -->
                                 </div>
                             </div>
-                            <div class="tab-pane" id="info-item-event" role="tabpanel" aria-labelledby="goods-tab">
+                            <div class="tab-pane" id="goods" role="tabpanel" aria-labelledby="goods-tab">
                                 <div class="row justify-content-between mt-5">
                                     <div class="col-lg-6 col-sm-12">
                                         <div class="form-group row">
@@ -1216,7 +1185,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tab-pane" id="info-other-other" role="tabpanel" aria-labelledby="other-tab">
+                            <div class="tab-pane" id="other" role="tabpanel" aria-labelledby="other-tab">
                                 <div class="mt-5">
                                     <div class="row">
                                         <div class="col-lg-6 col-md-12">
@@ -1228,116 +1197,137 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tab-pane" id="complete-other" role="tabpanel" aria-labelledby="complete-tab">
-                                      <div class="mt-5">
+                            <div class="tab-pane" id="complete" role="tabpanel" aria-labelledby="complete-tab">
+                                <div class="mt-5">
                                     <!-- begin::Estimations List -->
                                     <div class="card card-custom card-border">
                                         <div class="card-header">
                                             <div class="card-title">
                                                 <h3 class="card-label">
-                                                    Pengiriman selesai
+                                                    Pengiriman Selesai
                                                 </h3>
                                             </div>
                                         </div>
                                         <div class="card-body">
-                                            <!-- <div v-if="dataItems.length < 1" class="text-center">
+                                            <div v-if="dataItems.length < 1" class="text-center">
                                                 <i class="flaticon2-open-box icon-4x"></i>
                                                 <p class="text-muted">Tidak ada item</p>
-                                            </div> -->
+                                            </div>
                                             <div>
-                                                <!-- begin quotation other -->
-                                                                      <div >
-                                                                    <table class="table table-bordered" style="width: 100%;">
-                                                                       
-                                                                       
-                                                    
-                                                                             <template  v-for="(itemm ,index) in completedDeliveryOrders" >
-                                                                                      <thead>
-                                                                                <tr>
-                                                                                <th  colspan="6" class="text-left"  ><a href="#">#@{{itemm.number}}</th>
-                                                                                
-                                                                      </tr>
-                                                                                    
-                                                                           
-                                                                            </thead> 
-                                                                            <template  v-for="(item ,index) in  itemm.delivery_order_other_quotation_items" >
-                                                                        
-                                                                            <template >
-                                                                                  <thead  class="bg-light">
-                                                                            <tr>
-                                                                              <th class="text-left"  >#</th>
-                                                                               
-                                                                                <th class="text-left"  >Kode</th>
-                                                                             
-                                                                                <th class="text-left" >Quantity</th>
-                                                                                <th class="text-left" >KTS</th>
-                                                                                  
-                                                                                <th class="text-left" >Satuan</th>
-                                                                                
-                                                                                
-                                                                            </tr>
-                                                                        </thead>
-                                                                         <tr>
-                                                                            <td rowspan="5">@{{Number(index)+1}}</td>
-                                                                          
-                                                                            <td><input readonly class="form-control text-left" v-model="item.number" readonly></td>
-                                                                         
-                                                                             
-                                                                             <td><input class="form-control text-right" v-model="item.quantity"  readonly disavled></td>
-
-
-                                                                             <td><input class="form-control text-right"v-model="item.frequency"  readonly disavled></td>
-
-                                                                            
-                                                                            <td><input class="form-control text-left"v-model="item.unit"  readonly disavled></td>
-                                                                    
-                                                                        </tr>
-                                                                        <tr class="bg-light">
-
-                                                                        <th class="text-left" colspan="5" >name</th>
-                                                                         
-                                                                        </tr>
-                                                                        <tr>
-                                                                        
-                                                                           <td colspan="5">
-                                                                            <textarea v-model="item.name" class="form-control" rows="4" disavled></textarea>
-                                                                           
-                                                                           </td>
-                                                                        </tr>
-                                                                         <tr class="bg-light">
-
-                                                                        <th class="text-left" colspan="5" >Deskripsi</th>
-                                                                         
-                                                                        </tr>
-                                                                        <tr>
-                                                                        
-                                                                           <td colspan="5">
-                                                                            <textarea disavled v-model="item.description" class="form-control" rows="1"></textarea>
-                                                                           
-                                                                           </td>
-                                                                        </tr>
-                                                                         <tr>
-                                                        <td colspan="6">
-                                                            <div style="height: 5px;" class="w-100 bg-gray-200"></div>
-                                                        </td>
-                                                    </tr>
-                                                                            </template>  
-                                                                       
-                                                                           
-                                                                        
-                                                                        </template>
-                                                                         </template>
-                                                                     
-                                                                           
-                                                                        
-                                                                    </table>
+                                                <div class="row justify-content-between mb-10" v-for="(item, index) in deliveryHistoryItems" :key="item.id">
+                                                    <div class="col-md-12 col-lg-6 card card-custom gutter-b card-stretch card-border">
+                                                        <div class="card-body pt-4">
+                                                            <!--begin::User-->
+                                                            <div class="d-flex align-items-center my-7">
+                                                                <!--begin::Title-->
+                                                                <div class="d-flex flex-column">
+                                                                    <a href="#" class="text-dark font-weight-bold text-hover-primary font-size-h4 mb-0">@{{ item.code }} - @{{ item.name }}</a>
+                                                                    <span class="text-muted font-weight-bold">Tanggal Kirim: @{{ item.delivery_date }}</span>
                                                                 </div>
-                                                                <!-- end quotation other -->
-                                                
+                                                                <!--end::Title-->
+
+                                                            </div>
+                                                            <!--end::User-->
+                                                            <div>
+                                                                <p>
+                                                                    <i class="flaticon2-layers-2"></i>
+                                                                    <strong class="text-muted">Quantity</strong>
+                                                                    <span>&nbsp;:&nbsp;</span>
+                                                                    <strong>@{{ item.quantity }}</strong>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <!--end::Body-->
+                                                    </div>
+                                                    <div class="col-md-12 col-lg-6">
+                                                        <div class="timeline timeline-3">
+                                                            <div class="timeline-items">
+                                                                <div v-for="(deliveryOrder, index) in item.delivery_orders" class="timeline-item">
+                                                                    <div class="timeline-media">
+                                                                        <i class="flaticon2-box text-success"></i>
+                                                                    </div>
+                                                                    <div class="timeline-content">
+                                                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                                                            <div class="mr-2">
+                                                                                <a href="#" class="text-dark-75 text-hover-primary font-weight-bold">
+                                                                                    Delivery Order <span class="text-primary">#@{{ deliveryOrder.number }}</span>
+                                                                                </a>
+                                                                                <span class="text-muted ml-2">
+                                                                                    @{{ deliveryOrder.date }}
+                                                                                </span>
+                                                                                <span class="label label-light-success font-weight-bolder label-inline ml-2">Selesai</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <!-- <p class="p-0"> -->
+                                                                        <div class="row mb-3">
+                                                                            <div class="col-lg-6 col-md-12">
+                                                                                <span>Jumlah: </span>
+                                                                                <strong>@{{ deliveryOrder.pivot.amount }}</strong>
+                                                                            </div>
+                                                                            <div class="col-lg-6 col-md-12">
+                                                                                <span>Pengirim: </span>
+                                                                                <strong>@{{ deliveryOrder.shipper }}</strong>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <span>Alamat:</span>
+                                                                            <strong>@{{ deliveryOrder.shipping_address }}</strong>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <span>Catatan:</span>
+                                                                            <strong>@{{ deliveryOrder.description }}</strong>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- Here -->
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="card-footer">
-                                         
+                                            <div class="d-flex align-items-center flex-wrap">
+                                                <!--begin: Item-->
+                                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                    <span class="mr-4">
+                                                        <i class="flaticon2-layers-1 icon-2x text-muted font-weight-bold"></i>
+                                                    </span>
+                                                    <div class="d-flex flex-column text-dark-75">
+                                                        <span class="font-weight-bolder font-size-sm">Quantity</span>
+                                                        <span class="font-weight-bolder font-size-h5">
+                                                            @{{ Intl.NumberFormat('de-DE').format(totalQuantity) }}
+                                                            <span class="text-dark-50 font-weight-bold">Pcs</span></span>
+                                                    </div>
+                                                </div>
+                                                <!--end: Item-->
+                                                <!--begin: Item-->
+                                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                    <span class="mr-4">
+                                                        <i class="flaticon2-reload icon-2x text-muted font-weight-bold"></i>
+                                                    </span>
+                                                    <div class="d-flex flex-column text-dark-75">
+                                                        <span class="font-weight-bolder font-size-sm">Quantity Produksi</span>
+                                                        <span class="font-weight-bolder font-size-h5">
+                                                            @{{ Intl.NumberFormat('de-DE').format(totalProduced) }}
+                                                            <span class="text-dark-50 font-weight-bold">Pcs</span></span>
+                                                    </div>
+                                                </div>
+                                                <!--end: Item-->
+                                                <!--begin: Item-->
+                                                <div class="d-flex justify-content-center align-items-center flex-lg-fill mr-5 my-1">
+                                                    <span class="mr-4">
+                                                        <i class="flaticon2-lorry icon-2x text-muted font-weight-bold"></i>
+                                                    </span>
+                                                    <div class="d-flex flex-column text-dark-75">
+                                                        <span class="font-weight-bolder font-size-sm">Quantity Akan Dikirim</span>
+                                                        <span class="font-weight-bolder font-size-h5">
+                                                            @{{ Intl.NumberFormat('de-DE').format(totalShipping) }}
+                                                            <span class="text-dark-50 font-weight-bold">Pcs</span></span>
+                                                    </div>
+                                                </div>
+                                                <!--end: Item-->
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- end::Estimations List -->
@@ -1350,7 +1340,11 @@
 
 
                     </div>
-                     
+                   
+
+                    
+
+                
 
                 </div>
 
@@ -1531,8 +1525,7 @@
             description: '',
             materia:'',
             eventQuotation:null,
-            eventQuotations:[],
-            completedDeliveryOrders:[],
+            eventQuotations:[]
             
         },
         methods: {
@@ -1598,36 +1591,6 @@
             },
             showItem:function(index){
 
-
-            },
-            validateQuantityItem:function(quotationIndex,quotationItemIndex){
-               
-                var quantity=this.eventQuotations[quotationIndex].other_quotation_items[quotationItemIndex]['product_quantity']
-                 var cureentQuantity=this.eventQuotations[quotationIndex].other_quotation_items[quotationItemIndex]['quantity'];
-            
-                var max=Number(quantity-this.eventQuotations[quotationIndex].other_quotation_items[quotationItemIndex]['delivery_order_items'].reduce((partialSum, a) => partialSum + a['quantity'], 0))
-                console.log(max)
-                
-             
-                if (cureentQuantity>max){
-                    this.eventQuotations[quotationIndex].other_quotation_items[quotationItemIndex]['quantity']=max;
-           
-                }
-                
-               
-
-            },
-            validateFrequencyItem:function(quotationIndex,quotationItemIndex){
-                 var quantity=this.eventQuotations[quotationIndex].other_quotation_items[quotationItemIndex]['product_frequency'];
-                   var cureentFrequency=this.eventQuotations[quotationIndex].other_quotation_items[quotationItemIndex]['frequency'];
-                
-                var max=Number(quantity-this.eventQuotations[quotationIndex].other_quotation_items[quotationItemIndex]['delivery_order_items'].reduce((partialSum, a) => partialSum + a['frequency'], 0))
-                
-                
-                if (cureentFrequency>max){
-                    this.eventQuotations[quotationIndex].other_quotation_items[quotationItemIndex]['frequency']=max;
-           
-                }
 
             },
             validateShippingQuantity: function(quotation) {
@@ -1794,60 +1757,27 @@
 
         $('#sales-order-table tbody').on('click', '.btn-choose', function() {
             const data = salesOrdersTable.row($(this).parents('tr')).data();
-           
+            console.log("data",data.customer_purchase_order.source);
              app.$data.bastId=0
               app.$data.salesOrderId = data.id;
+
 
             let items = [];
             if (data.source == 'quotation') {
                 items = data.v2_quotation.items;
             } else if (data.source == 'purchase_order') {
             if (data.customer_purchase_order.source=='other'){
-               
-               app.$data.eventQuotations=data.customer_purchase_order.event_quotations;
-              
-              app.$data.eventQuotations=data.customer_purchase_order.event_quotations.filter(function(item) {
-                  return item.other_quotation_items.filter(function(otherItem){
-                      var dd=[];
-                       otherItem['delivery_order_items']=[];
-                       otherItem['product_quantity']=otherItem['quantity']
-                       otherItem['product_frequency']=otherItem['frequency']
-                       otherItem['quantity']=0
-                       otherItem['frequency']=0
+                console.log('data 1',data);
+                app.$data.eventQuotations=data.customer_purchase_order.event_quotations;
+                console.log(app.$data.eventQuotations);
 
-                        
-                     return otherItem.delivery_order.filter(function(item){
-                         return item.delivery_order_other_quotation_items.filter(function(item){
-                             if (item.other_quotation_item_id==otherItem.id){
-                                 
-                                 otherItem['delivery_order_items'].push(item)
-                               
-                      
-            
-                                 return item;
-                             }
-
-                         
-                         });
-                     })
-
-                   //  otherItem['tes']="tes";
-
-                  })
-
-
-               });
-               console.log("tes",app.$data.eventQuotations);
-               
-               app.$data.completedDeliveryOrders=data.delivery_orders;
-               
-               app.$data.selectedData = {
-               
+            app.$data.selectedData = {
                 data,
+                source: data.source,
+            };
+          //  console.log('da',app.$data.selectedData.data)
+
                
-                source: "other",
-              
-              };
 
 
             }else if (data.customer_purchase_order.source=='event'){
@@ -1879,7 +1809,7 @@
             
             app.$data.selectedData = {
                 data,
-                source: "event",
+                source: data.source,
             };
 
             }else{
@@ -1888,10 +1818,6 @@
                 app.$data.customerAddress = data.customer.address;
                 app.$data.billingAddress = data.customer.address;
                 app.$data.warehouses = data.customer.warehouses;
-                 app.$data.selectedData = {
-                data,
-                source: "metaprint",
-            };
             }
 
             data.items = items.map(item => {
@@ -1999,11 +1925,13 @@
             //   app.$data.invoiceItems={
             //     ...data.other_quotation_items
             // }
-            const data = bast.row($(this).parents('tr')).data();
- 
-
+                const data = bast.row($(this).parents('tr')).data();
+            
+       
+           
             const event_quotations=data.v2_sales_order.customer_purchase_order.event_quotations;
            
+
             var comissionable_cost=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['commissionable_cost']), 0)
              var netto=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['netto']), 0)
             var nonfee_cost=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['nonfee_cost']), 0)
@@ -2015,8 +1943,8 @@
             var subtotal=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['subtotal']), 0)
             
              app.$data.salesOrderId = 0;
-             
             let division=data.amount/Number(netto)
+            
             app.$data.grNumber=data.gr_number;
             app.$data.bastId=data.id
             app.$data.source="bast"
@@ -2030,26 +1958,16 @@
             app.$data.total=Math.round(division * total);
             app.$data.selectedData = {
                 data,
-                source: 'event',
+                source: 'bast',
                 event_quotations
             };
                
+
             if (data.type=="event"){
              app.$data.material=Math.round(Number((division) * ((comissionable_cost)+ (nonfee_cost))))
              app.$data.subtotal=app.$data.asf+app.$data.material;
-
-             app.$data.selectedData = {
-                data,
-                source: 'other',
-                event_quotations
-            };
            
             }else{
-                app.$data.selectedData = {
-                data,
-                source: 'metaprint',
-                event_quotations
-            };
                         app.$data.subtotal=Number(division)*Number(subtotal);
                
             // app.$data.invoiceItems={
@@ -2066,7 +1984,7 @@
 
            
            
-            
+            $
         });
 
 

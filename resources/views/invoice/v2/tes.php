@@ -641,8 +641,8 @@
                                                                     <table class="table table-bordered" style="width: 100%;">
                                                                        
                                                                        
-                                                                      
-                                                                             <template  v-for="(item ,index) in selectedData.data.delivery_orders.delivery_order_other_quotation_items" >
+                                                                        <template  v-for="(item ,index) in selectedData.event_quotations" >
+                                                                             <template  v-for="(item ,index) in item.other_quotation_items" >
                                                                          
                                                                         <thead  class="bg-light">
                                                                             <tr>
@@ -659,7 +659,7 @@
                                                                         </thead>
                                                                          <tr>
                                                                             <td rowspan="5">@{{Number(index)+1}}</td>
-                                                                            <td><input class="form-control text-left" v-model="item.name"></td>
+                                                                            <td><input class="form-control text-left" v-model="item.number"></td>
                                                                          
                                                                              
                                                                              <td><input class="form-control text-right" v-model="item.quantity" disabled></td>
@@ -699,7 +699,7 @@
                                                     </tr>
                                                                            
                                                                         </template>
-                                                                        
+                                                                        </template>
                                                                      
                                                                            
                                                                         
@@ -923,9 +923,7 @@
                                     <div class="card-header">
                                         <div class="card-title">
                                             <h3 class="card-label">
-                                                  Delivery Order <a href="#">
-                                                       #@{{selectedData.data.delivery_order.number}}
-                                                  </a>
+                                                List Quotation
                                             </h3>
                                         </div>
                                     </div>
@@ -989,11 +987,12 @@
                                                                 <!-- end quotation event -->
 
                                                                 <!-- begin quotation other -->
-                                                                      <div v-if="selectedData.source=='other'">
+                                                                      <div v-if="selectedData.data.type=='other'">
                                                                     <table class="table table-bordered" style="width: 100%;">
                                                                        
-
-                                                                             <template  v-for="(item ,index) in selectedData.data.delivery_order.delivery_order_other_quotation_items" >
+                                                                       
+                                                                        <template  v-for="(item ,index) in selectedData.event_quotations" >
+                                                                             <template  v-for="(item ,index) in item.other_quotation_items" >
                                                                          
                                                                         <thead  class="bg-light">
                                                                             <tr>
@@ -1010,13 +1009,13 @@
                                                                         </thead>
                                                                          <tr>
                                                                             <td rowspan="5">@{{Number(index)+1}}</td>
-                                                                            <td><input class="form-control text-left" v-model="item.number" disabled></td>
+                                                                            <td><input class="form-control text-left" v-model="item.number"></td>
                                                                          
                                                                              
                                                                              <td><input class="form-control text-right" v-model="item.quantity" disabled></td>
                                                                              <td><input class="form-control text-right"v-model="item.frequency" disabled></td>
-                                                                             <td><input class="form-control text-right"v-model="item.other_quotation_item.price" disabled></td>
-                                                                            <td><input class="form-control text-right"v-model="item.other_quotation_item.price*item.quantity*item.other_quotation_item.frequency"  disabled></td>
+                                                                             <td><input class="form-control text-right"v-model="item.price" disabled></td>
+                                                                            <td><input class="form-control text-right"v-model="item.amount" disabled></td>
                                                                     
                                                                         </tr>
                                                                         <tr class="bg-light">
@@ -1027,7 +1026,7 @@
                                                                         <tr>
                                                                         
                                                                            <td colspan="6">
-                                                                            <textarea v-model="item.name" class="form-control" rows="4" disabled></textarea>
+                                                                            <textarea v-model="item.name" class="form-control" rows="4"></textarea>
                                                                            
                                                                            </td>
                                                                         </tr>
@@ -1039,7 +1038,7 @@
                                                                         <tr>
                                                                         
                                                                            <td colspan="6">
-                                                                            <textarea v-model="item.description" class="form-control" rows="1" disabled></textarea>
+                                                                            <textarea v-model="item.description" class="form-control" rows="1"></textarea>
                                                                            
                                                                            </td>
                                                                         </tr>
@@ -1050,7 +1049,7 @@
                                                     </tr>
                                                                            
                                                                         </template>
-                                                                       
+                                                                        </template>
                                                                      
                                                                            
                                                                         
@@ -1691,7 +1690,7 @@
                             return [];
                         }
                     } else {
-                        return [];  
+                        return [];
                     }
                 } else {
                     return [];
@@ -1821,7 +1820,6 @@
 
         $('#bast-table tbody').on('click', '.btn-choose', function() {
             const data = bast.row($(this).parents('tr')).data();
-            
             const event_quotations=data.v2_sales_order.customer_purchase_order.event_quotations;    
             var comissionable_cost=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['commissionable_cost']), 0)
              var netto=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['netto']), 0)
@@ -1851,9 +1849,9 @@
 
             
             
-            var type=data.v2_sales_order.customer_purchase_order.source;
+               
 
-            if (type=="event"){
+            if (data.type=="event"){
              app.$data.material=Math.round(Number((division) * ((comissionable_cost)+ (nonfee_cost))))
              app.$data.subtotal=app.$data.asf+app.$data.material;
              app.$data.selectedData = {

@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 
+use function GuzzleHttp\Promise\each;
+
 class DeliveryOrderController extends Controller
 {
     /**
@@ -201,9 +203,9 @@ class DeliveryOrderController extends Controller
         $deliveryOrder->shipping_address = $request->shipping_address;
         $deliveryOrder->sales_order_id = $request->sales_order_id;
         $deliveryOrder->bast_id=$request->id;
-
         $quotations = $request->selected_quotations;
 
+        
         try {
             //$deliveryOrder->save();
         } catch (Exception $e) {
@@ -277,6 +279,8 @@ class DeliveryOrderController extends Controller
      */
     public function storeV2(Request $request)
     {
+       // return $request->event_quotations;
+        // return $request->event_quotations;
 
         // $deliveryOrderWithNumber = DeliveryOrder::where('number', $request->number)->first();
         // if ($deliveryOrderWithNumber !== null) {
@@ -286,6 +290,7 @@ class DeliveryOrderController extends Controller
         //         // 'errors' => $/e,
         //     ], 400);
         // }
+ 
 
         $transactionsByCurrentDateCount = DeliveryOrder::query()->where('date', $request->date)->get()->count();
         $number = 'DO'.'' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '-' . sprintf('%05d', $transactionsByCurrentDateCount + 1);
@@ -294,6 +299,7 @@ class DeliveryOrderController extends Controller
 
         try {
             $deliveryOrder = new DeliveryOrder;
+            $source=$request->source;
             // $deliveryOrder->number = $request->number;
             $deliveryOrder->number = $number;
             $deliveryOrder->date = $request->date;
@@ -308,12 +314,57 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->bast_id=$request->bast_id;
 
             $source = $request->source;
-
             $items = $request->selected_items;
+            
+
 
             $deliveryOrder->save();
 
-            $newItems = collect($items)->mapWithKeys(function ($item) {
+            if ($source=='event'){
+                
+            }else if ($source=="other"){
+                foreach ($request->event_quotations as $quotation){
+                    foreach($quotation['other_quotation_items'] as $item){
+                        if ( ($item['isSent']==true)){
+                            $item=[
+                                "number"=>$item['number'],
+                                  "unit"=>$item['unit'],
+                                "name"=>$item['name'],
+                                "quantity"=>$item['quantity'],
+                                "frequency"=>$item['frequency'],
+                                "description"=>$item['description'],
+                                "note"=>$item['note'],
+                                "delivery_order_id"=>$deliveryOrder->id,
+                                "other_quotation_item_id"=>$item['id'],
+                            ];
+                            DB::table('delivery_order_other_quotation_items')->insert($item);
+                        }
+                         
+                    }   
+                }
+
+            
+
+            //     $newItems = collect($quotations)->mapWithKeys(function ($item) {
+            //     return [
+            //         $item['id'] => [
+            //             'code' => $item['shipping_code'],
+            //             'amount' => $item['shipping_amount'],
+            //             'unit' => $item['shipping_unit'],
+            //             'description' => $item['shipping_description'],
+            //             'information' => $item['shipping_information'],
+            //             'created_at' => Carbon::now()->toDateTimeString(),
+            //             'updated_at' => Carbon::now()->toDateTimeString(),
+            //         ]
+            //     ];
+            // });
+                
+
+
+
+
+            }else {
+                $newItems = collect($items)->mapWithKeys(function ($item) {
                 return [
                     $item['id'] => [
                         'code' => $item['shipping_code'],
@@ -331,28 +382,10 @@ class DeliveryOrderController extends Controller
                 $deliveryOrder->v2QuotationItems()->attach($newItems);
             } else if ($source == 'purchase_order') {
                 $deliveryOrder->cpoItems()->attach($newItems);
+            } 
             }
-
-             $items = collect($request->delivery_items)->map(function ($item) use ($deliveryOrder) {
-                return [
-                    'delivery_order_id' => $deliveryOrder->id,
-                    'number' => $item['number'],
-                    'name' => $item['name'],
-                    'description' => $item['description'],
-                    'quantity' => $item['quantity'],
-                    'frequency' => $item['frequency'],
-                    'unit' => $item['unit'],
-                    'created_at' => Carbon::now()->toDateTimeString(),
-                    'updated_at' => Carbon::now()->toDateTimeString(),
-                ];
-            })->all();
-
-            
-
-            DB::table('delivery_order_other_quotation_items')->insert($items);
-
-
             DB::commit();
+
 
             return response()->json([
                 'message' => 'Data has been saved',
@@ -366,7 +399,7 @@ class DeliveryOrderController extends Controller
                 'message' => 'Internal error',
                 'code' => 500,
                 'error' => true,
-                'errors' => $e,
+                'errors' => $e.'',
             ], 500);
         }
     }
@@ -702,20 +735,99 @@ class DeliveryOrderController extends Controller
     public function datatablesSalesOrders(Request $request)
     {
         $customerId = $request->query('customer_id');
+          $otherQuotationItems=OtherQuotationItem::all();
+          
+            $otherQuotationItems=collect($otherQuotationItems)->each(function($item){
+            $item['description']="";
+            $item['number']="";
+            $item['unit']="";
+            $item['isSent']=false;
+        });
+
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $salesOrders = V2SalesOrder::with(['v2Quotation.items' => function ($query) {
+        $salesOrders = V2SalesOrder::with(['deliveryOrders.deliveryOrderOtherQuotationItems'=>function($query){
+          
+        },'customerPurchaseOrder.eventQuotations','v2Quotation.items' => function ($query) {
             $query->with(['jobOrders', 'deliveryOrders']);
         }, 'customerPurchaseOrder.items' => function ($query) {
             $query->with(['jobOrders', 'deliveryOrders']);
         }, 'customer.warehouses'])->select('v2_sales_orders.*')->get();
-        // ->filter(function ($quotation) {
-        //     return count($quotation->salesOrders) < 1;
-        // })->all();
+        // return $salesOrders;
 
-        return DataTables::of($salesOrders)
+
+
+          $salesOrders=collect($salesOrders)->each(function($bast) use ($otherQuotationItems){
+              if ($bast['customerPurchaseOrder']['source']=='other'){
+                  collect($bast['customerPurchaseOrder']->eventQuotations)->each(function($bast) use($otherQuotationItems){
+              
+                  $items=collect($otherQuotationItems)->filter(function($item) use ($bast){                    
+                return $item->event_quotation_id==$bast->id;
+            })->values()->all();
+                     $bast['other_quotation_items']=$items;
+                      $bast['isShow']=0;
+              });
+              }  
+           });
+          //  return $salesOrders;
+            // $salesOrder=collect($alesorder->delivery_orders)->each(function($item){})
+
+            $salesOrders=collect($salesOrders)->each(function($salesOrder) {
+              if ($salesOrder['customerPurchaseOrder']['source']=='other'){
+                  collect($salesOrder['customerPurchaseOrder']->eventQuotations)->each(function($quotation) use($salesOrder){
+                  collect($quotation->other_quotation_items)->each(function($otherQuotationItems) use ($salesOrder,){
+                   
+                    $otherQuotationItems['delivery_order']=collect($salesOrder['deliveryOrders'])->filter(function($item) use($otherQuotationItems){
+                    
+                    return count(collect($item['deliveryOrderOtherQuotationItems'])->filter(function($item) use($otherQuotationItems){
+
+                    return $item->other_quotation_item_id==$otherQuotationItems->id?$item:[];
+                    }));
+                   })->values()->all();    
+                    
+
+
+                     
+             //$item['deliveryOrder']=$items;              
+                // return $item->event_quotation_id==$bast->id;
+            });
+                    
+                    //   $bast['isShow']=0;
+              });
+              }  
+           });
+           //return $salesOrders;
+           
+
+
+
+           
+           return DataTables::of($salesOrders)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
-                $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                 $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+              
+                // if (count($row->deliveryOrders)>0){
+                //     $button = '<button class="btn btn-light-success"><i class="flaticon2-check-mark"></i></button>';
+                // }else{
+                     
+
+              //  }
+            //   if ($row['customerPurchaseOrder']['source']=='event'){
+            //       if (($row->deliveryOrders)>0){
+            //           $button = '<button class="btn btn-light-success"><i class="flaticon2-check-mark"></i></button>';
+
+            //       }else{
+            //           $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                      
+                      
+
+            //       }
+    
+
+            //   }else{
+            //        $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+
+            //   }
                 return $button;
             })
             ->rawColumns(['action'])
@@ -730,20 +842,34 @@ class DeliveryOrderController extends Controller
             $item['number']="";
             $item['unit']="";
         });
-          $basts = Bast::with(['eventQuotation','eventQuotation.poQuotation','deliveryOrder'])->select('basts.*')->get();
-          $basts=collect($basts)->each(function($bast) use ($otherQuotationItems){
-            $items=collect($otherQuotationItems)->filter(function($item) use ($bast){
-                return $item->event_quotation_id==$bast->event_quotation_id;
-            })->values()->all();
-            $bast['other_quotation_items']=$items;
+        //   $basts = Bast::with(['eventQuotation','eventQuotation.poQuotation','deliveryOrder'])->select('basts.*')->get();
+        //   $basts=collect($basts)->each(function($bast) use ($otherQuotationItems){
+        //     $items=collect($otherQuotationItems)->filter(function($item) use ($bast){
+        //         return $item->event_quotation_id==$bast->event_quotation_id;
+        //     })->values()->all();
+        //     $bast['other_quotation_items']=$items;
         
-          })->where('eventQuotation.type','other');
+        //   })->where('eventQuotation.type','other');
          // return $basts;
 
+
+           $basts = Bast::with(['v2SalesOrder.customerPurchaseOrder.eventQuotations',])->select('basts.*')->get();
+        //  return $basts[0]['v2SalesOrder']['customerPurchaseOrder'];
+     
+          
+          $basts=collect($basts)->each(function($bast) use ($otherQuotationItems){
+              collect($bast['v2SalesOrder']['customerPurchaseOrder']->eventQuotations)->each(function($bast) use($otherQuotationItems){
+                  $items=collect($otherQuotationItems)->filter(function($item) use ($bast){
+                return $item->event_quotation_id==$bast->id;
+            })->values()->all();
+                     $bast['other_quotation_items']=$items;
+
+              });
+           });
         return DataTables::of($basts)
             ->addIndexColumn()
             ->addColumn('po_quotation_number',function($row){
-                return $row->eventQuotation->po_quotation_id==null?"":$row->eventQuotation->poQuotation->number;
+                return $row['v2SalesOrder']['customerPurchaseOrder']->number;
             })
             ->addColumn('action', function ($row) {
               

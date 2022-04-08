@@ -382,6 +382,7 @@ class CustomerPurchaseOrderController extends Controller
 
     public function storeQuotation(Request $request)
     {
+       // return $request->all();
        // return $request->items;
         $cpoWithNumber = CustomerPurchaseOrder::where('number', $request->number)->first();
         if ($cpoWithNumber !== null) {
@@ -395,8 +396,6 @@ class CustomerPurchaseOrderController extends Controller
         DB::beginTransaction();
 
         try {
-
-
             $cpo = new CustomerPurchaseOrder();
             $cpo->number = $request->number;
             $cpo->date = $request->date;
@@ -411,7 +410,7 @@ class CustomerPurchaseOrderController extends Controller
             $cpo->other_cost = $request->other_cost;
             $cpo->other_cost_description = $request->other_cost_description;
             $cpo->total = $request->total;
-             $cpo->source = 'quotation';
+            $cpo->source = $request->source;
             $cpo->customer_id = 0;
             $cpo->save();
 

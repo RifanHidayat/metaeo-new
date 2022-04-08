@@ -368,6 +368,7 @@
                             <th>Nomor</th>
                             <th>Tanggal</th>
                             <th>Title</th>
+                             <th>Source</th>
                           
                             <th>Action</th>
                         </thead>
@@ -406,14 +407,16 @@
             otherCost: 0,
             otherCostDescription: '',
             selectedData: [],
-            title:''
+            title:'',
+            source:''
         },
+
         methods: {
             submitForm: function() {
                 this.sendData();
             },
             sendData: function() {
-                // console.log('submitted');
+                 console.log('submitted',this.source);
                 let vm = this;
                 vm.loading = true;
                 axios.post('/customer-purchase-order', {
@@ -433,6 +436,7 @@
                         total: vm.grandTotal,
                         items: vm.selectedData,
                         selectedQuotations:[],
+                        source:vm.source,
                         title:vm.title
                     })
                     .then(function(response) {
@@ -474,7 +478,8 @@
             },
             removeItem: function(index) {
                 let vm = this;
-                vm.items.splice(index, 1);
+                console.log('customer purchas eorder',this.selectedData)
+                vm.selectedData.splice(index, 1);
             },
             toCurrencyFormat: function(number) {
                 return new Intl.NumberFormat('De-de').format(number);
@@ -550,6 +555,10 @@
                     data: 'title',
                     name: 'title'
                 },
+                 {
+                    data: 'type',
+                    name: 'type'
+                },
                
                 {
                     data: 'action',
@@ -569,6 +578,7 @@
                 ...data,
             };
              selected['source']='eo-quotation';
+             console.log("data ",data.type);
           
     
          
@@ -583,8 +593,8 @@
                     app.$data.customeId=app.$data.selectedData[0].customer.id
                      app.$data.poNumber=""
                     // app.$data.number=""
-                     app.$data.source="quotation"
-                     console.log(selectedData)
+                     app.$data.source=app.$data.selectedData[0].type
+                   
                  
                
 

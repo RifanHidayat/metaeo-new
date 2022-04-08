@@ -20,10 +20,16 @@ class Bast extends Model
         return $this->hasOne(Invoice::class);
     }
      public function deliveryOrder(){
-        return $this->hasOne(DeliveryOrder::class);
+        return $this->belongsTo(DeliveryOrder::class);
     }
 
     public function v2SalesOrderItem(){
         return $this->belongsTo(v2SalesOrderItem::class);
     }
+
+     public function v2SalesOrder(){
+        return $this->belongsTo(v2SalesOrder::class);
+    }
+     
+    
 }

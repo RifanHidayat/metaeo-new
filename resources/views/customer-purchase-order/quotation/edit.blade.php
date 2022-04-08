@@ -368,6 +368,7 @@
                             <th>Nomor</th>
                             <th>Tanggal</th>
                             <th>Title</th>
+                             <th>Source</th>
                           
                             <th>Action</th>
                         </thead>
@@ -618,6 +619,10 @@
                 {
                     data: 'description',
                     name: 'description'
+                },
+                 {
+                    data: 'type',
+                    name: 'type'
                 },
                 {
                     data: 'action',

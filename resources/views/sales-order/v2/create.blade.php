@@ -131,6 +131,20 @@
                                     </div>
                                 </div>
                             </div>
+
+                                 <div class="form-row">
+                                
+                                <div class="form-group col-lg-12 col-md-12">
+                                    <label>Customer:</label>
+                                    <!-- <input type="text" class="form-control"> -->
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
+                                        </div>
+                                        <input type="text" v-model="customer" id="po-date" class="form-control" required >
+                                    </div>
+                                </div>
+                            </div>
                             <!-- </div> -->
                         </div>
                     </div>
@@ -170,7 +184,7 @@
                                         <div v-if="selectedData.source == 'purchase_order'">
 
                                         <!-- quotations -->
-                                              <div v-if="selectedData.data.source=='quotation'">                                  
+                                              <div v-if="selectedData.data.source=='event' || selectedData.data.source=='other' ">                                  
                                             <div class="row">
                                                 <div class="col-md-12 col-lg-12">
                                                     <div class="px-3 py-4 mb-3 rounded">
@@ -189,23 +203,48 @@
                                                             <td>Tanggal PO</td>
                                                             <td><strong>@{{ selectedData.data.date }}</strong></td>
                                                         </tr>
-                                                    </table>
-                                                </div>
-                                                <div class="col-md-12 col-lg-6">
-                                                    <table class="table">
-                                                        <tr>
-                                                            <td>Netto</td>
-                                                            <td><strong>@{{ toCurrencyFormat(selectedData.data.subtotal)}}</strong></td>
+                                                         <tr>
+                                                            <td>Title</td>
+                                                            <td><strong>@{{ selectedData.data.title }}</strong></td>
                                                         </tr>
-                                                        <tr>
+                                                         <tr>
                                                             <td>Keterangan</td>
                                                             <td><strong>@{{ selectedData.data.description }}</strong></td>
                                                         </tr>
                                                     </table>
                                                 </div>
+                                                <div class="col-md-12 col-lg-6">
+                                                    <table class="table">
+                                                          <!-- <tr>
+                                                            <td>Cost + Nonfee</td>
+                                                            <td><strong>@{{ toCurrencyFormat(commisionable_cost)}}</strong></td>
+                                                        </tr>
+                                                         <tr>
+                                                            <td>ASF</td>
+                                                            <td><strong>@{{ toCurrencyFormat(asf)}}</strong></td>
+                                                        </tr>
+                                                         <td>Discount</td>
+                                                            <td><strong>@{{ toCurrencyFormat(discount)}}</strong></td>
+                                                        </tr> -->
+                                                       
+                                                         <tr>
+                                                            <td>Netto</td>
+                                                            <td><strong>@{{ toCurrencyFormat(selectedData.data.subtotal)}}</strong></td>
+                                                        <!-- </tr>
+
+                                                         <td>PPN</td>
+                                                            <td><strong>@{{ toCurrencyFormat(ppn)}}</strong></td>
+                                                        </tr>
+
+                                                          <td>PPh</td>
+                                                            <td><strong>@{{ toCurrencyFormat(pph)}}</strong></td>
+                                                        </tr> -->
+                                                       
+                                                    </table>
+                                                </div>
                                             </div>
                                                <div class="my-3 text-right">
-                                        <button type="button" class="btn btn-success" @click="addItem"><i class="flaticon2-plus"></i> Tambah</button>
+                                        <!-- <button type="button" class="btn btn-success" @click="addItem"><i class="flaticon2-plus"></i> Tambah</button> -->
                                     </div>
                                             <div class="mt-5">
                                                 <table class="table table-bordered">
@@ -213,10 +252,11 @@
                                                         <tr>
                                                             <th class="text-center">No</th>
                                                             
-                                                            <th class="text-center">PIC Event</th>
+                                                            <th class="text-center">No.Quotation</th>
+                                                            <th class="text-center">Title</th>
                                                           
-                                                            <th class="text-center">Total</th>
-                                                            <th class="text-center">Action</th>
+                                                            <th class="text-center">Netto</th>
+                                                            <!-- <th class="text-center">Action</th> -->
                                                            
                                                         </tr>
                                                     </thead>
@@ -224,21 +264,24 @@
                                                         <tr v-for="(item, index) in selectedData.data.event_quotations">
                                                             <td class="text-center">@{{ index + 1 }}</td>
                                                             <td>
-                                                                <select class="form-control" id="subitemId" required v-model="item.pic_event_id" @change="onChange($event,index)" >
+                                                                 <input type="text" v-model="item.number" class="form-control form-control-sm text-left"  disabled >
+                                                                <!-- <select class="form-control" id="subitemId" required v-model="item.pic_event_id" @change="onChange($event,index)" >
                                                                    
                                                                          <option v-for="(pic,index) in picEvents" v-bind:value="pic.id">@{{pic.name}} | @{{pic.customer.name}}</option>
                                                                          
-                                                                     </select>
+                                                                     </select> -->
                                                             </td>
                                                             <!-- <td>
                                                                <input ut type="text" v-model="item.pic_event.customer.name" class="form-control form-control-sm text-right" >
                                                             </td> -->
                                                             <td class="text-center">
-                                                                  <input type="text" v-model="item.netto" class="form-control form-control-sm text-right"  >
-                                                            </td>
+                                                                  <input type="text" v-model="item.title" class="form-control form-control-sm text-right" disabled  >
+                                                            <td class="text-center">
+                                                                  <input type="text" v-model="item.netto" class="form-control form-control-sm text-right" disabled  >
+                                                            <!-- </td>
                                                                
-                                                               <td class="text-center"> <button type="button" class="btn btn-danger" @click="removeItem(index)">Hapus</button></td>
-                                                    <
+                                                               <td class="text-center"> <button type="button" class="btn btn-danger" @click="removeItem(index)">Hapus</button></td> -->
+                                                    
                                                            
                                                         </tr>
                                                     </tbody>
@@ -472,7 +515,9 @@
                         <div class="col-lg-6 text-lg-right">
                             <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
                                 Save
-                            </button>
+                            </button
+                            
+                            >
                             <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
                         </div>
                     </div>
@@ -560,7 +605,17 @@
             description: '',
             loading: false,
             selectedData: null,
+            commisionable_cost:"",
+            nonfee_cost:'',
+            asf:'',
+            discount:'',
+            netto:'',
+            ppn:'',
+            pph:'',
+            total:'',
+            customer:'',
             picEvents:JSON.parse(String.raw`{!!$pic_events!!}`),
+            customerId:''
            
         },
         methods: {
@@ -568,6 +623,7 @@
                 this.sendData();
             },
             sendData: function() {
+                console.log(this.customerId)
                 // console.log('submitted');
                 let vm = this;
                 vm.loading = true;
@@ -588,7 +644,10 @@
                     description: vm.description,
                     term_of_payment: vm.termOfPayment,
                     due_date: vm.dueDate,
-                    selected_data:vm.selectedData
+                    selected_data:vm.selectedData,
+                    netto:vm.selectedData.data.subtotal,
+                    customer_id_event:vm.customerId,
+                    bast_amount:vm.selectedData.data.subtota
                 };
 
                 let formData = new FormData();
@@ -702,7 +761,6 @@
 </script>
 <script>
     $(function() {
-
         quotationsTable = $('#quotation-table').DataTable({
             processing: true,
             serverSide: true,
@@ -739,8 +797,10 @@
                 source: 'quotation',
             };
 
+
             app.$data.quotationNumber = app.$data.selectedData.data.number;
             const newDate = app.$data.selectedData.data.date;
+            app.$data.poNumber=app.$data.selectedData.data.number
             app.$data.quotationDate = newDate;
             $('#quotation-date').datepicker('update', newDate);
 
@@ -767,6 +827,7 @@
                     data: 'description',
                     name: 'description'
                 },
+                 
                 {
                     data: 'action',
                     name: 'action',
@@ -783,9 +844,22 @@
                 source: 'purchase_order',
             };
 
-            console.log(app.$data.selectedData);
-            if (data.source=="quotation"){
-                console.log('data',data.event_quotations)
+            console.log('dd',app.$data.selectedData);
+            if ((data.source=="event") ||(data.source=="other")){
+                
+                app.$data.commisionable_cost=data.event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['cosmmisionable_cost']), 0);
+                 
+                 app.$data.asf=data.event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['asf']), 0);
+
+                app.$data.nonfee_cost=data.event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['nonfee_cost']), 0);
+
+                 app.$data.discount=data.event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['discount']), 0);
+                 
+                app.$data.ppn=data.event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['ppn']), 0);
+
+                app.$data.pph=data.event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['pph']), 0);
+                app.$data.customer=data.event_quotations[0].customer.name;
+                app.$data.customerId=data.event_quotations[0].customer.id;                
                 app.$data.quotations=data.event_quotations;
               
             }

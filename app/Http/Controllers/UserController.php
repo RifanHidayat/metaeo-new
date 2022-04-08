@@ -34,10 +34,11 @@ class UserController extends Controller
         $usernameExist = User::where('username', $username)->first();
         if ($usernameExist !== null) {
             return response()->json([
-                'message' => 'Username sudah digunakan',
+                'message' => 'Username sudah digun
+                akan',
                 'code' => 400,
                 'error' => true,
-                'error_type' => 'validation',
+                'error_type' => 'val`idation',
             ], 400);
         }
 
@@ -100,6 +101,7 @@ class UserController extends Controller
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
         $user->group_id = $request->group;
+    
 
         try {
             $user->save();

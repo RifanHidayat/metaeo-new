@@ -63,7 +63,7 @@
                         </g>
                     </svg>
                     <!--end::Svg Icon-->
-                </span>Quotation Baru</a>
+                </span>Project Baru</a>
             <!--end::Button-->
         </div>
     </div>
@@ -72,9 +72,9 @@
         <table class="table datatable datatable-bordered datatable-head-custom" id="quotation-table">
             <thead>
                 <tr >
-                    <th>Number</th>
+                    <th>No. Project</th>
                     <th>Tanggal</th>
-                     <th>No.PO</th>
+                     <th>No.Sales Order</th>
                      <th>Netto</th>
                      <th>soruce</th>
                     <th>Action</th>
@@ -301,8 +301,8 @@
                     className: 'text-center',
                 },
                  {
-                    data: 'po_number',
-                    name: 'po_number',
+                    data: 'sales_order_number',
+                    name: 'sales_order_number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0 text-left">${data}</div>`;
                     }
@@ -312,11 +312,13 @@
                     name: 'amount',
                     
                 }, 
-                 {
+                  {
                     data: 'source',
-                    name: 'source',
-                    
-                },  
+                    name: 'customer_purchase_orders.source',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75">${data=="quotation"?"Quotation EO":"Quotation Metaprint"}</div>`;
+                    }
+                }, 
                 {
                     data: 'action',
                     name: 'action',

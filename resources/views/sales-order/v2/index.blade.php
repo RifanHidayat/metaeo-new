@@ -175,7 +175,7 @@
                 },
                 {
                     data: 'quotation_po_date',
-                    name: 'v2_sales_orders.number',
+                    name: 'quotation_po_date',
                 },
                 {
                     data: 'action',

@@ -63,34 +63,16 @@
                     <div v-if="selectedData">
                     <!-- begin sales order -->
                     <!-- fix -->
-                    <div v-if="selectedData.source=='other'">
+                    <div v-if="selectedData.source!='bast'">
                         <div>
                             <div class="row">
                                 <div class="col-md-12 col-lg-6">
                                     <div class="px-3 py-4 mb-3 rounded">
-                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order  <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order  uu <a href="#">#@{{ selectedData.data.number }}</a></h3>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-12 col-lg-4">
-                                    <table class="table">
-                                        <tr>
-                                            <td>Nomor DO</td>
-                                            <td><strong>@{{ selectedData.data.number }}</strong></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Tanggal DO</td>
-                                            <td><strong>@{{ selectedData.data.date }}</strong></td>
-                                        </tr>
-                                         <tr>
-                                            <td>Total</td>
-                                            <td><strong>@{{ toCurrencyFormat(deliveryOrderTotal) }}</strong></td>
-                                        </tr>
-                                          
-                                    </table>
-                                </div>
-                            
                                 <div class="col-md-12 col-lg-4">
                                     <table class="table">
                                         <tr>
@@ -104,11 +86,64 @@
                                           
                                     </table>
                                 </div>
+                            
+                                <div class="col-md-12 col-lg-4">
+                                    <table class="table">
+                                        <tr>
+                                            <td>Nomor PO</td>
+                                            <td><strong>@{{ selectedData.data.customer_purchase_order_number }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tanggal PO</td>
+                                            <td><strong>@{{ selectedData.data.customer_purchase_order_date }}</strong></td>
+                                        </tr>
+
+                                         <tr>
+                                            <td>Total</td>
+                                            <td><strong>@{{ toCurrencyFormat(selectedData.data.customer_purchase_order.total ) }}</strong></td>
+                                        </tr>
+                                        
+                                    </table>
+                                </div>
                             </div>
                         </div>
                         <div class="mt-5">
-                         
-                                 <div class="row">
+                            <h3>Perusahan</h3>
+                            <template v-for="(item,index) in selectedData.data.v2_sales_order_items">
+                                <table class="table table-bordered">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="align-middle text-center" style="width:5%"></th>
+                                        <th class="align-middle text-center">Pic event</th>
+                                        <th class="align-middle text-center">Customer</th>
+                                        <th class="align-middle text-center">Total</th>
+                                        <th class="align-middle text-center">Sisa BAST</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    
+                                    <tr>
+                                        <td class="align-middle text-right">
+                                           <div class="form-group col-md-4" v-if="item.total-item.total_bast >0" >
+                                                    <label class="checkbox">
+                                                        <input v-model="item.is_checked" type="checkbox">
+                                                        <span></span>
+                                                    </label>
+                                                </div>
+                                        </td>
+
+                                        <td class="align-middle text-center">@{{ item.pic_event.name }}</a></td> 
+                                       <td class="align-middle text-center">@{{ item.pic_event.customer.name }}</a></td>
+                                       <td class="align-middle text-right">@{{ item.total }}</a></td>
+                                       <td class="align-middle text-right">@{{ item.total-item.total_bast }}</a></td>
+                                        
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- begin form bast -->
+                               <div class="row" v-if="item.is_checked==1">
                         <div class="col-lg-8 col-md-12">
                             <div class="form-row">
                                 <div class="form-group col-lg-6 col-md-12">
@@ -118,7 +153,7 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">#</span>
                                         </div>
-                                        <input type="text" v-model="bast_number" class="form-control number" id="number">
+                                        <input type="text" v-model="item.bast_number" class="form-control number" id="number">
                                     </div>
                                 </div>
                                 <div class="form-group col-lg-6 col-md-12">
@@ -126,7 +161,7 @@
                                     <!-- <input type="text" class="form-control"> -->
                                     <div class="input-group">
                                         
-                                        <input type="text" v-model="bast_pic_event" id="eventPicName" class="form-control">
+                                        <input type="text" v-model="item.bast_pic_event" id="eventPicName" class="form-control">
                                     </div>
                                 </div>
                             </div>
@@ -139,7 +174,7 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">#</span>
                                         </div>
-                                        <input type="text" v-model="bast_gr_number" class="form-control">
+                                        <input type="text" v-model="item.bast_gr_number" class="form-control">
                                     </div>
                                 </div>
                                 <div class="form-group col-lg-6 col-md-12">
@@ -147,7 +182,7 @@
                                     <!-- <input type="text" class="form-control"> -->
                                     <div class="input-group">
                                         
-                                        <input type="text" v-model="bast_pic_event_position" id="eventPicPosition" class="form-control">
+                                        <input type="text" v-model="item.bast_pic_event_position" id="eventPicPosition" class="form-control">
                                     </div>
                                 </div>
                             </div>
@@ -159,7 +194,7 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
                                         </div>
-                                        <input type="date" v-model="bast_date" class="form-control bast-date" id="date">
+                                        <input type="text" v-model="item.bast_date" class="form-control date" id="date">
                                     </div>
                                 </div>
                                 <div class="form-group col-lg-6 col-md-12">
@@ -167,7 +202,7 @@
                                     <!-- <input type="text" class="form-control"> -->
                                     <div class="input-group">
                                         
-                                        <input type="text" v-model="bast_pic_magenta" id="magentaPicName" class="form-control">
+                                        <input type="text" v-model="item.bast_pic_magenta" id="magentaPicName" class="form-control">
                                     </div>
                                 </div>
                             </div>
@@ -178,7 +213,7 @@
                                     <!-- <input type="text" class="form-control"> -->
                                     <div class="input-group">
                                         
-                                        <input type="text" v-model="bast_customer" class="form-control" >
+                                        <input type="text" v-model="item.bast_customer" class="form-control" disabled>
                                     </div>
                                 </div>
                                 <div class="form-group col-lg-6 col-md-12">
@@ -186,7 +221,7 @@
                                     <!-- <input type="text" class="form-control"> -->
                                     <div class="input-group">
                                         
-                                        <input type="text" v-model="bast_pic_magenta_position" id="po-date" class="form-control">
+                                        <input type="text" v-model="item.bast_pic_magenta_position" id="po-date" class="form-control">
                                     </div>
                                 </div>
                             </div>
@@ -200,176 +235,26 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">Rp </span>
                                         </div>
-                                        <input readonly disabled type="text" v-model="bast_amount" id="amount" class="form-control text-right" ><br>
+                                        <input type="text" v-model="item.bast_amount" id="amount" class="form-control text-right" @input="validateAmount(index)"><br>
                                         
                                     </div>
-                                    <!-- <div  v-if="selectedData">
-                                    <span class="text-danger">Sisa BAST @{{toCurrencyFormat(bast_remaining)}}</span>
-                                    </div> -->
+                                    <div  v-if="selectedData">
+                                    <span class="text-danger">Sisa BAST @{{toCurrencyFormat(item.bast_remaining)}}</span>
+                                    </div>
                                         
                                 </div>
                             </div>
                             <!-- </div> -->
                         </div>
                     </div>
+                            <!-- end begin form bast -->
+                                   
+
+                            </template>
                            
                         </div>
                         </div>
                         <!-- end fix -->
-
-                             <div v-if="selectedData.source=='event'">
-                        <div>
-                            <div class="row">
-                                <div class="col-md-12 col-lg-6">
-                                    <div class="px-3 py-4 mb-3 rounded">
-                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order  <a href="#">#@{{ selectedData.data.number }}</a></h3>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12 col-lg-4">
-                                    <table class="table">
-                                        <tr>
-                                            <td>Nomor DO</td>
-                                            <td><strong>@{{ selectedData.data.number }}</strong></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Tanggal DO</td>
-                                            <td><strong>@{{ selectedData.data.date }}</strong></td>
-                                        </tr>
-                                         <tr>
-                                            <td>Total</td>
-                                            <td><strong>@{{ toCurrencyFormat(deliveryOrderTotal) }}</strong></td>
-                                        </tr>
-                                          
-                                    </table>
-                                </div>
-                            
-                                <div class="col-md-12 col-lg-4">
-                                    <table class="table">
-                                        <tr>
-                                            <td>Nomor SO</td>
-                                            <td><strong>@{{ selectedData.data.number }}</strong></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Tanggal SO</td>
-                                            <td><strong>@{{ selectedData.data.date }}</strong></td>
-                                        </tr>
-                                          
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-5">
-                         
-                                 <div class="row">
-                        <div class="col-lg-8 col-md-12">
-                            <div class="form-row">
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>Nomor:</label>
-                                    <!-- <input type="text" class="form-control"> -->
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">#</span>
-                                        </div>
-                                        <input type="text" v-model="bast_number" class="form-control number" id="number">
-                                    </div>
-                                </div>
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>PIC Event:</label>
-                                    <!-- <input type="text" class="form-control"> -->
-                                    <div class="input-group">
-                                        
-                                        <input type="text" v-model="bast_pic_event" id="eventPicName" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- <div class="bg-gray-100 p-3 rounded"> -->
-                            <div class="form-row">
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>Nomor GR:</label>
-                                    <!-- <input type="text" class="form-control"> -->
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">#</span>
-                                        </div>
-                                        <input type="text" v-model="bast_gr_number" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>Jabatan:</label>
-                                    <!-- <input type="text" class="form-control"> -->
-                                    <div class="input-group">
-                                        
-                                        <input type="text" v-model="bast_pic_event_position" id="eventPicPosition" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>Tanggal:</label>
-                                    <!-- <input type="text" class="form-control"> -->
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
-                                        </div>
-                                        <input type="date" v-model="bast_date" class="form-control bast-date" id="date">
-                                    </div>
-                                </div>
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>PIC Magenta:</label>
-                                    <!-- <input type="text" class="form-control"> -->
-                                    <div class="input-group">
-                                        
-                                        <input type="text" v-model="bast_pic_magenta" id="magentaPicName" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-
-                              <div class="form-row">
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>Customer:</label>
-                                    <!-- <input type="text" class="form-control"> -->
-                                    <div class="input-group">
-                                        
-                                        <input type="text" v-model="bast_customer" class="form-control" >
-                                    </div>
-                                </div>
-                                <div class="form-group col-lg-6 col-md-12">
-                                    <label>jabatan:</label>
-                                    <!-- <input type="text" class="form-control"> -->
-                                    <div class="input-group">
-                                        
-                                        <input type="text" v-model="bast_pic_magenta_position" id="po-date" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-
-                             <div class="form-row">
-                                
-                                <div class="form-group col-lg-12 col-md-12">
-                                    <label>Nominal:</label>
-                                    <!-- <input type="text" class="form-control"> -->
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">Rp </span>
-                                        </div>
-                                        <input @input="validateAmount()" type="text" v-model="bast_amount" id="amount" class="form-control text-right" ><br>
-                                        
-                                    </div>
-                                    <div  v-if="selectedData">
-                                    <span class="text-danger">Sisa BAST @{{toCurrencyFormat(bast_remaining)}}</span>
-                                    </div>
-                                        
-                                </div>
-                            </div>
-                            
-                            <!-- </div> -->
-                        </div>
-                    </div>
-                           
-                        </div>
-                        </div>
                                            
                     </div>
 
@@ -409,10 +294,11 @@
                 <div class="modal-body">
                     <table class="table" id="sales-order-table">
                         <thead>
-                            <th>Nomor SO</th>
+                            <th>Nomor</th>
                             <th>Tanggal</th>
-                             <th>Sisa BAST</th>
                             <th>Action</th>
+                            
+                            
                         </thead>
                     </table>
                 </div>
@@ -436,10 +322,9 @@
                 <div class="modal-body">
                     <table class="table" id="bast-table">
                         <thead>
-                            <th>Nomor SO   </th>
+                            <th>Nomor</th>
                             <th>Tanggal</th>
-                             <th>Nomor PO</th>
-                              <th>Sisa BAST</th>
+                             <th>Nomor Po</th>
                             <th>Action</th>
                         </thead>
                     </table>
@@ -481,7 +366,6 @@
         el: '#app',
         data: {
             quotations: [],
-            bast_number:'',
             source:'',
             checkedQuotationsIds: [],
             invoiceItems:[],
@@ -508,19 +392,7 @@
             asf:'',
             subtotal:'',
             total:'',
-            bast_amount:'',
-            bast_pic_magenta:'Myrawati Setiawan',
-            bast_pic_magenta_position:'Project Magenta',
-            bast_customer:'',
-            bast_pic_event:'',
-            bast_pic_event:'',
-            bast_pic_event_position:'',
-            bast_remaining:'',
-            bast_amount:'',
-            id:'', 
-            bast_date:'',
-            bast_gr_number:'',
-            deliveryOrderTotal:'',
+
             cleaveCurrency: {
                 delimiter: '.',
                 numeralDecimalMark: ',',
@@ -540,23 +412,7 @@
                 vm.loading = true;
 
                 const data = {
-                    //selected_data: vm.selectedData,
-                    bast_amount:vm.bast_amount,
-                    bast_pic_magenta:vm.bast_pic_magenta,
-                    bast_pic_magenta_position:vm.bast_pic_magenta_position,
-                    bast_customer:vm.bast_customer,
-                    bast_pic_event:vm.bast_pic_event,
-                    bast_pic_event:vm.bast_pic_event,
-                    bast_pic_event_position:vm.bast_pic_event_position,
-                    bast_remaining:vm.bast_remaining,
-                    bast_amount:vm.bast_amount,
-                    id:vm.id, 
-                    sales_order_id:vm.selectedData.data.v2_sales_order.id,
-                    bast_date:vm.bast_date,
-                    number:vm.bast_number,
-                    bast_gr_number:vm.bast_gr_number,
-                    source:vm.selectedData.data.v2_sales_order.customer_purchase_order.source
-
+                    selected_data: vm.selectedData,
                 }
 
                 axios.post('/bast', data)
@@ -664,25 +520,15 @@
                 }
                 return new Intl.NumberFormat('De-de').format(number);
             },
-             validateAmount:function(){
-            var bastRemaining=this.bast_remaining;
-            var bastAmount=this.bast_amount;
-            if (Number(this.bast_amount)>Number(this.bast_remaining)){
-                this.bast_amount=this.bast_remaining;
-                  
-            }
-
-                    
-
+             validateAmount:function(index){
                  
-                 
-                //  var bastRemaining=this.selectedData.data.v2_sales_order_items[index].bast_remaining;
-                //  var bastAmount=this.selectedData.data.v2_sales_order_items[index].bast_amount;
-                //  if (bastAmount>bastRemaining){
-                //      this.selectedData.data.v2_sales_order_items[index].bast_amount=bastRemaining;
-                //  }
+                 var bastRemaining=this.selectedData.data.v2_sales_order_items[index].bast_remaining;
+                 var bastAmount=this.selectedData.data.v2_sales_order_items[index].bast_amount;
+                 if (bastAmount>bastRemaining){
+                     this.selectedData.data.v2_sales_order_items[index].bast_amount=bastRemaining;
+                 }
 
-                //  return bastAmount;
+                 return bastAmount;
                 
             }
             // dateDiffInDays: function(a, b) {
@@ -866,8 +712,7 @@
             // totalRemainingQuantity: function() {
             //     return this.totalQuantity - this.totalProduced;
             // },
-        },
-        
+        }
     })
 </script>
 <script>
@@ -876,7 +721,7 @@
             processing: true,
             serverSide: true,
             destroy: true,
-            ajax: '/datatables/bast/delivery-orders',
+            ajax: '/datatables/bast/sales-orders',
             columns: [{
                     data: 'number',
                     name: 'v2_sales_orders.number',
@@ -887,10 +732,6 @@
                 {
                     data: 'date',
                     name: 'v2_sales_orders.date'
-                },
-                   {
-                    data: 'bast_remaining',
-                    name: 'bast_remaining'
                 },
                 {
                     data: 'action',
@@ -903,39 +744,20 @@
 
         $('#sales-order-table tbody').on('click', '.btn-choose', function() {
             const data = salesOrdersTable.row($(this).parents('tr')).data();
-            console.log(data);
-            $('.bast-date').datepicker({
-            format: 'yyyy-mm-dd',
-            todayBtn: false,
-            clearBtn: true,
-            todayHighlight: true,
-            orientation: "bottom left",
-        }).on('changeDate', function(e) {
-            app.$data.bast_date = e.format(0, 'yyyy-mm-dd');
-        });
+            // console.log();
+            data.v2_sales_order_items.map(function(item){
+                item['bast_number']=number();
 
-            // data.v2_sales_order_items.map(function(item){
-            //     item['bast_number']=number();
-
-            // })
-            app.$data.id=data.id;
-            app.$data.bast_number=number(data.v2_sales_order.customer_purchase_order.title);
-            app.$data.bast_customer=data.v2_sales_order.customer.name;
-
+            })
+            console.log(data)
             app.$data.salesOrderId = data.id;
             app.$data.bastId=0
-           // app.$data.source=data.source
-             app.$data.bast_remaining=data.v2_sales_order.netto-data.v2_sales_order.total_bast;
-            
-            
-            app.$data.deliveryOrderTotal=Number(data.delivery_order_other_quotation_items.reduce((partialSum, a) => partialSum + (a['frequency']* a['other_quotation_item']['price']), 0))
-            app.$data.bast_amount=app.$data.deliveryOrderTotal;
+            app.$data.source=data.source
             
             app.$data.selectedData = {
                 data,
-                source: data.v2_sales_order.customer_purchase_order.source,
+                source: data.source,
             };
-
 
         $('.date').datepicker({
             format: 'yyyy-mm-dd',
@@ -945,6 +767,9 @@
             orientation: "bottom left",
         });
             
+        
+          
+
             // app.$data.salesOrderNumber = app.$data.selectedData.data.number;
             // const newDate = app.$data.selectedData.data.date;
             // app.$data.salesOrderDate = newDate;
@@ -954,14 +779,14 @@
         });
 
 
-        $('.bast-date').datepicker({
+        $('.invoice-date').datepicker({
             format: 'yyyy-mm-dd',
             todayBtn: false,
             clearBtn: true,
             todayHighlight: true,
             orientation: "bottom left",
         }).on('changeDate', function(e) {
-            app.$data.bast_date = e.format(0, 'yyyy-mm-dd');
+            app.$data.date = e.format(0, 'yyyy-mm-dd');
         });
 
         $('.due-date').datepicker({
@@ -981,7 +806,7 @@
 
 <script>
 
-  function number(title) {
+  function number() {
 
     var date = new Date();
     var tahun = date.getFullYear();
@@ -1041,10 +866,8 @@
 
     }
 
-   
+    let title=app.$data.title;
     let number="No. " + t.substring(2, 4) + (bulan + 1) + tanggal + "/" + title + "/" + angka + "/" + t
-   
-
    
    return number;
 

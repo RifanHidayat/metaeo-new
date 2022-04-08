@@ -130,6 +130,10 @@ class InvoiceController extends Controller
      */
     public function store(Request $request)
     {
+        //return "ts";
+        DB::beginTransaction();
+
+        
 
        
         $invoice = new Invoice;
@@ -174,6 +178,7 @@ class InvoiceController extends Controller
                 ], 400);
             }
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Internal error',
                 'code' => 500,
@@ -185,6 +190,7 @@ class InvoiceController extends Controller
         try {
             $invoice->save();
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Internal error',
                 'code' => 500,
@@ -209,6 +215,7 @@ class InvoiceController extends Controller
         try {
             $invoice->quotations()->attach($keyedQuotations);
         } catch (Exception $e) {
+            DB::rollBack();
             $invoice->delete();
             return response()->json([
                 'message' => 'Internal error',
@@ -228,6 +235,7 @@ class InvoiceController extends Controller
                 $quotationRow->paid = 1;
                 $quotationRow->save();
             }
+            DB::commit();
             return response()->json([
                 'message' => 'Data has been saved',
                 'code' => 200,
@@ -254,6 +262,8 @@ class InvoiceController extends Controller
      */
     public function storeV2(Request $request)
     {
+       // return $request->all();
+       //return $request->event_quotations[0]['other_quotation_items'];
        
         $invoiceWithNumber = Invoice::query()->where('number', $request->number)->first();
         if ($invoiceWithNumber !== null) {
@@ -319,24 +329,43 @@ class InvoiceController extends Controller
 
 
 
-            $items = collect($request->invoice_items)->map(function ($item) use ($invoice) {
-                return [
-                    'invoice_id' => $invoice->id,
-                    'number' => $item['number'],
-                    'name' => $item['name'],
-                    'description' => $item['description'],
-                    'quantity' => $item['quantity'],
-                    'frequency' => $item['frequency'],
-                    'price' => $item['price'],
-                    'subtotal' => $item['amount'],
-                    'created_at' => Carbon::now()->toDateTimeString(),
-                    'updated_at' => Carbon::now()->toDateTimeString(),
-                ];
-            })->all();
-
+            // $items = collect($request->invoice_items)->map(function ($item) use ($invoice) {
+            //     return [
+            //         'invoice_id' => $invoice->id,
+            //         'number' => $item['number'],
+            //         'name' => $item['name'],
+            //         'description' => $item['description'],
+            //         'quantity' => $item['quantity'],
+            //         'frequency' => $item['frequency'],
+            //         'price' => $item['price'],
+            //         'subtotal' => $item['amount'],
+            //         'created_at' => Carbon::now()->toDateTimeString(),
+            //         'updated_at' => Carbon::now()->toDateTimeString(),
+            //     ];
+            // })->all();
+            // DB::table('invoice_item')->insert($items);
             
+                        // foreach($request->event_quotations as $otherQuotationItem){
+                        // $items = collect($otherQuotationItem['other_quotation_items'])->map(function ($item) use ($invoice) {
+                        // return [
+                        //     'invoice_id' => $invoice->id,
+                        //     'number' => $item['number'],
+                        //     'name' => $item['name'],
+                        //     'description' => $item['description'],
+                        //     'quantity' => $item['quantity'],
+                        //     'frequency' => $item['frequency'],
+                        //     'price' => $item['price'],
+                        //     'subtotal' => $item['amount'],
+                        //     'created_at' => Carbon::now()->toDateTimeString(),
+                        //     'updated_at' => Carbon::now()->toDateTimeString(),
+                        // ];
+                        //     })->all();
+                        //      DB::table('invoice_item')->insert($items);
 
-            DB::table('invoice_item')->insert($items);
+                        // }
+
+              
+           
 
             DB::commit();
 
@@ -657,7 +686,7 @@ class InvoiceController extends Controller
     {
         $invoice = Invoice::with(['deliveryOrders' => function ($query) {
             $query->with(['cpoItems', 'v2QuotationItems']);
-        }, 'v2SalesOrder','bast','bast.eventQuotation','bast.eventQuotation.poQuotation'])->findOrFail($id);
+        }, 'v2SalesOrder','bast','bast.eventQuotation.otherQuotationItems','bast.eventQuotation.poQuotation'])->findOrFail($id);
        // return $invoice;
 
         $invoiceItem = DB::table('invoice_item')->where('invoice_id',$id)->get();
@@ -797,36 +826,38 @@ class InvoiceController extends Controller
             $item['description']="";
             $item['number']="";
         });
-          $basts = Bast::with(['v2SalesOrderItem.v2SalesOrder.customerPurchaseOrder.eventQuotations',])->select('basts.*')->get();
+       
+          $basts = Bast::with(['v2SalesOrder.customerPurchaseOrder.eventQuotations','deliveryOrder.deliveryOrderOtherQuotationItems.otherQuotationItem'])->select('basts.*')->get();
+        //  return $basts[0]['v2SalesOrder']['customerPurchaseOrder'];
      
           
-        //   $basts=collect($basts)->each(function($bast) use ($otherQuotationItems){
-        //     $items=collect($otherQuotationItems)->filter(function($item) use ($bast){
-        //         return $item->event_quotation_id==$bast->event_quotation_id;
-        //     })->values()->all();
-        //     $bast['other_quotation_items']=$items;
-            
+          $basts=collect($basts)->each(function($bast) use ($otherQuotationItems){
+              collect($bast['v2SalesOrder']['customerPurchaseOrder']->eventQuotations)->each(function($bast) use($otherQuotationItems){
+                  $items=collect($otherQuotationItems)->filter(function($item) use ($bast){
+                return $item->event_quotation_id==$bast->id;
+            })->values()->all();
+                     $bast['other_quotation_items']=$items;
 
+              });
+           });
 
-        //   });
-        //  // return $basts;
 
         return DataTables::of($basts)
             ->addIndexColumn()
             // ->addColumn('po_quotation_number',function($row){
             //     return $row->eventQuotation->po_quotation_id==null?"":$row->eventQuotation->poQuotation->number;
             // })
-            // ->addColumn('action', function ($row) {
-            //     if ($row->invoice==null){
-            //            $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+            ->addColumn('action', function ($row) {
+                if ($row->invoice==null){
+                       $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
 
-            //     }else{
-            //           $button = '<button class="btn btn-light-success"><i class="flaticon2-check-mark"></i></button>';
+                }else{
+                      $button = '<button class="btn btn-light-success"><i class="flaticon2-check-mark"></i></button>';
 
-            //     }
+                }
              
-            //     return $button;
-            // })
+                return $button;
+            })
             ->rawColumns(['action'])
         
             ->make(true);

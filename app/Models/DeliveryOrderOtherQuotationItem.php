@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class DeliveryOrderOtherQuotationItem extends Model
 {
     use HasFactory;
+
+    public function otherQuotationItem(){
+    return $this->belongsTo(OtherQuotationItem::class);
+    }
 }

@@ -73,7 +73,8 @@
             <thead>
                 <tr class="text-left">
                     <th>Nomor BAST</th>
-                    <th>Nomor SO</th>
+                    <th>Nomor DO</th>
+                      <th>Nomor SO</th>
 
                     <th>Tanggal BAST</th>
                      <th>Customer</th>
@@ -166,13 +167,21 @@
                     //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${(data.length > 0) ? data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('') : ''}</div>`;
                     // },
                 },
-                {
-                    data: 'v2_sales_order_item.v2_sales_order.number',
+                 {
+                    data: 'delivery_order.number',
                     name: 'number',
                     // render: function(data, type, row) {
                     //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     // }
                 },
+                {
+                    data: 'delivery_order.v2_sales_order.number',
+                    name: 'number',
+                    // render: function(data, type, row) {
+                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    // }
+                },
+                 
                 {
                     data: 'date',
                     name: 'date',
@@ -181,8 +190,11 @@
                     }
                 },
                 {
-                data: 'v2_sales_order_item.pic_event.customer.name',
+                 data: 'delivery_order.v2_sales_order.customer.name',
                     name: 'customer',
+                    render: function(data, type) {
+                        return `${data??""}`;
+                    }
                     // render: function(data, type) {
                     //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${(data.length > 0) ? data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('') : ''}</div>`;
                     // },

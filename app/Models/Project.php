@@ -17,6 +17,7 @@ class Project extends Model
     {
         return $this->belongsToMany(V2SalesOrder::class)->withPivot('v2_sales_order_id', 'project_id');
     }
+    
     public function members(){
         return $this->hasMany(ProjectMember::class);
     }

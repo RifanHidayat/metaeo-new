@@ -6,6 +6,7 @@ use App\Models\Bast;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\CustomerPurchaseOrder;
+use App\Models\DeliveryOrder;
 use App\Models\EventQuotation;
 use App\Models\Invoice;
 use App\Models\OtherQuotationItem;
@@ -40,7 +41,9 @@ class BastController extends Controller
     {
         // $salesOrders = V2SalesOrder::with(['v2Quotation', 'customerPurchaseOrder', 'jobOrders', 'invoices', 'deliveryOrders'])->select('v2_sales_orders.*');
         // return $salesOrders;
-        $bast = Bast::with(['v2SalesOrderItem.v2SalesOrder','v2SalesOrderItem.picEvent.customer'])->select('basts.*');
+        // $bast = Bast::with(['v2SalesOrderItem.v2SalesOrder','v2SalesOrderItem.picEvent.customer'])->select('basts.*');
+
+         $bast = Bast::with(['deliveryOrder.v2SalesOrder','deliveryOrder.v2SalesOrder.customer','v2SalesOrderItem.picEvent.customer'])->select('basts.*');
         
        
          //return $bast;
@@ -122,53 +125,83 @@ class BastController extends Controller
      */
     public function store(Request $request)
     {
-        //return $request->selected_data;
+       //return $request->all();
+      //return $request->selected_data;
         DB::beginTransaction(); 
 //v2_sales_order_items
       
         try {
-        foreach ($request->selected_data['data']['v2_sales_order_items'] as $item){
+            //return $request->all();
 
-        $transactionsByCurrentDateCount = Bast::query()->where('date', $request->date)->get()->count();
-        // $bastNumber = Bast::where('number', $item['bast_number'].'/'.sprintf('%05d', $transactionsByCurrentDateCount + 1))->first();
-        // if ($bastNumber !== null) {
-        //     return response()->json([
-        //         'message' => 'number or code already used',
-        //         'code' => 400,
-        //         // 'errors' => $/e,
-        //     ], 400);
-        // }
-            if ($item['is_checked']==1){
-            $v2SalesOrderItem=v2SalesOrderItem::find($item['id']); 
-
+            //$v2SalesOrderItem=v2SalesOrderItem::find($item['id']); 
+            if ($request->source=="other"){
             $bast = new Bast();
-            $bast->number = $item['bast_number'].'-'.sprintf('%03d', $transactionsByCurrentDateCount + 1);
-            $bast->date = $item['bast_date'];
+         
+            
+            $transactionsByCurrentDateCount = Bast::query()->where('date', $request->date)->get()->count();
+
+
+            $bast->number = $request->number.'-'.sprintf('%03d', $transactionsByCurrentDateCount + 1);
+            $bast->date = $request->bast_date;
             $bast->customer_id = 0;
-            $bast->gr_number=$item['bast_gr_number'];
-            $bast->pic_event=$item['bast_pic_event'];
-            $bast->pic_event_position=$item['bast_pic_event_position'];
-            $bast->pic_magenta=$item['bast_pic_magenta'];
-            $bast->pic_magenta_position=$item['bast_pic_magenta_position'];
+            $bast->gr_number=$request->bast_gr_number;
+            $bast->pic_event=$request->bast_pic_event;
+            $bast->pic_event_position=$request->bast_pic_event_position;
+            $bast->pic_magenta=$request->bast_pic_magenta;
+            $bast->pic_magenta_position=$request->bast_pic_magenta_position;
             $bast->po_file=null;
             $bast->gr_file=null;
-            $bast->amount=$item['bast_amount'];
-            $bast->v2_sales_order_item_id=$item['id'];
-            $bast->v2_sales_order_id=$item['v2_sales_order_id'];
-
-            $v2SalesOrderItem->total_bast=$v2SalesOrderItem->total_bast+$item['bast_amount'];
-            $v2SalesOrderItem->save();
-            $bast->save();
-            }
-        }
-        
+            $bast->amount=$request->bast_amount;
+             $bast->type="other";
+            //$bast->v2_sales_order_item_id=$request->id;
+            $bast->delivery_order_id=$request->id;
+            $bast->v2_sales_order_id=$request->sales_order_id;
 
          
-          
+            $bast->save();
+               $salesOrder = V2SalesOrder::findOrFail($request->sales_order_id);
 
+            $salesOrder->total_bast=$salesOrder->total_bast+$request->bast_amount;
+            $salesOrder->save();
 
-           
             DB::commit();
+                
+            }else{
+
+            $bast = new Bast();
+          
+            $transactionsByCurrentDateCount = Bast::query()->where('date', $request->date)->get()->count();
+
+            $bast->number = $request->number.'-'.sprintf('%03d', $transactionsByCurrentDateCount + 1);
+            $bast->date = $request->bast_date;
+            $bast->customer_id = 0;
+            $bast->gr_number=$request->bast_gr_number;
+            $bast->pic_event=$request->bast_pic_event;
+            $bast->pic_event_position=$request->bast_pic_event_position;
+            $bast->pic_magenta=$request->bast_pic_magenta;
+            $bast->pic_magenta_position=$request->bast_pic_magenta_position;
+            $bast->po_file=null;
+            $bast->gr_file=null;
+            $bast->type="event";
+            $bast->amount=$request->bast_amount;
+            //$bast->v2_sales_order_item_id=$request->id;
+            $bast->delivery_order_id=$request->id;
+            $bast->v2_sales_order_id=$request->sales_order_id;
+
+         
+            $bast->save();
+              $salesOrder = V2SalesOrder::findOrFail($request->sales_order_id);
+
+            $salesOrder->total_bast=$salesOrder->total_bast+$request->bast_amount;
+            $salesOrder->save();
+
+            DB::commit();
+
+                
+                
+            }
+
+         
 
             return response()->json([
                 'message' => 'Data has been saved',
@@ -182,7 +215,7 @@ class BastController extends Controller
                 'message' => 'Internal error',
                 'code' => 500,
                 'error' => true,
-                'errors' => $e,
+                'errors' => $e.'',
             ], 500);
         }
     }
@@ -315,12 +348,12 @@ class BastController extends Controller
       
         try{
               $bast=Bast::findOrFail($id);
-              if ($bast!==null){
-                  $eventQuotation=EventQuotation::findOrFail($bast->event_quotation_id);
-                  $eventQuotation->total_bast=$eventQuotation->total_bast-$bast->amount;
-                  $eventQuotation->save();
+            //   if ($bast!==null){
+            //       $eventQuotation=EventQuotation::findOrFail($bast->event_quotation_id);
+            //       $eventQuotation->total_bast=$eventQuotation->total_bast-$bast->amount;
+            //       $eventQuotation->save();
 
-              }
+            //   }
               $bast->delete();
 
               
@@ -346,9 +379,10 @@ class BastController extends Controller
 
 
     public function print($id){
-        $bast = Bast::with(['v2SalesOrderItem.picEvent.customer','v2SalesOrderItem.v2SalesOrder.customerPurchaseOrder'])->findOrFail($id);
+        $bast = Bast::with(['v2SalesOrderItem.picEvent.customer','v2SalesOrder.customerPurchaseOrder','v2SalesOrder.customer'])->findOrFail($id);
+        // return $bast['v2SalesOrder'];
         //return $bast;
-    
+
 
         $mpdf = new \Mpdf\Mpdf([
             'format' => 'A4',
@@ -361,7 +395,6 @@ class BastController extends Controller
         ]);
 
        
-        
 
         $html = view('bast.print', [
             'bast' => $bast,
@@ -449,6 +482,7 @@ class BastController extends Controller
             })
             ->rawColumns(['action'])
             ->make(true);
+            
     }
 
         public function datatablesSalesOrders(Request $request)
@@ -463,33 +497,77 @@ class BastController extends Controller
         // })->all();
 
         //$salesOrders = V2SalesOrder::select('v2_sales_orders.*');
-        $salesOrders = collect(V2SalesOrder::with(['v2SalesOrderItems','v2SalesOrderItems.picEvent.customer','customerPurchaseOrder'])->select('v2_sales_orders.*')->get())->each(function($item){
-            collect($item->v2SalesOrderItems)->each(function($item){
-                $item['bast_number']="";
-                $item['bast_gr_number']="";
-                $item['bast_date']="";
-                $item['bast_pic_event']=$item['picEvent']['name'];
-                $item['bast_pic_event_position']=$item['picEvent']['position'];
-                $item['bast_customer']=$item['picEvent']['customer']['name'];
-                $item['bast_pic_magenta']="Myrawati Setiawan";
-                $item['bast_pic_magenta_position']="Project Magenta";
-                $item['bast_po_file']="";
-                $item['bast_gr_file']="";
+        // $salesOrders = collect(V2SalesOrder::with(['v2SalesOrderItems','v2SalesOrderItems.picEvent.customer','customerPurchaseOrder'])->select('v2_sales_orders.*')->get())
+        // $salesOrders = collect(V2SalesOrder::with(['v2SalesOrderItems','v2SalesOrderItems.picEvent.customer','customerPurchaseOrder'])->select('v2_sales_orders.*')->get())
+         $salesOrders = collect(V2SalesOrder::with(['customer','customerPurchaseOrder'])->select('v2_sales_orders.*')->get())
+        ->filter(function($item){
+           // if ($item->netto-$item->total_bast<0){
+                return $item->netto-$item->total_bast>0;
+            //}
+            // collect($item->v2SalesOrderItems)->filter(function($item){
+            //    return (($item->netto)-($item->total_bast)0);
+
+            //     // $item['bast_number']="";
+            //     // $item['bast_gr_number']="";
+            //     // $item['bast_date']="";
+            //     // $item['bast_pic_event']=$item['picEvent']['name'];
+            //     // $item['bast_pic_event_position']=$item['picEvent']['position'];
+            //     // $item['bast_customer']=$item['picEvent']['customer']['name'];
+            //     // $item['bast_pic_magenta']="Myrawati Setiawan";
+            //     // $item['bast_pic_magenta_position']="Project Magenta";
+            //     // $item['bast_po_file']="";
+            //     // $item['bast_gr_file']="";
                 
                 
-                $item['bast_amount']=$item['total']-$item['total_bast'];
-                $item['is_checked']=0;
-                $item['bast_remaining']=$item['total']-$item['total_bast'];
+            //     // $item['bast_amount']=$item['total']-$item['total_bast'];
+            //     // $item['is_checked']=0;
+            //     // $item['bast_remaining']=$item['total']-$item['total_bast'];
                   
-            });
+            // });
             
         });
 
         return DataTables::of($salesOrders)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
+                
                 $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
                 return $button;
+            })
+            ->addColumn('bast_remaining',function($row){
+                return $row->netto-$row->total_bast;
+
+            })
+            ->rawColumns(['action'])
+        
+            ->make(true);
+    }
+
+
+          public function datatablesDeliveryOrders(Request $request)
+    {
+        $customerId = $request->query('customer_id');
+       
+         $salesOrders = collect(DeliveryOrder::with(['deliveryOrderOtherQuotationItems.otherQuotationItem','v2SalesOrder.customerPurchaseOrder','v2SalesOrder.customer'])->select('delivery_orders.*')->get());
+     
+
+        return DataTables::of($salesOrders)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                if ($row->v2SalesOrder->netto-$row->v2SalesOrder->total_bast>0){
+                      $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+
+                }else{
+                      $button = '';
+                    
+                }
+                
+              
+                return $button;
+            })
+            ->addColumn('bast_remaining',function($row){
+                return $row->netto-$row->total_bast;
+
             })
             ->rawColumns(['action'])
         

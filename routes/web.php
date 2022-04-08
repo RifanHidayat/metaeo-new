@@ -532,10 +532,14 @@ Route::prefix('/datatables')->group(function () {
         // Route::get('/estimations', [QuotationController::class, 'datatablesEstimations']);
     });
     Route::prefix('/bast')->group(function () {
+          
+        
           Route::get('/', [BastController::class, 'indexData']);
-        Route::get('/quotations', [BastController::class, 'datatablesQuotations']);
+          Route::get('/quotations', [BastController::class, 'datatablesQuotations']);
           Route::get('/sales-orders', [BastController::class, 'datatablesSalesOrders']);
+          Route::get('/delivery-orders', [BastController::class, 'datatablesDeliveryOrders']);
         // Route::get('/estimations', [QuotationController::class, 'datatablesEstimations']);
+    
     });
 
     Route::prefix('/sales-orders')->group(function () {

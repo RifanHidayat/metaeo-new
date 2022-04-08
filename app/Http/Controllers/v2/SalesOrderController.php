@@ -44,13 +44,13 @@ class SalesOrderController extends Controller
                 if ($salesOrder->source == 'quotation') {
                     // return $salesOrder->v2Quotation->number;
                     if ($salesOrder->v2Quotation !== null) {
-                        return 'Quotation #' . $salesOrder->v2Quotation->number;
+                        return $salesOrder->v2Quotation->number;
                     } else {
                         return '';
                     }
                 } else if ($salesOrder->source == 'purchase_order') {
                     if ($salesOrder->customerPurchaseOrder !== null) {
-                        return 'PO #' . $salesOrder->customerPurchaseOrder->number;
+                        return  $salesOrder->customerPurchaseOrder->number;
                     } else {
                         return '';
                     }
@@ -65,13 +65,13 @@ class SalesOrderController extends Controller
                 if ($salesOrder->source == 'quotation') {
                     // return $salesOrder->v2Quotation->number;
                     if ($salesOrder->v2Quotation !== null) {
-                        return 'Quotation #' . $salesOrder->v2Quotation->date;
+                        return $salesOrder->v2Quotation->date;
                     } else {
                         return '';
                     }
                 } else if ($salesOrder->source == 'purchase_order') {
                     if ($salesOrder->customerPurchaseOrder !== null) {
-                        return 'PO #' . $salesOrder->customerPurchaseOrder->date;
+                        return  $salesOrder->customerPurchaseOrder->date;
                     } else {
                         return '';
                     }
@@ -168,11 +168,12 @@ class SalesOrderController extends Controller
      */
     public function store(Request $request)
     {
-      //  return $request->selected_data['data']['event_quotations'];
+      //return $request->all();
       
            DB::beginTransaction();
         // return $request->selected_data['data']['event_quotations'];
         $salesOrderWithNumber = V2SalesOrder::where('number', $request->number)->first();
+
         if ($salesOrderWithNumber !== null) {
             return response()->json([
                 'message' => 'number or code already used',
@@ -193,54 +194,61 @@ class SalesOrderController extends Controller
             $salesOrder->v2_quotation_id = $request->quotation_id;
             $salesOrder->customer_purchase_order_number = $request->purchase_order_number;
             $salesOrder->customer_purchase_order_date = $request->purchase_order_date;
+            $salesOrder->netto= $request->netto;
+            $salesOrder->total_bast= 0;
+            
            
             $salesOrder->description = $request->description;
             $salesOrder->term_of_payment = $request->term_of_payment;
             $salesOrder->due_date = $request->due_date;
-            if ($request->selected_data['data']['source']=="quotation"){
+            if (($request->selected_data['data']['source']=="event") || ($request->selected_data['data']['source']=="other")){
                 $salesOrder->customer_purchase_order_id = $request->selected_data['data']['id'];
-                $salesOrder->customer_id=0;
+                $salesOrder->customer_id=0;  
+
 
             }else{
                    $salesOrder->customer_id = $request->customer_id;
                       $salesOrder->customer_purchase_order_id = $request->purchase_order_id;
-
             }
-            $salesOrder->save();
+           
+        //     if ($request->selected_data['data']['source']=="quotation"){
+        //          $salesOrder->customer_id= $request->customer_id_event;
 
-            if ($request->selected_data['data']['source']=="quotation"){
-        //           $keyedQuotations = collect($request->selected_data['data']['event_quotations'])->mapWithKeys(function ($item) use($salesOrder) {
-        //     return [
-        //         $item['id']=>[
 
-        //             'v2_sales_order_id' => $salesOrder->id,
+        // //           $keyedQuotations = collect($request->selected_data['data']['event_quotations'])->mapWithKeys(function ($item) use($salesOrder) {
+        // //     return [
+        // //         $item['id']=>[
+
+        // //             'v2_sales_order_id' => $salesOrder->id,
                 
-        //             'pic_event_id'=>$item['pic_event']['id'],
-        //             'total'=>$item['netto'],
-        //             'created_at' => Carbon::now()->toDateTimeString(),
-        //             'updated_at' => Carbon::now()->toDateTimeString(),
+        // //             'pic_event_id'=>$item['pic_event']['id'],
+        // //             'total'=>$item['netto'],
+        // //             'created_at' => Carbon::now()->toDateTimeString(),
+        // //             'updated_at' => Carbon::now()->toDateTimeString(),
 
-        //         ]
+        // //         ]
                   
-        //     ];
-        // })->all();
-        //      $salesOrder->eventQuotations()->attach($keyedQuotations);
+        // //     ];
+        // // })->all();
+        // //      $salesOrder->eventQuotations()->attach($keyedQuotations);
 
-          $items = collect($request->selected_data['data']['event_quotations'])->map(function ($item) use ($salesOrder) {
-                return [
-                    'v2_sales_order_id' => $salesOrder['id'],
-                    'total'=>$item['netto'],
-                    'pic_event_id'=>$item['pic_event_id'],
-                    'created_at' => Carbon::now()->toDateTimeString(),
-                    'updated_at' => Carbon::now()->toDateTimeString(),
-                ];
-            })->all();
+        // //   $items = collect($request->selected_data['data']['event_quotations'])->map(function ($item) use ($salesOrder) {
+        // //         return [
+        // //             'v2_sales_order_id' => $salesOrder['id'],
+        // //             'total'=>$item['netto'],
+        // //             'pic_event_id'=>$item['pic_event_id'],
+        // //             'created_at' => Carbon::now()->toDateTimeString(),
+        // //             'updated_at' => Carbon::now()->toDateTimeString(),
+        // //         ];
+        // //     })->all();
 
-             DB::table('v2_sales_order_items')->insert($items);
+        // //      DB::table('v2_sales_order_items')->insert($items);
       
                 
 
-             }
+        //      }
+              $salesOrder->save();
+
  DB::commit();
             return response()->json([
                 'message' => 'Data has been saved',
@@ -388,6 +396,7 @@ class SalesOrderController extends Controller
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
         $customerPurchaseOrders = CustomerPurchaseOrder::with(['items', 'v2SalesOrder', 'customer','eventQuotations','eventQuotations.customer','eventQuotations.picEvent.customer'])
             ->get();
+         //   return "tes";
             
         // ->filter(function ($quotation) {
         //     return count($quotation->salesOrders) < 1;
@@ -398,7 +407,7 @@ class SalesOrderController extends Controller
             ->addColumn('action', function (CustomerPurchaseOrder $purchaseOrder) {
                 if ($purchaseOrder->v2SalesOrder !== null) {
                     $content = '<a href="/sales-order/detail/' . $purchaseOrder->v2SalesOrder->id . '" target="_blank"><span class="label label-success label-inline">#' . $purchaseOrder->v2SalesOrder->number . '</span></a>';
-                } else {
+                }else {
                     $content = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
                 }
                 return $content;

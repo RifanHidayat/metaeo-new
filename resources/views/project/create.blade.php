@@ -187,7 +187,7 @@
                                 <div class="mt-2">
                                     <div class="my-3 text-right">
                                         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#salesOrdersModal"><i class="flaticon2-plus"></i> Pilih Sales Order</button>
-                                        <button type="button"  class="btn btn-success" data-toggle="modal" data-target="#quotationModal"><i class="flaticon2-plus"></i> Pilih Quotation</button>
+                                        <!-- <button type="button"  class="btn btn-success" data-toggle="modal" data-target="#quotationModal"><i class="flaticon2-plus"></i> Pilih Quotation</button> -->
                                       
                                     </div>
                                     <div v-if="selectedData.length==0">
@@ -863,6 +863,7 @@
             const selected = {
                 ...data,
             };
+            console.log("data ",data);
              selected['source']='eo-quotation';
           
          

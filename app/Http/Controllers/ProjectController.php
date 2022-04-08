@@ -52,26 +52,38 @@ class ProjectController extends Controller
     {
         // $salesOrders = V2SalesOrder::with(['v2Quotation', 'customerPurchaseOrder', 'jobOrders', 'invoices', 'deliveryOrders'])->select('v2_sales_orders.*');
         // return $salesOrders;
-          $bast = Project::with("eventQuotations")->select('projects.*');
+          $bast = Project::with(["eventQuotations",'v2SalesOrders.customerPurchaseOrder'])->select('projects.*');
         return DataTables::eloquent($bast)
             ->addIndexColumn()
+            ->addColumn("sales_order_number",function($row){
+                return $row->v2SalesOrders!=null?$row->v2SalesOrders[0]['number']:"";
+            })
+            ->addColumn("source",function($row){
+                return $row->v2SalesOrders!=null?$row->v2SalesOrders[0]['customerPurchaseOrder']['source']:"";
+            })
             
             
            
             ->addColumn('action', function ($row) {
-               if ($row->source=="sales-order"){
+               if ($row->v2SalesOrders[0]['customerPurchaseOrder']['source']!="quotation"){
                     $mapping='';
                    
 
                }else{
-                    $mapping='<a href="/project/mapping/' . $row->id . '" class="navi-link">
-                                        <span class="navi-icon">
+                    $mapping='<a href="/project/mapping/' . $row->id . '" class="navi-lin                                     <span class="navi-icon">
                                             <i class="flaticon2-list-2"></i>
                                         </span>
                                         <span class="navi-text">Mapping</span>
                                     </a>';
                    
                }
+
+              $mapping='<a href="/project/mapping/' . $row->id . '" class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon2-list-2"></i>
+                                        </span>
+                                        <span class="navi-text">Mapping</span>
+                                    </a>';
                 $button = ' <div class="text-center">';   
                     $button .= ' <a href="/quotation/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -137,6 +149,7 @@ class ProjectController extends Controller
 
                 return $button;
             })
+            
             ->rawColumns(['quotation_number', 'action'])
             ->make(true);
     }
@@ -482,29 +495,9 @@ $transactionsByCurrentDateCount = Project::query()->where('start_date', $request
             $project->source=$request->source;  
             $project->po_number=$request->po_number;
             $project->save();
-                 $source=$request->source;
+          
 
-            if ($source=="quotation"){
-                 $keyedQuotations = collect($request->items)->mapWithKeys(function ($item) use($project) {
-            return [
-                $item['id']=>[
-                    
-                    'project_id' => $project->id,
-                    'sales_order_id' => 0,
-                    'created_at' => Carbon::now()->toDateTimeString(),
-                    'updated_at' => Carbon::now()->toDateTimeString(),
-
-                ]
-                  
-            ];
-        })->all();
-             $project->eventQuotations()->attach($keyedQuotations);
-      
-
-            }
-
-            if ($source=="sales-order"){
-            $keyedSalesOrder = collect($request->items)->mapWithKeys(function ($item) use($project) {
+              $keyedSalesOrder = collect($request->items)->mapWithKeys(function ($item) use($project) {
             return [
                 $item['id']=>[
                     'project_id' => $project->id,
@@ -516,7 +509,30 @@ $transactionsByCurrentDateCount = Project::query()->where('start_date', $request
             ];
         })->all();
            $project->v2SalesOrders()->attach($keyedSalesOrder);
-            }
+        //     return $request->source;
+        //     $source=$request->source;
+        //     if ($source=="quotation"){
+        //          $keyedQuotations = collect($request->items)->mapWithKeys(function ($item) use($project) {
+        //     return [
+        //         $item['id']=>[
+                    
+        //             'project_id' => $project->id,
+        //             'sales_order_id' => 0,
+        //             'created_at' => Carbon::now()->toDateTimeString(),
+        //             'updated_at' => Carbon::now()->toDateTimeString(),
+
+        //         ]
+                  
+        //     ];
+        // })->all();
+        //      $project->eventQuotations()->attach($keyedQuotations);
+      
+
+        //     }
+
+        //     if ($source=="sales-order"){
+          
+        //     }
 
            
 

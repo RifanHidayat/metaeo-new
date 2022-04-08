@@ -86,7 +86,7 @@
           
           <table style="margin-left: 4%">
             <tr>
-              <td align="justify"> <span>Dalam hal ini bertindak untuk dan atas nama <?php echo $bast->v2SalesOrderItem->picEvent->customer->name ?> yang berkedudukan di <?php echo $bast->v2SalesOrderItem->picEvent->customer->address. ""; ?> untuk selanjutnya disebut sebagai <b>PIHAK PERTAMA</b></span> </td>
+              <td align="justify"> <span>Dalam hal ini bertindak untuk dan atas nama <?php echo $bast->pic_event ?> yang berkedudukan di <?php echo $bast['v2SalesOrder']['customer']['address']. ""; ?> untuk selanjutnya disebut sebagai <b>PIHAK PERTAMA</b></span> </td>
             </tr>
           </table>
 
@@ -118,11 +118,11 @@
               </td>
             </tr>
           </table><br>
-          <span>Menerangkan bahwa telah dilakukan pekerjaan untuk GR No.<u><?php echo $bast->gr_number. ""; ?></u> dan PO Nomor <u><?php echo $bast->v2SalesOrderItem->v2SalesOrder->customerPurchaseOrder->number. ""; ?></u> </span>
+          <span>Menerangkan bahwa telah dilakukan pekerjaan untuk GR No.<u><?php echo $bast->gr_number. ""; ?></u> dan PO Nomor <u><?php echo $bast->v2SalesOrder->customerPurchaseOrder->number. ""; ?></u> </span>
 
           <br>
           <br>
-          <p>&ensp;&ensp;<b><?php echo $bast->v2SalesOrderItem->v2SalesOrder->customerPurchaseOrder->title . ""; ?></b><b><?php echo "" . ""; ?></b> &ensp;&ensp;&ensp;&ensp;<b><?php echo "( IDR " . number_format($bast->amount, 0, ',', '.') . ")"; ?></b> </p>
+          <p>&ensp;&ensp;<b><?php echo $bast->v2SalesOrder->customerPurchaseOrder->title . ""; ?></b><b><?php echo "" . ""; ?></b> &ensp;&ensp;&ensp;&ensp;<b><?php echo "( IDR " . number_format($bast->amount, 0, ',', '.') . ")"; ?></b> </p>
 
 
 
@@ -154,7 +154,7 @@
         <div border="1" class="ttd2">
           <span>Mengetahui :<br></span><br>
           <span>PIHAK PERTAMA,</span><br>
-          <span><?php echo  $bast->v2SalesOrderItem->picEvent->customer->name; ?></span><br>
+          <span><?php echo  $bast->v2SalesOrder->customer->name; ?></span><br>
           <br>
           <br>
           <br>

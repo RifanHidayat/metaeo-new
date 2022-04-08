@@ -47,4 +47,5 @@ class V2SalesOrder extends Model
     {
         return $this->hasMany(v2SalesOrderItem::class);
     }
+    
 }
