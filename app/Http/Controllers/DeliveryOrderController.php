@@ -279,6 +279,7 @@ class DeliveryOrderController extends Controller
      */
     public function storeV2(Request $request)
     {
+       // return $request->all();
        // return $request->event_quotations;
         // return $request->event_quotations;
 
@@ -312,6 +313,7 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->sales_order_id = $request->sales_order_id;
             $deliveryOrder->description = $request->description;
             $deliveryOrder->bast_id=$request->bast_id;
+            $deliveryOrder->amount=$request->amount;
 
             $source = $request->source;
             $items = $request->selected_items;
@@ -321,7 +323,9 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->save();
 
             if ($source=='event'){
-                
+            
+
+        
             }else if ($source=="other"){
                 foreach ($request->event_quotations as $quotation){
                     foreach($quotation['other_quotation_items'] as $item){
@@ -333,7 +337,7 @@ class DeliveryOrderController extends Controller
                                 "quantity"=>$item['quantity'],
                                 "frequency"=>$item['frequency'],
                                 "description"=>$item['description'],
-                                "note"=>$item['note'],
+                                
                                 "delivery_order_id"=>$deliveryOrder->id,
                                 "other_quotation_item_id"=>$item['id'],
                             ];
@@ -437,9 +441,10 @@ class DeliveryOrderController extends Controller
                 'subtitle' => 'Pastikann id sales order atau url telah sesuai'
             ]);
         }
+        
 
+        
         // return 
-
         // $customerExist = $salesOrder->quotations->filter(function ($item) {
         //     return $item->estimations !== null && count($item->estimations) > 0;
         // })->flatMap(function ($item) {
@@ -453,6 +458,11 @@ class DeliveryOrderController extends Controller
         // if ($customerExist !== null) {
         //     $customer = $customerExist->picPo->customer;
         // }
+
+        
+
+
+
 
         if ($deliveryOrder->quotations !== null) {
             if (count($deliveryOrder->quotations) > 0) {
@@ -682,11 +692,14 @@ class DeliveryOrderController extends Controller
      */
     public function print($id)
     {
+        
         $deliveryOrder = DeliveryOrder::with(['v2SalesOrder' => function ($query) {
             $query->with(['v2Quotation', 'customerPurchaseOrder']);
         }, 'cpoItems', 'v2QuotationItems','bast','bast.eventQuotation','bast.eventQuotation.poQuotation'])->findOrFail($id);
 
         $deliveryOrderOtherQuotationItem=DeliveryOrderOtherQuotationItem::where('delivery_order_id',$id)->get();
+        //return  $deliveryOrderOtherQuotationItem;
+        //return  $deliveryOrder;
 
        // return $deliveryOrder;
         //return $deliveryOrder;
@@ -735,7 +748,7 @@ class DeliveryOrderController extends Controller
     public function datatablesSalesOrders(Request $request)
     {
         $customerId = $request->query('customer_id');
-          $otherQuotationItems=OtherQuotationItem::all();
+         $otherQuotationItems=OtherQuotationItem::all();
           
             $otherQuotationItems=collect($otherQuotationItems)->each(function($item){
             $item['description']="";
@@ -745,19 +758,26 @@ class DeliveryOrderController extends Controller
         });
 
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $salesOrders = V2SalesOrder::with(['deliveryOrders.deliveryOrderOtherQuotationItems'=>function($query){
+        $salesOrders = V2SalesOrder::with(['eventQuotation.items.subItems','deliveryOrders.deliveryOrderOtherQuotationItems'=>function($query){
           
+
+
         },'customerPurchaseOrder.eventQuotations','v2Quotation.items' => function ($query) {
             $query->with(['jobOrders', 'deliveryOrders']);
         }, 'customerPurchaseOrder.items' => function ($query) {
+
+            
             $query->with(['jobOrders', 'deliveryOrders']);
+
+
         }, 'customer.warehouses'])->select('v2_sales_orders.*')->get();
         // return $salesOrders;
 
-
+         
 
           $salesOrders=collect($salesOrders)->each(function($bast) use ($otherQuotationItems){
-              if ($bast['customerPurchaseOrder']['source']=='other'){
+              if ($bast['source']!='quotation') {
+                  if ($bast['customerPurchaseOrder']['source']=='other'){
                   collect($bast['customerPurchaseOrder']->eventQuotations)->each(function($bast) use($otherQuotationItems){
               
                   $items=collect($otherQuotationItems)->filter(function($item) use ($bast){                    
@@ -766,13 +786,35 @@ class DeliveryOrderController extends Controller
                      $bast['other_quotation_items']=$items;
                       $bast['isShow']=0;
               });
-              }  
+              } 
+              }else{
+                  if ($bast->eventQuotation!=null){
+                    $number=substr($bast->eventQuotation->number,0,2);
+                    if ($number=="QO"){
+                         $items=collect($otherQuotationItems)->filter(function($item) use ($bast){                    
+                    return $item->event_quotation_id==$bast->eventQuotation->id;
+                 })->values()->all();
+                     $bast['eventQuotation']['other_quotation_items']=$items;
+                      $bast['eventQuotation']['isShow']=0;
+                
+              } 
+
+                    }
+
+                      
+
+                  }
+              
            });
-          //  return $salesOrders;
+           
             // $salesOrder=collect($alesorder->delivery_orders)->each(function($item){})
 
+            
+            
             $salesOrders=collect($salesOrders)->each(function($salesOrder) {
-              if ($salesOrder['customerPurchaseOrder']['source']=='other'){
+
+              if ($salesOrder['source']!="quotation"){
+                  if ($salesOrder['customerPurchaseOrder']['source']=='other'){
                   collect($salesOrder['customerPurchaseOrder']->eventQuotations)->each(function($quotation) use($salesOrder){
                   collect($quotation->other_quotation_items)->each(function($otherQuotationItems) use ($salesOrder,){
                    
@@ -794,8 +836,39 @@ class DeliveryOrderController extends Controller
                     //   $bast['isShow']=0;
               });
               }  
+              }else{
+                  if ($salesOrder->eventQuotation!=null){
+                    $number=substr($salesOrder->eventQuotation->number,0,2);
+                    if ($number=="QO"){
+                  
+                   collect($salesOrder->eventQuotation->other_quotation_items)->each(function($otherQuotationItems) use ($salesOrder){
+
+                    $otherQuotationItems['delivery_order']=collect($salesOrder['deliveryOrders'])->filter(function($item) use($otherQuotationItems){
+                    
+                    return count(collect($item['deliveryOrderOtherQuotationItems'])->filter(function($item) use($otherQuotationItems){
+
+                    return $item->other_quotation_item_id==$otherQuotationItems->id?$item:[];
+                    }));
+                   })->values()->all();
+                
+                     
+             //$item['deliveryOrder']=$items;              
+                // return $item->event_quotation_id==$bast->id;
+            });
+                    
+                    //   $bast['isShow']=0;
+           
+                      
+                
+              } 
+
+                    }
+
+
+              }
            });
-           //return $salesOrders;
+           
+          // return $salesOrders;
            
 
 

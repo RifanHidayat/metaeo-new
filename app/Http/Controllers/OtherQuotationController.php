@@ -169,7 +169,7 @@ class OtherQuotationController extends Controller
      */
    public function create()
     {
-           $customers = Customer::all();      
+        $customers = Customer::all();      
         $eventPics=PicEvent::with('customer')->get();
        
         //return $eventPics;
@@ -543,6 +543,7 @@ class OtherQuotationController extends Controller
             $item['items']=$otherQuotationItem;
 
         }))->first();
+   //     return $eventQuotations;
 
      
        //return $eventQuotations;

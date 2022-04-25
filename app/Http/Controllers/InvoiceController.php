@@ -188,6 +188,8 @@ class InvoiceController extends Controller
         }
 
         try {
+            
+            DB::commit();
             $invoice->save();
         } catch (Exception $e) {
             DB::rollBack();
@@ -684,14 +686,14 @@ class InvoiceController extends Controller
      */
     public function print($id)
     {
-        $invoice = Invoice::with(['deliveryOrders' => function ($query) {
+        $invoice = Invoice::with(['bast.v2SalesOrder.customerPurchaseOrder','bast.deliveryOrder.deliveryOrderOtherQuotationItems.otherQuotationItem','deliveryOrders' => function ($query) {
             $query->with(['cpoItems', 'v2QuotationItems']);
-        }, 'v2SalesOrder','bast','bast.eventQuotation.otherQuotationItems','bast.eventQuotation.poQuotation'])->findOrFail($id);
+        }, 'v2SalesOrder'])->findOrFail($id);
        // return $invoice;
 
         $invoiceItem = DB::table('invoice_item')->where('invoice_id',$id)->get();
 
-       // return $invoiceItem;
+      //  return $invoice->bast;
        
 
         $items = collect($invoice->deliveryOrders)->flatMap(function ($do) use ($invoice) {
@@ -708,7 +710,7 @@ class InvoiceController extends Controller
             }
         });
 
-        // return $items;
+         //return $invoice;
 
         $company = Company::all()->first();
 
@@ -827,18 +829,29 @@ class InvoiceController extends Controller
             $item['number']="";
         });
        
-          $basts = Bast::with(['v2SalesOrder.customerPurchaseOrder.eventQuotations','deliveryOrder.deliveryOrderOtherQuotationItems.otherQuotationItem'])->select('basts.*')->get();
+          $basts = Bast::with(['v2SalesOrder.customerPurchaseOrder.eventQuotations','deliveryOrder.deliveryOrderOtherQuotationItems.otherQuotationItem','v2SalesOrder.eventQuotation'])->select('basts.*')->get();
         //  return $basts[0]['v2SalesOrder']['customerPurchaseOrder'];
      
           
           $basts=collect($basts)->each(function($bast) use ($otherQuotationItems){
-              collect($bast['v2SalesOrder']['customerPurchaseOrder']->eventQuotations)->each(function($bast) use($otherQuotationItems){
+              if ($bast['v2SalesOrder']['source']=='quotation'){
+                  $items=collect($otherQuotationItems)->filter(function($item) use ($bast){
+                return $item->event_quotation_id==$bast->id;
+            })->values()->all();
+                     $bast['other_quotation_items']=$items;
+                  
+
+              }else{
+                      collect($bast['v2SalesOrder']['customerPurchaseOrder']->eventQuotations)->each(function($bast) use($otherQuotationItems){
                   $items=collect($otherQuotationItems)->filter(function($item) use ($bast){
                 return $item->event_quotation_id==$bast->id;
             })->values()->all();
                      $bast['other_quotation_items']=$items;
 
               });
+
+              }
+          
            });
 
 

@@ -1,10 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\v2;
 
+
+
+namespace App\Http\Controllers\v2;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\CustomerPurchaseOrder;
+use App\Models\EventQuotation;
+use App\Models\OtherQuotationItem;
 use App\Models\PicEvent;
 use App\Models\PurchaseOrder;
 use App\Models\V2Quotation;
@@ -14,7 +18,6 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
-
 class SalesOrderController extends Controller
 {
     /**
@@ -26,6 +29,10 @@ class SalesOrderController extends Controller
     {
         return view('sales-order.v2.index');
     }
+           private function formatDate($date = "", $format = "Y-m-d")
+    {
+        return date_format(date_create($date), $format);
+    }
 
     /**
      * Send datatable form.
@@ -34,7 +41,7 @@ class SalesOrderController extends Controller
      */
     public function indexData()
     {
-        $salesOrders = V2SalesOrder::with(['v2Quotation', 'customerPurchaseOrder', 'jobOrders', 'invoices', 'deliveryOrders'])->select('v2_sales_orders.*');
+        $salesOrders = V2SalesOrder::with(['v2Quotation', 'customerPurchaseOrder', 'jobOrders', 'invoices', 'deliveryOrders','eventQuotation'])->select('v2_sales_orders.*');
         return DataTables::eloquent($salesOrders)
             ->addIndexColumn()
             ->addColumn('quotation_po_number', function (V2SalesOrder $salesOrder) {
@@ -49,7 +56,7 @@ class SalesOrderController extends Controller
                         return '';
                     }
                 } else if ($salesOrder->source == 'purchase_order') {
-                    if ($salesOrder->customerPurchaseOrder !== null) {
+                    if ($salesOrder->customerPurchaseOrder != null) {
                         return  $salesOrder->customerPurchaseOrder->number;
                     } else {
                         return '';
@@ -78,6 +85,40 @@ class SalesOrderController extends Controller
                 } else {
                     return '';
                 }
+            })
+            ->addColumn('other_number',function($row){
+               if ($row->source=="quotation"){
+                    if ($row->v2Quotation!=null){
+                    return $row->v2Quotation->number;
+                }
+                 if ($row->eventQuotation!=null){
+                    return $row->eventQuotation->number;
+                }
+                return "";
+               }else if ($row->source=="purchase_order"){
+                   return $row->customerPurchaseOrder->number;
+
+               }
+        
+
+            })
+             ->addColumn('other_date',function($row){
+                    if ($row->source=="quotation"){
+                     if ($row->v2Quotation!=null){
+                    return $row->v2Quotation->date;
+                }
+                 if ($row->eventQuotation!=null){
+                    return $row->eventQuotation->date;
+                }
+              
+               }else if ($row->source=="purchase_order"){
+                   return $row->customerPurchaseOrder->date;
+
+               }
+               
+                return "";
+        
+
             })
             ->addColumn('action', function ($row) {
                 $button = '
@@ -170,23 +211,27 @@ class SalesOrderController extends Controller
     {
       //return $request->all();
       
-           DB::beginTransaction();
+        DB::beginTransaction();
         // return $request->selected_data['data']['event_quotations'];
-        $salesOrderWithNumber = V2SalesOrder::where('number', $request->number)->first();
+        // $salesOrderWithNumber = V2SalesOrder::where('number', $request->number)->first();
 
-        if ($salesOrderWithNumber !== null) {
-            return response()->json([
-                'message' => 'number or code already used',
-                'code' => 400,
-                // 'errors' => $/e,
-            ], 400);
-        }
+        // if ($salesOrderWithNumber !== null) {
+        //     return response()->json([
+        //         'message' => 'number or code already used',
+        //         'code' => 400,
+        //         // 'errors' => $/e,
+        //     ], 400);
+        // }
+        $transactionsByCurrentDateCount = CustomerPurchaseOrder::query()->where('date', $request->date)->get()->count();
+            $number = 'SO-' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+
 
         try {
 
             $salesOrder = new V2SalesOrder();
-            $salesOrder->number = $request->number;
+            // $salesOrder->number = $request->number;
             $salesOrder->date = $request->date;
+            $salesOrder->number = $number;
          
             $salesOrder->source = $request->source;
             $salesOrder->quotation_number = $request->quotation_number;
@@ -201,15 +246,30 @@ class SalesOrderController extends Controller
             $salesOrder->description = $request->description;
             $salesOrder->term_of_payment = $request->term_of_payment;
             $salesOrder->due_date = $request->due_date;
-            if (($request->selected_data['data']['source']=="event") || ($request->selected_data['data']['source']=="other")){
+
+           if ($request->source=="quotation"){
+                $salesOrder->customer_id=$request->customer_id_event;
+               if (($request->selected_data['data']['source']=="event") || ($request->selected_data['data']['source']=="other")){
+                   $salesOrder->event_quotation_id=$request->selected_data['data']['id'];
+                   
+
+               }else{
+                   $salesOrder->v2_quotation_id=$request->selected_data['data']['id'];
+
+               }
+            
+
+
+           }else{
+                if (($request->selected_data['data']['source']=="event") || ($request->selected_data['data']['source']=="other")){
                 $salesOrder->customer_purchase_order_id = $request->selected_data['data']['id'];
-                $salesOrder->customer_id=0;  
-
-
+                $salesOrder->customer_id=$request->customer_id_event;
             }else{
-                   $salesOrder->customer_id = $request->customer_id;
-                      $salesOrder->customer_purchase_order_id = $request->purchase_order_id;
+                $salesOrder->customer_id = $request->customer_id;
+                $salesOrder->customer_purchase_order_id = $request->purchase_order_id;
+
             }
+           }
            
         //     if ($request->selected_data['data']['source']=="quotation"){
         //          $salesOrder->customer_id= $request->customer_id_event;
@@ -330,6 +390,7 @@ class SalesOrderController extends Controller
              
                $salesOrder->delete();
          }
+          DB::commit();
 
              return response()->json([
                 'message' => 'Data has been saved',
@@ -363,20 +424,48 @@ class SalesOrderController extends Controller
     public function datatablesQuotations(Request $request)
     {
         $customerId = $request->query('customer_id');
+        $otherQuotationItems=OtherQuotationItem::all();
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $quotations = V2Quotation::with(['items', 'v2SalesOrder', 'customer'])
-            ->get();
-        // ->filter(function ($quotation) {
-        //     return count($quotation->salesOrders) < 1;
-        // })->all();
+        $quotations = collect(V2Quotation::with(['items', 'v2SalesOrder', 'customer'])
+            ->get())->each(function($item){
+                $item['source']='metaprint';
+            });
+        $eo_quotations = collect(EventQuotation::with(['v2SalesOrder','customerPurchaseOrder','otherQuotationItems','subItems.item','customer'])
+            ->get())->each(function($item) use($otherQuotationItems){
+
+                $number=substr($item['number'],0,2);
+                if ($number=="QE"){
+                    $item['source']="event";
+                }else{
+                     $item['source']="other";
+                     $item['other_quotation_item']=$otherQuotationItems->where('event_quotation_id','=',$item['id'])->values()->all();
+
+                }
+                
+            })->filter(function($item){
+                return count($item->customerPurchaseOrder)<=0;
+            })->values()->all();
+         $quotations=$quotations->concat($eo_quotations);
+       
+       
 
         return DataTables::of($quotations)
             ->addIndexColumn()
-            ->addColumn('action', function (V2Quotation $quotation) {
-                if ($quotation->v2SalesOrder !== null) {
-                    $content = '<a href="/sales-order/detail/.' . $quotation->v2SalesOrder->id . '" target="_blank"><span class="label label-info label-inline">#' . $quotation->v2SalesOrder->number . '</span></a>';
+            ->addColumn('action', function ($row) {
+                if ($row->source=="metaprint"){
+                    if ($row->v2SalesOrder !== null) {
+                    $content = '<a href="/sales-order/detail/.' . $row->v2SalesOrder->id . '" target="_blank"><span class="label label-info label-inline">#' . $row->v2SalesOrder->number . '</span></a>';
                 } else {
                     $content = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                }
+                }else if (($row->source=="event") ||($row->source=="other")){
+                     if ($row->v2SalesOrder !== null) {
+                    $content = '<a href="/sales-order/detail/.' . $row->v2SalesOrder->id . '" target="_blank"><span class="label label-info label-inline">#' . $row->v2SalesOrder->number . '</span></a>';
+                } else {
+                    $content = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                }
+                }else{
+                    $content="";
                 }
                 return $content;
             })

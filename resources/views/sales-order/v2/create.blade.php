@@ -65,7 +65,7 @@
                     <div class="row">
                         <div class="col-lg-8 col-md-12">
                             <div class="form-row">
-                                <div class="form-group col-lg-6 col-md-12">
+                                <div class="form-group col-lg-6 col-md-12" hidden>
                                     <label>Nomor:</label>
                                     <!-- <input type="text" class="form-control"> -->
                                     <div class="input-group">
@@ -73,6 +73,14 @@
                                             <span class="input-group-text">#</span>
                                         </div>
                                         <input type="text" v-model="number" class="form-control">
+                                    </div>
+                                </div>
+                                  <div class="form-group col-lg-6 col-md-12">
+                                    <label>Customer:</label>
+                                    <!-- <input type="text" class="form-control"> -->
+                                    <div class="input-group">
+                                        
+                                        <input type="text" v-model="customer"  class="form-control" required >
                                     </div>
                                 </div>
                                 <div class="form-group col-lg-6 col-md-12">
@@ -134,7 +142,7 @@
 
                                  <div class="form-row">
                                 
-                                <div class="form-group col-lg-12 col-md-12">
+                                <div class="form-group col-lg-12 col-md-12" hidden>
                                     <label>Customer:</label>
                                     <!-- <input type="text" class="form-control"> -->
                                     <div class="input-group">
@@ -372,7 +380,10 @@
                                         </div>
                                         <div v-if="selectedData.source == 'quotation'">
                                             <!-- <h1>Quotation <a href="#">#@{{ selectedData.data.number }}</a></h1> -->
-                                            <div class="row">
+                                          
+                                            <!-- begin quotation metaprint -->
+                                              <div v-if="selectedData.data.source=='metaprint'">
+                                             <div class="row">
                                                 <div class="col-md-12 col-lg-12">
                                                     <div class="px-3 py-4 mb-3 rounded">
                                                         <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Quotation <a href="#">#@{{ selectedData.data.number }}</a></h3>
@@ -463,7 +474,207 @@
                                                     </tfoot>
                                                 </table>
                                             </div>
-                                        </div>
+                                            </div>
+                                            <!-- end quotation metaprint  -->
+
+
+                                             <!-- begin quotation event -->
+                                              <div v-if="selectedData.data.source=='event'">
+                                             <div class="row">
+                                                <div class="col-md-12 col-lg-12">
+                                                    <div class="px-3 py-4 mb-3 rounded">
+                                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Quotation <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-12 col-lg-6">
+                                                    <table class="table">
+                                                        <tr>
+                                                            <td>Nomor Quotation</td>
+                                                            <td><strong>@{{ selectedData.data.number }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Tanggal Quotation</td>
+                                                            <td><strong>@{{ selectedData.data.date }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Customer</td>
+                                                            <td><strong>@{{ selectedData.data.customer?.name }}</strong></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div class="col-md-12 col-lg-6">
+                                                    <table class="table">
+                                                        <tr>
+                                                            <td>Title</td>
+                                                            <td><strong>@{{ selectedData.data.title }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>UP</td>
+                                                            <td><strong>@{{ selectedData.data.up }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Keterangan</td>
+                                                            <td><strong>@{{ selectedData.data.description }}</strong></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5">
+                                                <table class="table table-bordered">
+                                                    <thead class="bg-light">
+                                                        <tr>
+                                                            <th>No</th>
+                                                           
+                                                            <th>Nama</th>
+                                                        
+                                                            <th>Nama Subitem</th>
+                                                            <th>Tipe</th>
+                                                            <th>Frequency</th>
+                                                            <th>Qty</th>
+                                                            <th>Price</th>
+                                                            <th>Amount</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="(item, index) in selectedData.data.sub_items">
+                                                            <td>@{{ index + 1 }}</td>
+                                                            <td>@{{ item.item.name }}</td>
+                                                            <td>@{{ item.name }}</td>
+                                                            <td class="text-center ">@{{ item.item.type=="cost"?"Commissionbale Cost":"Nonfee Cost" }}</td>
+                                                            <td class="text-right">@{{ item.pivot.frequency }}</td>
+                                                            <td class="text-right">@{{ toCurrencyFormat(item.pivot.quantity) }}</td>
+                                                            <td class="text-right">@{{ toCurrencyFormat(item.pivot.rate) }}</td>
+                                                            <td class="text-right">@{{ toCurrencyFormat(item.pivot.subtotal) }}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                    <tfoot>
+                                                          <tr>
+                                                            <td class="text-right" colspan="7"><strong>Subtotal</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.subtotal) }}</strong></td>
+                                                        </tr>
+                                                         <tr>
+                                                            <td class="text-right" colspan="7"><strong>asf</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.asf) }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-right" colspan="7"><strong>diskon</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.discount) }}</strong></td>
+                                                        </tr>
+                                                         <tr>
+                                                            <td class="text-right" colspan="7"><strong>Netto</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.netto) }}</strong></td>
+                                                        </tr>
+                                                        
+                                                        
+                                                        
+                                                        
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                            </div>
+                                            <!-- end quotation event  -->
+                                             <!-- begin quotation other -->
+                                              <div v-if="selectedData.data.source=='other'">
+                                             <div class="row">
+                                                <div class="col-md-12 col-lg-12">
+                                                    <div class="px-3 py-4 mb-3 rounded">
+                                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Quotation <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-12 col-lg-6">
+                                                    <table class="table">
+                                                        <tr>
+                                                            <td>Nomor Quotation</td>
+                                                            <td><strong>@{{ selectedData.data.number }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Tanggal Quotation</td>
+                                                            <td><strong>@{{ selectedData.data.date }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Customer</td>
+                                                            <td><strong>@{{ selectedData.data.customer?.name }}</strong></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div class="col-md-12 col-lg-6">
+                                                    <table class="table">
+                                                        <tr>
+                                                            <td>Title</td>
+                                                            <td><strong>@{{ selectedData.data.title }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>UP</td>
+                                                            <td><strong>@{{ selectedData.data.up }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Keterangan</td>
+                                                            <td><strong>@{{ selectedData.data.description }}</strong></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <div class="mt-5">
+                                                <table class="table table-bordered">
+                                                    <thead class="bg-light">
+                                                        <tr>
+                                                            <th>No</th>
+                                                            <th>Name</th>
+                                                             <th>Qty</th>
+                                                            <th>Frequency</th>
+                                                            
+                                                          
+                                                           
+                                                            <th>Price</th>
+                                                            <th>Amount</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="(item, index) in selectedData.data.other_quotation_item">
+                                                            <td>@{{ index + 1 }}</td>
+                                                            <td >@{{ item.name }}</td>
+                                                            <td class="text-right">@{{ item.quantity }}</td>
+                                                            
+                                                            <td class="text-right">@{{ item.frequency }}</td>
+                                                            <td class="text-right">@{{ toCurrencyFormat(item.price) }}</td>
+                                                           
+                                                            <td class="text-right">@{{ toCurrencyFormat(item.amount) }}</td>
+                                                
+                                                        </tr>
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td class="text-right" colspan="5"><strong>Subtotal</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.subtotal) }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-right" colspan="5"><strong>asf</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.asf) }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-right" colspan="5"><strong>Diskon</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.discount) }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-right" colspan="5"><strong>Netto</strong></td>
+                                                            <td class="text-right"><strong>@{{ toCurrencyFormat(selectedData.data.netto) }}</strong></td>
+                                                        </tr>
+                                                      
+                                                        
+                                                       
+                                                    
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                            </div>
+                                            <!-- end quotation other  -->
+
+                                            </div>
+                                           
                                     </div>
                                 </div>
                             </div>
@@ -543,6 +754,7 @@
                             <th>Nomor</th>
                             <th>Tanggal</th>
                             <th>Title</th>
+                              <th>Source/th>
                             <th>Action</th>
                         </thead>
                     </table>
@@ -620,6 +832,7 @@
         },
         methods: {
             submitForm: function() {
+             
                 this.sendData();
             },
             sendData: function() {
@@ -760,13 +973,15 @@
     })
 </script>
 <script>
+
     $(function() {
         quotationsTable = $('#quotation-table').DataTable({
             processing: true,
             serverSide: true,
             destroy: true,
             ajax: '/datatables/v2/sales-orders/quotations',
-            columns: [{
+            columns: [
+                {
                     data: 'number',
                     name: 'number',
                     render: function(data, type) {
@@ -780,6 +995,10 @@
                 {
                     data: 'title',
                     name: 'title'
+                },
+                 {
+                    data: 'source',
+                    name: 'source'
                 },
                 {
                     data: 'action',
@@ -796,12 +1015,30 @@
                 data,
                 source: 'quotation',
             };
-
+           
+            if (data.source=="event"){
 
             app.$data.quotationNumber = app.$data.selectedData.data.number;
-            const newDate = app.$data.selectedData.data.date;
-            app.$data.poNumber=app.$data.selectedData.data.number
-            app.$data.quotationDate = newDate;
+            app.$data.customer=app.$data.selectedData.data.customer.name;
+                app.$data.customerId=app.$data.selectedData.data.customer.id;  
+
+            }else if (data.source=="other"){
+
+                app.$data.quotationNumber = app.$data.selectedData.data.number;
+                app.$data.customer=app.$data.selectedData.data.customer.name;
+                app.$data.customerId=app.$data.selectedData.data.customer.id;  
+
+            }else{
+
+            app.$data.quotationNumber = app.$data.selectedData.data.number;
+            app.$data.poNumber=app.$data.selectedData.data.number 
+            app.$data.customer=app.$data.selectedData.data.customer.name;
+            app.$data.customerId=app.$data.selectedData.data.customer.id;    
+
+            }
+             const newDate = app.$data.selectedData.data.date;
+              app.$data.quotationDate = newDate;
+
             $('#quotation-date').datepicker('update', newDate);
 
             $('#quotationModal').modal('hide');

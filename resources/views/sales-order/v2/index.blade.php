@@ -74,6 +74,7 @@
                 <tr class="text-center">
                     <th>Nomor SO</th>
                     <th>Tanggal SO</th>
+                    <th>Tanggal Source</th>
                     <th>Nomor Quotation / PO</th>
                     <th>Tanggal Quotation / PO</th>
                     <th>Action</th>
@@ -166,16 +167,19 @@
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
-                {
-                    data: 'quotation_po_number',
-                    name: 'v2_sales_orders.number',
-                    // render: function(data, type) {
-                    //     return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${(data.length > 0) ? data.map(item => `<span class="label label-light-info label-pill label-inline text-capitalize">${item.number}</span>`).join('') : ''}</div>`;
-                    // },
+                  {
+                    data: 'source',
+                    name: 'v2_sales_orders.source',
+                   
                 },
                 {
-                    data: 'quotation_po_date',
-                    name: 'quotation_po_date',
+                    data: 'other_number',
+                    name: 'v2_sales_orders.number',
+                
+                },
+                {
+                    data: 'other_date',
+                    name: 'other_date',
                 },
                 {
                     data: 'action',

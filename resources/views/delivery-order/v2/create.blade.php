@@ -128,7 +128,7 @@
                                     <span class="nav-icon">
                                         <i class="flaticon-signs-1"></i>
                                     </span>
-                                    <span class="nav-text">Item Pengiriman META&nbsp;<span class="label label-primary mr-2">@{{ dataItems.length }}</span></span>
+                                    <span class="nav-text">Item Pengiriman&nbsp;<span class="label label-primary mr-2">@{{ dataItems.length }}</span></span>
 
                                 </a>
                             </li>
@@ -677,7 +677,7 @@
                                                     <i class="flaticon2-layers-1 icon-2x text-muted font-weight-bold"></i>
                                                 </span>
                                                 <div class="d-flex flex-column text-dark-75">
-                                                    <span class="font-weight-bolder font-size-sm">Subtotal</span>
+                                                    <span class="font-weight-bolder font-size-sm">Netto</span>
                                                     <span class="font-weight-bolder font-size-h5">
                                                         <span class="text-dark-50 font-weight-bold">Rp </span>
                                                         @{{ Intl.NumberFormat('de-DE').format(eventQuotation.subtotal) }}
@@ -786,12 +786,26 @@
                                                 <input type="text" v-model="warehouse" class="form-control" placeholder="Masukkan nama gudang" />
                                             </div>
                                         </div>
+                                        
                                         <div class="form-group row">
                                             <label class="col-lg-4 col-form-label text-lg-right">Pengirim:</label>
                                             <div class="col-lg-8">
                                                 <input type="text" v-model="shipper" class="form-control" placeholder="Masukkan nama pengirim" />
                                             </div>
                                         </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Nominal:</label>
+                                            <div class="col-lg-8">
+                                                <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp </span>
+                                        </div>
+                                        <input  type="text" v-model="amount" id="amount" class="form-control text-right" ><br>
+                                        
+                                    </div>
+                                            </div>
+                                        </div>
+                                     
                                         <div class="form-group row">
                                             <label class="col-lg-4 col-form-label text-lg-right">Nomor Kendaraan:</label>
                                             <div class="col-lg-8">
@@ -1040,22 +1054,22 @@
                                                                                 <thead>
                                                                                 <tr>
                                                                                 <th  colspan="5" class="text-left"  ><a href="#">#@{{itemm.number}}</th>
-                                                                                  <th class="align-middle text-center" style="width:20%;">
-                                                                                <div class="form-group col-md-4"  >
+                                                                                  <td class="text-center" style="width:20%;" align="center"> 
+                                                                               <center> <div class="form-group  text-center"  >
                                                                                 <label class="checkbox">
                                                                                     <input v-model="itemm.isShow" type="checkbox">
                                                                             <span></span>
                                                                            </label>
-                                                                             </div>
+                                                                             </div></center>
+                                                                        </td>
                                                                       </tr>
-                                                                                    
-                                                                           
-                                                                            </thead> 
-                                                                            <template  v-for="(item ,index2) in itemm.other_quotation_items" >
-                                                                        
-                                                                            <template v-if="itemm.isShow==1 ">
-                                                                                <template v-if="Number(item.product_quantity-item.delivery_order_items.reduce((partialSum, a) => partialSum + a['frequency'], 0))>0">
-                                                                                      <thead  class="bg-light">
+     </thead> 
+                                                                
+     <template  v-for="(item ,index2) in itemm. other_quotation_items" >
+    <template v-if="itemm.isShow==1 ">
+    <template v-if="Number(item.product_quantity-item.delivery_order_items.reduce((partialSum, a) => partialSum + a['quantity'], 0))>0 || Number(item.product_frequency-item.delivery_order_items.reduce((partialSum, a) => partialSum + a['frequency'], 0))>0">
+    <thead  class="bg-light">
+
                                                                             <tr>
                                                                               <th class="text-left"  >#</th>
                                                                                <th class="text-left"  >Kirim</th>
@@ -1103,7 +1117,7 @@
                                                                         <th class="text-left" ></th>
                                                                         <th class="text-left" ></th>
                                                                         <th class="text-left" >
-                                                                            <span class="text-danger">Sisa :@{{Number(item.product_quantity-item.delivery_order_items.reduce((partialSum, a) => partialSum + a['frequency'], 0))}}</span>
+                                                                            <span class="text-danger">Sisa :@{{Number(item.product_quantity-item.delivery_order_items.reduce((partialSum, a) => partialSum + a['quantity'], 0))}}</span>
                                                                         </th>
                                                                         <th class="text-left" >
                                                                             <span class="text-danger">Sisa :@{{Number(item.product_frequency-item.delivery_order_items.reduce((partialSum, a) => partialSum + a['frequency'], 0))}}</span>
@@ -1533,6 +1547,8 @@
             eventQuotation:null,
             eventQuotations:[],
             completedDeliveryOrders:[],
+            source:"",
+            amount:""
             
         },
         methods: {
@@ -1568,7 +1584,9 @@
                     bast_id:vm.bastId,
                     //event_quotations:vm.selectedData.event_quotations,
                     event_quotations:vm.eventQuotations,
-                    source:vm.selectedData.data.customer_purchase_order.source
+                    source:vm.selectedData.source,
+                    amount:vm.amount,
+                    // source:vm.selectedData.data.customer_purchase_order!=null?vm.selectedData.data.customer_purchase_order.source:vm.source
                 }
 
                 axios.post('/delivery-order', data)
@@ -1671,6 +1689,7 @@
                 } else {
                     this.shippingAddress = warehouseAddress;
                 }
+                
                 this.closeWarehouseModal();
             },
             closeWarehouseModal: function() {
@@ -1721,10 +1740,20 @@
                         source
                     } = vm.selectedData.data;
                     if (source == 'quotation') {
-                        items = vm.selectedData.data.v2_quotation.items.filter(item => Number(item.shipped) < Number(item.quantity)).map(item => {
+                         if (vm.selectedData.data.v2_quotation!=null){
+                              items = vm.selectedData.data.v2_quotation.items.filter(item => Number(item.shipped) < Number(item.quantity)).map(item => {
                             item.source = 'quotation';
                             return item;
                         });
+                       
+                    }
+                if (vm.selectedData.data.event_quotation!=null){
+                      items = vm.selectedData.data.event_quotation.items.filter(item => Number(item.shipped) < Number(item.quantity)).map(item => {
+                            item.source = 'quotation';
+                            return item;
+                        });
+                   
+                }
                     } else if (source == 'purchase_order') {
                         items = vm.selectedData.data.customer_purchase_order.items.filter(item => Number(item.shipped) < Number(item.quantity)).map(item => {
                             item.source = 'purchase_order';
@@ -1744,10 +1773,23 @@
                         source
                     } = vm.selectedData.data;
                     if (source == 'quotation') {
-                        items = vm.selectedData.data.v2_quotation.items.filter(item => item.delivery_orders.length > 0).map(item => {
+                       
+                    if (vm.selectedData.data.v2_quotation!=null){
+                          items = vm.selectedData.data.v2_quotation.items.filter(item => item.delivery_orders.length > 0).map(item => {
                             item.source = 'quotation';
                             return item;
                         });
+
+                       
+                    }
+                if (vm.selectedData.data.event_quotation!=null){
+                      items = vm.selectedData.data.event_quotation.items.filter(item => Number(item.shipped) < Number(item.quantity)).map(item => {
+                            item.source = 'quotation';
+                            return item;
+                        });
+                   
+                }
+                  
                     } else if (source == 'purchase_order') {
                         items = vm.selectedData.data.customer_purchase_order.items.filter(item => item.delivery_orders.length > 0).map(item => {
                             item.source = 'purchase_order';
@@ -1785,7 +1827,7 @@
                     name: 'action',
                     orderable: false,
                     searchable: false,
-                      render:function(data,type){
+                    render:function(data,type){
                         return `<div class="text-center">${data}</div>`                    }
                 },
             ]
@@ -1794,18 +1836,127 @@
 
         $('#sales-order-table tbody').on('click', '.btn-choose', function() {
             const data = salesOrdersTable.row($(this).parents('tr')).data();
+            console.log('event quotation',data.event_quotation)
            
              app.$data.bastId=0
-              app.$data.salesOrderId = data.id;
+            app.$data.salesOrderId = data.id;
 
             let items = [];
             if (data.source == 'quotation') {
-                items = data.v2_quotation.items;
+                 console.log("quotation")
+                
+                if (data.v2_quotation!=null){
+
+
+                }
+                if (data.event_quotation!=null){
+                   var code =data.event_quotation.number.substring(0, 2)   
+                   console.log('code',code);             
+
+                   if (code=="QE"){
+
+
+
+        
+
+            const event_quotations=data.event_quotation;
+            var comissionable_cost=data.event_quotation['commissionable_cost'];
+            var netto=data.event_quotation['netto']
+            var nonfee_cost=data.event_quotation['nonfee_cost'];
+            var asf=data.event_quotation['asf'];
+            var discount=data.event_quotation['discount'];
+            var pph=data.event_quotation['pph23_amount'];
+
+            
+
+            var ppn=data.event_quotation['ppn_amount'];
+            var total=data.event_quotation['total'];
+            var subtotal=data.event_quotation['subtotal'];
+            
+
+
+            app.$data.eventQuotation={
+                asf:asf,
+                discount:discount,
+                commissionableCost:comissionable_cost,
+                nonfeeCost:nonfee_cost,
+                netto:netto,
+                pph:pph,
+                ppn:ppn,
+                total:total,
+                subtotal:subtotal
+
+            }
+            
+            app.$data.selectedData = {
+                data,
+                source: "event",
+            };
+                       
+    
+
+                    }else { 
+                    app.$data.eventQuotations.push(data.event_quotation);
+                    data.event_quotation.other_quotation_items.filter(function(otherItem){
+                      var dd=[];
+                       otherItem['delivery_order_items']=[];
+                       otherItem['product_quantity']=otherItem['quantity']
+                       otherItem['product_frequency']=otherItem['frequency']
+                       otherItem['quantity']=0
+                       otherItem['frequency']=0
+
+                        
+                     return otherItem.delivery_order.filter(function(item){
+                         return item.delivery_order_other_quotation_items.filter(function(item){
+                             if (item.other_quotation_item_id==otherItem.id){
+                                 otherItem['delivery_order_items'].push(item)
+                                 return item;
+                             }
+
+                         
+                         });
+                     })
+
+                   //  otherItem['tes']="tes";
+
+                  })
+                    
+            //          app.$data.eventQuotations=data.customer_purchase_order.event_quotations.filter(function(item) {
+            //       return 
+
+
+            //    });
+
+
+app.$data.completedDeliveryOrders=data.delivery_orders;
+                    app.$data.selectedData = {
+                    data,
+                     source: "other",
+                    };               
+                    }
+
+                   
+
+                    
+
+
+
+                }
+                
+            //     app.$data.selectedData = {
+                
+            //     data,
+                
+            //     source: "metaprint",
+             
+            //   };
+           
+            
             } else if (data.source == 'purchase_order') {
+                console.log("customer puchase order")
             if (data.customer_purchase_order.source=='other'){
-               
-               app.$data.eventQuotations=data.customer_purchase_order.event_quotations;
-              
+
+              app.$data.eventQuotations=data.customer_purchase_order.event_quotations;
               app.$data.eventQuotations=data.customer_purchase_order.event_quotations.filter(function(item) {
                   return item.other_quotation_items.filter(function(otherItem){
                       var dd=[];
@@ -1819,11 +1970,7 @@
                      return otherItem.delivery_order.filter(function(item){
                          return item.delivery_order_other_quotation_items.filter(function(item){
                              if (item.other_quotation_item_id==otherItem.id){
-                                 
                                  otherItem['delivery_order_items'].push(item)
-                               
-                      
-            
                                  return item;
                              }
 
@@ -1837,7 +1984,7 @@
 
 
                });
-               console.log("tes",app.$data.eventQuotations);
+               
                
                app.$data.completedDeliveryOrders=data.delivery_orders;
                
@@ -1848,6 +1995,8 @@
                 source: "other",
               
               };
+              console.log("data, ",app.$data.selectedData)
+            
 
 
             }else if (data.customer_purchase_order.source=='event'){
@@ -1860,10 +2009,15 @@
             var asf=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['asf']), 0)
             var discount=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['discount']), 0)
             var pph=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['pph23_amount']), 0)
+
+            
+
             var ppn=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['ppn_amount']), 0)
             var total=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['total']), 0)
             var subtotal=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['subtotal']), 0)
             
+
+
             app.$data.eventQuotation={
                 asf:asf,
                 discount:discount,
@@ -1884,7 +2038,7 @@
 
             }else{
                  items = data.customer_purchase_order.items;
-                 if (data.customer !== null && data.customer !== "undefined") {
+                if (data.customer !== null && data.customer !== "undefined") {
                 app.$data.customerAddress = data.customer.address;
                 app.$data.billingAddress = data.customer.address;
                 app.$data.warehouses = data.customer.warehouses;
@@ -1948,7 +2102,7 @@
     })
 </script>
 
-<script>
+<!-- <script>
     $(function() {
         bast = $('#bast-table').DataTable({
             processing: true,
@@ -2091,5 +2245,5 @@
             app.$data.dueDate = e.format(0, 'yyyy-mm-dd');
         });
     })
-</script>
+</script> -->
 @endsection

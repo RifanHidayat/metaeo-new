@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $quotation->number }}</title>
+    <title>Purchase Order {{ $cpo->number }}</title>
     <style>
         body {
             font-size: 10px;
@@ -113,7 +113,7 @@ function stringifyDate($date)
     <div class="header">
         <div class="header-left">
             <img src="{{ $company->logo !== null ? Storage::disk('s3')->url($company->logo) : '' }}" alt="Logo" height="40"><br>
-            <span style="display: block;">{{ $company->name }}</span>
+            <span style="display: block;"></span>
             <div style="display: block;">{{ $company->address }}</div>
             <span style="display: block;">Phone {{ $company->phone }}; Fax {{ $company->fax }}</span>
             <!-- <span>Jl. Raya Kebayoran Lama No.15</span><br>
@@ -121,94 +121,110 @@ function stringifyDate($date)
             <span>Phone (021) 53660077 - 88; Fax (021) 53660099</span> -->
         </div>
         <div class="header-right">
-            <h3>Quotation</h3>
-            <!-- <p>Jakarta, <strong><?= date_format(date_create($quotation->date), "d-m-Y") ?></strong></p> -->
-            <p>Jakarta, <strong><?= stringifyDate($quotation->date) ?></strong></p>
-            <p>Ref : <strong><?= $quotation->number ?></strong></p>
+            <h3>Purchase Order</h3>
+            <!-- <p>Jakarta, <strong><?= date_format(date_create($cpo->date), "d-m-Y") ?></strong></p> -->
+            <p>Tanggal : <strong><?= stringifyDate($cpo->date) ?></strong></p>
+            <p>Nomor : <strong><?= $cpo->number ?></strong></p>
         </div>
     </div>
     <div class="header-divider"></div>
     <div class="content">
         <div class="content-left">
-            <span>Kepada Yth,</span>
+            <span>Customer</span>
             <div style="padding-left: 10px;">
-                <span style="text-transform: capitalize; display: block; margin: 3px 0;"><strong><?= $quotation->customer->name ?></strong></span>
-                <p style="margin: 0;">{{ $quotation->customer->address }}</p>
+                <span style="text-transform: capitalize; display: block; margin: 3px 0;"><strong>
+                     <?php echo $cpo->eventQuotations!=null? $cpo->eventQuotations[0]->customer->name:"" ?></strong></span>
+                <p style="margin: 0;"><?php echo $cpo->eventQuotations!=null? $cpo->eventQuotations[0]->customer->address:"" ?></p>
             </div>
         </div>
-        <div class="content-right">
-          
-            <span>Title : <strong><?= $quotation->title ?></strong></span><br>
-              <span style="text-transform: capitalize">To : <strong><?= $quotation->picEvent->name ?></strong></span><br>
-        </div>
+        <!-- <div class="content-right">
+            <span style="text-transform: capitalize">Up : <strong><?= $cpo->up ?></strong></span><br>
+            <span>Title : <strong><?= $cpo->title ?></strong></span>
+        </div> -->
     </div>
     <div style="margin-bottom: 10px; clear:both">
-        <p style="margin: 15px 0 5px 0;">Dengan Hormat,</p>
-        <span>Bersama ini kami Metaprint menyampaikan penawaran harga, dengan spesifikasi cetak sebagai berikut :</span>
+        <!-- <p style="margin: 15px 0 5px 0;">Dengan Hormat,</p> -->
+        <!-- <span>Bersama ini kami Metaprint menyampaikan penawaran harga, dengan spesifikasi cetak sebagai berikut :</span> -->
     </div>
     <table>
         <thead>
             <tr>
                 <th style="width: 30px">No.</th>
-                <th>Description</th>
-                <th style="width: 100px">Qty</th>
-                <th style="width: 100px">Frequency</th>
-                <th>Unit Price</th>
-                <th>Amount</th>
+                <th>No.Quotation</th>
+                <th>Tanggal</th>
+                <th>Title</th>
+                <th>Net Total</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($quotation->items as $item)
+           @php
+           $ppn=0;  
+           $pph=0;
+           $total=0; 
+
+           @endphp
+            @foreach($cpo->eventQuotations as $item)
+           @php
+            $ppn=+(int)$item->ppn_amount!=null?$item->ppn_amount:0;  
+            $pph=+(int)$item->pph23_amount!=null?$item->pph23_amount:0; 
+            $total=+(int)$item->total!=null?$item->total:0; 
+            
+              
+           @endphp
+        
             <tr>
                 <td class="align-top text-center">{{ $loop->iteration }}</td>
                 <td class="align-top">
-                    <strong>{{ $item->name }}</strong>
-                  
+                    <strong>{{ $item->number }}</strong>
+
                 </td>
-                <td class="text-center align-top">{{ rupiahFormat($item->quantity) }}</td>
-                 <td class="text-center align-top">{{ rupiahFormat($item->frequency) }}</td>
-                <td class="text-right align-top">{{ rupiahFormat($item->price) }}</td>
-                <td class="text-right align-top">{{ rupiahFormat($item->amount) }}</td>
+                <td class="text-center align-top">{{ $item->date }}</td>
+                <td class="text-right align-top">{{ $item->title}}</td>
+                <td class="text-right align-top">{{ rupiahFormat($item->netto) }}</td>
             </tr>
+
             @endforeach
             <?php
-            $rowspan = 4;
-            if ($quotation->ppn == 1) {
-                $rowspan += 1;
-            }
-            if ($quotation->pph23 == 1) {
-                $rowspan += 1;
-            }
+             $rowspan = 4;
+            // if ($cpo->ppn == 1) {
+            //     $rowspan += 1;
+            // }
+            // if ($cpo->pph23 == 1) {
+            //     $rowspan += 1;
+            // }
             ?>
+
+
             <tr>
-                <td colspan="4" rowspan="{{ $rowspan }}" class="align-top">
-                    <span>Note: </span>
-                    <p>{{ $quotation->note }}</p>
+                <td colspan="3" rowspan="{{ $rowspan }}" class="align-top">
+                    <span>Keterangan: </span>
+                    <p>{{ $cpo->description }}</p>
                 </td>
                 <td>Subtotal</td>
-                <td class="text-right">{{ rupiahFormat($quotation->subtotal) }}</td>
+                <td class="text-right">Rp {{ rupiahFormat($cpo->subtotal) }}</td>
             </tr>
-              <tr>
-                <td>ASF {{ $quotation->asf_percent }}% </td>
-                <td class="text-right">{{ rupiahFormat($quotation->asf)}} </td>
+            <tr>
+                <td>PPN </td>
+                <td class="text-right">Rp{{rupiahFormat($ppn)}} </td>
             </tr>
-             <tr>
-                <td>Discount {{ $quotation->discount_percent }}% </td>
-                <td class="text-right">{{ rupiahFormat($quotation->discount) }}</td>
+           
+           
+            <tr>
+                <td>PPh </td>
+                <td class="text-right">Rp {{ rupiahFormat($pph) }}</td>
             </tr>
-              <tr>
-                <td><span><strong>Netto</strong></span></td>
-                <td class="text-right" ><span><strong>Rp {{ rupiahFormat($quotation->netto) }}</strong></span></td>
+         
+            <tr>
+                <td>Total</td>
+                <td class="text-right">Rp {{ rupiahFormat($total) }}</td>
             </tr>
-               
         </tbody>
     </table>
-    <div>
+    <!-- <div>
         <p>Demikian penawaran kami, atas perhatian dan kerjasamanya kami ucapkan terima kasih.</p>
         <span>Hormat kami,</span><br>
         <span>{{ $company->name }}</span><br>
-        <!-- <span>Tinco</span> -->
-    </div>
+    </div> -->
 </body>
 
 </html>

@@ -12,4 +12,6 @@ class DeliveryOrderOtherQuotationItem extends Model
     public function otherQuotationItem(){
     return $this->belongsTo(OtherQuotationItem::class);
     }
+
+
 }

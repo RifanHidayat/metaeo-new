@@ -30,6 +30,10 @@ class CustomerPurchaseOrderController extends Controller
     {
         return view('customer-purchase-order.index');
     }
+        private function formatDate($date = "", $format = "Y-m-d")
+    {
+        return date_format(date_create($date), $format);
+    }
 
     /**
      * Send datatable form.
@@ -103,6 +107,7 @@ class CustomerPurchaseOrderController extends Controller
         return view('customer-purchase-order.create', [
             'customers' => $customers,
         ]);
+
     }
 
     /**
@@ -122,11 +127,13 @@ class CustomerPurchaseOrderController extends Controller
             ], 400);
         }
 
+    
         DB::beginTransaction();
 
         try {
 
             $cpo = new CustomerPurchaseOrder();
+            
             $cpo->number = $request->number;
             $cpo->date = $request->date;
             $cpo->description = $request->description;
@@ -189,6 +196,7 @@ class CustomerPurchaseOrderController extends Controller
     public function show($id)
     {
         //
+        
     }
 
     /**
@@ -382,22 +390,32 @@ class CustomerPurchaseOrderController extends Controller
 
     public function storeQuotation(Request $request)
     {
-       // return $request->all();
+       //return $request->all();
        // return $request->items;
-        $cpoWithNumber = CustomerPurchaseOrder::where('number', $request->number)->first();
-        if ($cpoWithNumber !== null) {
-            return response()->json([
-                'message' => 'number or code already used',
-                'code' => 400,
-                // 'errors' => $/e,
-            ], 400);
-        }
 
+        // $cpoWithNumber = CustomerPurchaseOrder::where('number', $request->number)->first();
+        // if ($cpoWithNumber !== null) {
+        //     return response()->json([
+        //         'message' => 'number or code already used',
+        //         'code' => 400,
+        //         // 'errors' => $/e,
+        //     ], 400);
+        // }
+            
+
+            
+            $transactionsByCurrentDateCount = CustomerPurchaseOrder::query()->where('date', $request->date)->get()->count();
+            $number = 'PO-' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+
+    
         DB::beginTransaction();
 
         try {
+         
             $cpo = new CustomerPurchaseOrder();
-            $cpo->number = $request->number;
+            // $cpo->number = $request->number;
+            $cpo->number = $number;
+            $cpo->title = $request->title;
             $cpo->date = $request->date;
             $cpo->description = $request->description;
             $cpo->subtotal = $request->subtotal;
@@ -473,10 +491,13 @@ class CustomerPurchaseOrderController extends Controller
      */
     public function destroy($id)
     {
-           DB::beginTransaction();
+        DB::beginTransaction();
         $customerPurchaseOrder=CustomerPurchaseOrder::findOrFail($id);
+
+
+        
         try{
-            if ($customerPurchaseOrder->source=="quotation"){
+            if (($customerPurchaseOrder->source=="event") || ($customerPurchaseOrder->source=="other")){
                 $customerPurchaseOrder->eventQuotations()->detach();
             $customerPurchaseOrder->delete();
 
@@ -515,7 +536,9 @@ class CustomerPurchaseOrderController extends Controller
      */
     public function print($id)
     {
-        $cpo = CustomerPurchaseOrder::with(['items', 'customer'])->findOrFail($id);
+        $cpo = CustomerPurchaseOrder::with(['items', 'customer','eventQuotations'])->findOrFail($id);
+        // /return $cpo;
+      
         $mpdf = new \Mpdf\Mpdf([
             'format' => 'A5',
             'mode' => 'utf-8',
@@ -534,11 +557,27 @@ class CustomerPurchaseOrderController extends Controller
             $company = Company::all()->first();
         }
 
-
-        $html = view('customer-purchase-order.print', [
+        if ($cpo->source=="event"){
+            $html = view('customer-purchase-order.quotation.print', [
             'company' => $company,
             'cpo' => $cpo,
         ]);
+        }
+         if ($cpo->source=="metaprint"){
+             $html = view('customer-purchase-order.quotation.print', [
+            'company' => $company,
+            'cpo' => $cpo,
+        ]);
+
+        }
+         if ($cpo->source=="other"){
+             $html = view('customer-purchase-order.quotation.print', [
+            'company' => $company,
+            'cpo' => $cpo,
+        ]);
+
+        }
+        
 
         $mpdf->WriteHTML($html);
         $mpdf->Output();

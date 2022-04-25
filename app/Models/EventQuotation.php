@@ -47,6 +47,11 @@ class EventQuotation extends Model
     {
         return $this->belongsToMany(CustomerPurchaseOrder::class)->withPivot('event_quotation_id', 'customer_purchase_order_id');
     }
+
+
+    public function v2SalesOrder(){
+        return $this->hasOne(V2SalesOrder::class);
+    }
     // public function deliveryOrders()
     // {
     //     return $this->belongsToMany(DeliveryOrder::class)->withPivot('event_quotation_id', 'delivery_order_id','number','name','quantity','kts','description');

@@ -64,8 +64,9 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-lg-8 col-md-12">
+                            
                             <div class="form-row">
-                                <div class="col-lg-6 col-md-12">
+                                <div class="col-lg-6 col-md-12" hidden>
                                     <div class="form-group">
                                         <label>Nomor:</label>
                                         <!-- <input type="text" class="form-control"> -->
@@ -78,6 +79,7 @@
                                     </div>
                                 </div>
                             </div>
+                           
                             <div class="form-row">
                                 <div class="form-group col-lg-6 col-md-12">
                                     <label>Tanggal:</label>
@@ -494,29 +496,43 @@
                 return grandTotal;
             },
             ppnAmount: function() {
-                let vm = this;
-                if (!vm.ppn) {
-                    return 0;
-                }
+                // let vm = this;
+                // if (!vm.ppn) {
+                //     return 0;
+                // }
 
-                const ppn = this.subtotal * (Number(vm.ppnValue) / 100);
-                return Math.round(ppn);
-            },
-            pph23Amount: function() {
-                let vm = this;
-                if (!vm.pph23) {
-                    return 0;
-                }
+                // const ppn = this.subtotal * (Number(vm.ppnValue) / 100);
+                // return Math.round(ppn);
 
-                const pph23 = this.subtotal * (Number(vm.pph23Value) / 100);
-                return Math.round(pph23);
-            },
-            grandTotal: function() {
-                const grandTotal = this.selectedData.map(item => Number(item.netto)).reduce((acc, cur) => {
+                const ppnAmount = this.selectedData.map(item => Number(item.ppn_amount)).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0);
 
-                return grandTotal + this.ppnAmount - this.pph23Amount + Number(this.otherCost);
+                return ppnAmount;
+            },
+            pph23Amount: function() {
+                // let vm = this;
+                // if (!vm.pph23) {
+                //     return 0;
+                // }
+
+                // const pph23 = this.subtotal * (Number(vm.pph23Value) / 100);
+                // return Math.round(pph23);
+
+                const pph23Amount = this.selectedData.map(item => Number(item.pph23_amount)).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0);
+
+                return pph23Amount;
+            },
+            grandTotal: function() {
+                const grandTotal = this.selectedData.map(item => Number(item.total)).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0);
+
+                return grandTotal;
+
+                // return grandTotal + this.ppnAmount - this.pph23Amount + Number(this.otherCost);
             }
         },
         watch: {
@@ -578,7 +594,8 @@
                 ...data,
             };
              selected['source']='eo-quotation';
-             console.log("data ",data.type);
+             console.log("data quotation ",data);
+
           
     
          

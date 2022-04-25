@@ -181,7 +181,7 @@
         @endif
 
          @if($invoice->bast_id!=0)
-         @if ($invoice->bast->eventQuotation->type=="event")
+         @if ($invoice->bast->v2SalesOrder->customerPurchaseOrder->source=="event")
         <table class="bordered-table" style="width: 100%">
             <thead>
                 <tr>
@@ -195,7 +195,7 @@
                
                 <tr>
                     <td style="text-align:center">1</td>
-                    <td colspan="2">Material -  {{$invoice->bast->eventQuotation->title}}</td>
+                    <td colspan="2">Material -  {{$invoice->bast->v2SalesOrder->customerPurchaseOrder->title}}</td>
                     <td align="right" class="text-right" style="width: 20%;"><?= number_format($invoice->material, 0, '', '.') ?></td>
                     
                 </tr>
@@ -244,7 +244,7 @@
             </tfoot>
         </table>
         @endif
-         @if ($invoice->bast->eventQuotation->type=="other")
+         @if ($invoice->bast->v2SalesOrder->customerPurchaseOrder->source=="other")
         <table class="bordered-table" style="width: 100%">
             <thead>
                 <tr>
@@ -259,7 +259,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($invoice_items as $item)
+                @foreach($invoice->bast->deliveryOrder->deliveryOrderOtherQuotationItems as $item)
                 <tr>
                     <td style="text-align:center">{{ $loop->iteration }}</td>
                     <td>{{ $item->number }}</td>
@@ -267,8 +267,8 @@
                     <td style="width: 20%;">{{ $item->description }}</td>
                     <td style="text-align:center">{{$item->quantity}}</td>
                     <td style="text-align:center">{{$item->frequency}}</td>
-                    <td style="text-align: right;"><?= number_format($item->price, 0, '', '.') ?></td>
-                    <td style="text-align: right;"><?= number_format($item->subtotal , 0, '', '.') ?></td>
+                    <td style="text-align: right;"><?= number_format($item->otherQuotationItem->price, 0, '', '.') ?></td>
+                    <td style="text-align: right;"><?= number_format(($item->otherQuotationItem->price*$item->quantity*$item->frequency) , 0, '', '.') ?></td>
                 </tr>
                 @endforeach
             </tbody>

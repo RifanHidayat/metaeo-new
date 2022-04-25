@@ -51,7 +51,7 @@
             <form class="form" autocomplete="off" @submit.prevent="submitForm">
                 <div class="card-body">
                     <div class="my-3 text-right">
-                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#salesOrderModal"><i class="flaticon2-plus"></i> Pilih Sales Order</button>
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#salesOrderModal"><i class="flaticon2-plus"></i> Pilih Delivery Order</button>
                          
                     </div>
                     <div v-if="!selectedData">
@@ -411,7 +411,7 @@
                         <thead>
                             <th>Nomor SO</th>
                             <th>Tanggal</th>
-                             <th>Sisa BAST</th>
+                            
                             <th>Action</th>
                         </thead>
                     </table>
@@ -527,6 +527,7 @@
                 numeral: true,
                 numeralThousandsGroupStyle: 'thousand'
             },
+            source:'',
             selectedData: null,
             selectedDeliveryOrders: [],
         },
@@ -555,7 +556,7 @@
                     bast_date:vm.bast_date,
                     number:vm.bast_number,
                     bast_gr_number:vm.bast_gr_number,
-                    source:vm.selectedData.data.v2_sales_order.customer_purchase_order.source
+                    source:vm.source
 
                 }
 
@@ -888,10 +889,10 @@
                     data: 'date',
                     name: 'v2_sales_orders.date'
                 },
-                   {
-                    data: 'bast_remaining',
-                    name: 'bast_remaining'
-                },
+                //    {
+                //     data: 'bast_remaining',
+                //     name: 'bast_remaining'
+                // },
                 {
                     data: 'action',
                     name: 'action',
@@ -903,21 +904,32 @@
 
         $('#sales-order-table tbody').on('click', '.btn-choose', function() {
             const data = salesOrdersTable.row($(this).parents('tr')).data();
-            console.log(data);
-            $('.bast-date').datepicker({
-            format: 'yyyy-mm-dd',
-            todayBtn: false,
-            clearBtn: true,
-            todayHighlight: true,
-            orientation: "bottom left",
-        }).on('changeDate', function(e) {
-            app.$data.bast_date = e.format(0, 'yyyy-mm-dd');
-        });
+            var source="";
+            console.log(data.v2_sales_order)
 
-            // data.v2_sales_order_items.map(function(item){
-            //     item['bast_number']=number();
+           if (data.v2_sales_order.source=="quotation"){
+            source=data.v2_sales_order.event_quotation.number.substring(0, 2);
+             app.$data.id=data.id;
+            app.$data.bast_number=number(data.v2_sales_order.event_quotation.title);
+            app.$data.bast_customer=data.v2_sales_order.customer.name;
 
-            // })
+            app.$data.salesOrderId = data.id;
+            app.$data.bastId=0
+           // app.$data.source=data.source
+             app.$data.bast_remaining=data.v2_sales_order.netto-data.v2_sales_order.total_bast;
+            
+            
+            app.$data.deliveryOrderTotal=Number(data.delivery_order_other_quotation_items.reduce((partialSum, a) => partialSum + (a['frequency']*a['quantity']* a['other_quotation_item']['price']), 0))
+            app.$data.bast_amount=app.$data.deliveryOrderTotal;
+        //    app.$data.bast_amount=data.amount;
+       
+            app.$data.source= source=="QE"?"event":"other";
+            app.$data.selectedData = {
+                data,
+                source: source=="QE"?"event":"other",
+            };
+
+           }else{
             app.$data.id=data.id;
             app.$data.bast_number=number(data.v2_sales_order.customer_purchase_order.title);
             app.$data.bast_customer=data.v2_sales_order.customer.name;
@@ -928,15 +940,32 @@
              app.$data.bast_remaining=data.v2_sales_order.netto-data.v2_sales_order.total_bast;
             
             
-            app.$data.deliveryOrderTotal=Number(data.delivery_order_other_quotation_items.reduce((partialSum, a) => partialSum + (a['frequency']* a['other_quotation_item']['price']), 0))
+            app.$data.deliveryOrderTotal=Number(data.delivery_order_other_quotation_items.reduce((partialSum, a) => partialSum + (a['frequency']*a['quantity']* a['other_quotation_item']['price']), 0))
             app.$data.bast_amount=app.$data.deliveryOrderTotal;
-            
+             app.$data.source= data.v2_sales_order.customer_purchase_order.source;
             app.$data.selectedData = {
                 data,
                 source: data.v2_sales_order.customer_purchase_order.source,
             };
 
+           }
+          
+        //     $('.bast-date').datepicker({
+        //     format: 'yyyy-mm-dd',
+        //     todayBtn: false,
+        //     clearBtn: true,
+        //     todayHighlight: true,
+        //     orientation: "bottom left",
+        // }).on('changeDate', function(e) {
+        //     app.$data.bast_date = e.format(0, 'yyyy-mm-dd');
+        // });
 
+            // data.v2_sales_order_items.map(function(item){
+            //     item['bast_number']=number();
+
+            // })
+           
+            
         $('.date').datepicker({
             format: 'yyyy-mm-dd',
             todayBtn: false,

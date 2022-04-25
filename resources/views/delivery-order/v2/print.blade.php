@@ -148,7 +148,7 @@
     <div style="clear: both">
 
     <!-- begin sales order -->
-      @if($delivery_order->sales_order_id!=0)
+      @if($delivery_order->v2SalesOrder['customerPurchaseOrder']['source']=='metaprint')
         <table class="bordered-table" style="width: 100%">
             <tr>
                 <th>No.</th>
@@ -184,7 +184,7 @@
         <!-- end sales order -->
 
          <!-- begin sales order -->
-      @if($delivery_order->bast_id!=0)
+      @if($delivery_order->v2SalesOrder->customerPurchaseOrder->source=='other')
         <table class="bordered-table" style="width: 100%">
             <tr>
                 <th>No.</th>

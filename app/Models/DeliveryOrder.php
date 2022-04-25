@@ -50,4 +50,5 @@ class DeliveryOrder extends Model
     public function deliveryOrderOtherQuotationItems(){
         return $this->hasMany(DeliveryOrderOtherQuotationItem::class);
     }
+    
 }

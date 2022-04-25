@@ -52,10 +52,12 @@ class EventQuotationController extends Controller
         return view('event-quotation.index');
     }
 
-      private function formatDate($date = "", $format = "Y-m-d")
+    private function formatDate($date = "", $format = "Y-m-d")
     {
         return date_format(date_create($date), $format);
     }
+
+    
 
     /**
      * Send datatable form.
@@ -158,8 +160,7 @@ class EventQuotationController extends Controller
     public function create()
     {
 
-       
-
+ 
         $customers = Customer::all();      
         $eventPics=PicEvent::with('customer')->get();
        

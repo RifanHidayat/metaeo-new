@@ -364,7 +364,8 @@ class BastController extends Controller
                 'error' => false,
                 'data' => null,
             ]);
-
+        
+        
         }catch(Exception $e){
               DB::rollBack();
             return response()->json([
@@ -548,7 +549,7 @@ class BastController extends Controller
     {
         $customerId = $request->query('customer_id');
        
-         $salesOrders = collect(DeliveryOrder::with(['deliveryOrderOtherQuotationItems.otherQuotationItem','v2SalesOrder.customerPurchaseOrder','v2SalesOrder.customer'])->select('delivery_orders.*')->get());
+         $salesOrders = collect(DeliveryOrder::with(['deliveryOrderOtherQuotationItems.otherQuotationItem','v2SalesOrder.customerPurchaseOrder','v2SalesOrder.customer','v2SalesOrder.eventQuotation'])->select('delivery_orders.*')->get());
      
 
         return DataTables::of($salesOrders)

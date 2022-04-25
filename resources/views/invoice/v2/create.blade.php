@@ -56,7 +56,8 @@
                     </div>
                     <div v-if="!selectedData">
                         <p class="text-center">
-                            <i class="flaticon2-open-box font-size-h1"></i>
+      
+                        <i class="flaticon2-open-box font-size-h1"></i>
                         </p>
                         <p class="text-center text-dark-50"><strong>Pilih sales order</strong></p>
                     </div>
@@ -67,7 +68,7 @@
                             <div class="row">
                                 <div class="col-md-12 col-lg-6">
                                     <div class="px-3 py-4 mb-3 rounded">
-                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order <a href="#">#@{{ selectedData.data.number }}</a></h3>
+                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order <a href="#"qw</a></h3>
                                     </div>
                                 </div>
                             </div>
@@ -196,14 +197,14 @@
                                     </table>
                                 </div>
                                 <div class="col-md-12 col-lg-4">
-                                    <table class="table">
+                                     <table class="table">
                                         <tr>
                                             <td>Nomor PO</td>
-                                            <td><strong>@{{selectedData.data.v2_sales_order.customer_purchase_order.number }}</strong></td>
+                                            <td><strong>@{{selectedData.data.v2_sales_order.customer_purchase_order!=null?selectedData.data.v2_sales_order.customer_purchase_order.number:"" }}</strong></td>
                                         </tr>
                                         <tr>
                                             <td>Tanggal PO</td>
-                                            <td><strong>@{{ selectedData.data.v2_sales_order.customer_purchase_order.date }}</strong></td>
+                                            <td><strong>@{{ selectedData.data.v2_sales_order.customer_purchase_order!=null?selectedData.data.v2_sales_order.customer_purchase_orderdate:"" }}</strong></td>
                                         </tr>
                                     </table>
                                 </div>
@@ -267,11 +268,11 @@
                                     <table class="table">
                                         <tr>
                                             <td>Nomor PO</td>
-                                            <td><strong>@{{selectedData.data.v2_sales_order.customer_purchase_order.number }}</strong></td>
+                                            <td><strong>@{{selectedData.data.v2_sales_order.customer_purchase_order!=null?selectedData.data.v2_sales_order.customer_purchase_order.number:"" }}</strong></td>
                                         </tr>
                                         <tr>
                                             <td>Tanggal PO</td>
-                                            <td><strong>@{{ selectedData.data.v2_sales_order.customer_purchase_order.date }}</strong></td>
+                                            <td><strong>@{{ selectedData.data.v2_sales_order.customer_purchase_order!=null?selectedData.data.v2_sales_order.customer_purchase_orderdate:"" }}</strong></td>
                                         </tr>
                                     </table>
                                 </div>
@@ -1257,6 +1258,7 @@
                         </div>
                     </div>
                 </div>
+                
             </form>
             <!--end::Form-->
         </div>
@@ -1821,7 +1823,59 @@
 
         $('#bast-table tbody').on('click', '.btn-choose', function() {
             const data = bast.row($(this).parents('tr')).data();
+            //console.log(data.v2_sales_order)
             
+            if (data.v2_sales_order.source=="quotation"){
+                
+            const event_quotations=data.v2_sales_order.event_quotation;    
+            var comissionable_cost=event_quotations['commissionable_cost'];
+             var netto=event_quotations['netto']
+            var nonfee_cost=event_quotations['nonfee_cost']
+            var asf=event_quotations['asf']
+            var discount=event_quotations['discount']
+            var pph=event_quotations['pph23_amount']
+            var ppn=event_quotations['ppn_amount']
+            var total=event_quotations['total']
+            var subtotal=event_quotations['subtotal'];
+             let division=data.amount/Number(netto)
+              app.$data.grNumber=data.gr_number;
+            app.$data.bastId=data.id
+            app.$data.source="bast"
+            app.$data.asf =Math.round(division * asf);
+            app.$data.netto=Math.round(division *netto);
+            app.$data.discount=Math.round(division * discount);
+            app.$data.ppn=Math.round(division *ppn);
+            app.$data.pph23=Math.round(division *pph )
+            app.$data.total=Math.round(division * total);
+            var type=data.v2_sales_order.event_quotation.number.substring(0, 2);
+             if (type=="QE"){
+
+             app.$data.material=Math.round(Number((division) * ((comissionable_cost)+ (nonfee_cost))))
+             app.$data.subtotal=app.$data.asf+app.$data.material;
+             app.$data.selectedData = {
+                data,
+                source: 'event',
+                event_quotations
+            };
+           
+            }else{
+            app.$data.subtotal=Number(division)*Number(subtotal);
+            app.$data.event_quotations={
+                ...event_quotations,
+                 source: 'other',
+            }
+            app.$data.selectedData = {
+                data,
+                source: 'other',
+                event_quotations
+            };
+           
+          
+            }
+
+            
+            }else{
+
             const event_quotations=data.v2_sales_order.customer_purchase_order.event_quotations;    
             var comissionable_cost=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['commissionable_cost']), 0)
              var netto=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['netto']), 0)
@@ -1832,8 +1886,6 @@
             var ppn=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['ppn_amount']), 0)
             var total=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['total']), 0)
             var subtotal=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['subtotal']), 0)
-
-
             app.$data.salesOrderId = 0;
             let division=data.amount/Number(netto)
             
@@ -1842,14 +1894,11 @@
             app.$data.source="bast"
            
             app.$data.asf =Math.round(division * asf);
-            
             app.$data.netto=Math.round(division *netto);
             app.$data.discount=Math.round(division * discount);
             app.$data.ppn=Math.round(division *ppn);
             app.$data.pph23=Math.round(division *pph )
             app.$data.total=Math.round(division * total);
-
-            
             
             var type=data.v2_sales_order.customer_purchase_order.source;
 
@@ -1876,6 +1925,15 @@
            
           
             }
+           
+
+            }
+
+
+            
+
+            
+            
            
             $('#bastModal').modal('hide');
         });
