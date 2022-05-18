@@ -14,7 +14,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Faktur</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah BAST</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -22,7 +22,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Faktur</a>
+                        <a href="" class="text-muted">BAST</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Tambah</a>
@@ -354,12 +354,12 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">Rp </span>
                                         </div>
-                                        <input @input="validateAmount()" type="text" v-model="bast_amount" id="amount" class="form-control text-right" ><br>
+                                        <input readonly @input="validateAmount()" type="text" v-model="bast_amount" id="amount" class="form-control text-right" ><br>
                                         
                                     </div>
-                                    <div  v-if="selectedData">
+                                    <!-- <div  v-if="selectedData">
                                     <span class="text-danger">Sisa BAST @{{toCurrencyFormat(bast_remaining)}}</span>
-                                    </div>
+                                    </div> -->
                                         
                                 </div>
                             </div>
@@ -570,7 +570,7 @@
                             allowOutsideClick: false,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                               //  window.location.href = '/invoice';
+                                 window.location.href = '/bast';
                             }
                         })
                         // console.log(response);
@@ -917,6 +917,7 @@
             app.$data.bastId=0
            // app.$data.source=data.source
              app.$data.bast_remaining=data.v2_sales_order.netto-data.v2_sales_order.total_bast;
+  
             
             
             app.$data.deliveryOrderTotal=Number(data.delivery_order_other_quotation_items.reduce((partialSum, a) => partialSum + (a['frequency']*a['quantity']* a['other_quotation_item']['price']), 0))
@@ -940,8 +941,11 @@
              app.$data.bast_remaining=data.v2_sales_order.netto-data.v2_sales_order.total_bast;
             
             
+            
             app.$data.deliveryOrderTotal=Number(data.delivery_order_other_quotation_items.reduce((partialSum, a) => partialSum + (a['frequency']*a['quantity']* a['other_quotation_item']['price']), 0))
-            app.$data.bast_amount=app.$data.deliveryOrderTotal;
+           // app.$data.bast_amount=app.$data.deliveryOrderTotal;
+           app.$data.bast_amount=data.amount;
+
              app.$data.source= data.v2_sales_order.customer_purchase_order.source;
             app.$data.selectedData = {
                 data,

@@ -677,7 +677,7 @@
                                                     <i class="flaticon2-layers-1 icon-2x text-muted font-weight-bold"></i>
                                                 </span>
                                                 <div class="d-flex flex-column text-dark-75">
-                                                    <span class="font-weight-bolder font-size-sm">Netto</span>
+                                                    <span class="font-weight-bolder font-size-sm">Subtotal</span>
                                                     <span class="font-weight-bolder font-size-h5">
                                                         <span class="text-dark-50 font-weight-bold">Rp </span>
                                                         @{{ Intl.NumberFormat('de-DE').format(eventQuotation.subtotal) }}
@@ -793,24 +793,30 @@
                                                 <input type="text" v-model="shipper" class="form-control" placeholder="Masukkan nama pengirim" />
                                             </div>
                                         </div>
-                                        <div class="form-group row">
-                                            <label class="col-lg-4 col-form-label text-lg-right">Nominal:</label>
-                                            <div class="col-lg-8">
-                                                <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">Rp </span>
-                                        </div>
-                                        <input  type="text" v-model="amount" id="amount" class="form-control text-right" ><br>
-                                        
-                                    </div>
-                                            </div>
-                                        </div>
+                                      
                                      
                                         <div class="form-group row">
                                             <label class="col-lg-4 col-form-label text-lg-right">Nomor Kendaraan:</label>
                                             <div class="col-lg-8">
                                                 <input type="text" v-model="numberOfVehicle" class="form-control" placeholder="Masukkan nomor kendaraan" />
                                             </div>
+                                        </div>
+                                          <div class="form-group row">
+                                            <label class="col-lg-4 col-form-label text-lg-right">Nominal:</label>
+                                            <div class="col-lg-8">
+                                                <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp </span>
+                                        </div>
+                                        <input @input="validateAmount"  type="text" v-model="amount" id="amount" class="form-control text-right" ><br>
+                                        
+                                        
+                                    </div>
+                                    <div>
+                                    <span class="text-danger">Sisa Pembayaran @{{remainingPayment}} </span>
+                                    </div>
+                                            </div>
+                                       
                                         </div>
                                     </div>
                                     <div class="col-lg-6 col-md-12">
@@ -1173,6 +1179,33 @@
                                             </div>
                                         </div>
                                         <div class="card-footer">
+                                                 <div class="d-flex align-items-center flex-wrap">
+                                            <!--begin: Item-->
+                                          
+                                            <!--end: Item-->
+                                            <!--begin: Item-->
+                                           
+                                               <div class="d-flex justify-content-end align-items-right flex-lg-fill mr-5 my-1">
+                                                <span class="mr-4">
+                                                    <i class="flaticon2-pie-chart-4 icon-2x text-muted font-weight-bold"></i>
+                                                </span>
+                                                <div class="d-flex flex-column text-dark-75">
+                                                    <span class="font-weight-bolder font-size-sm">Netto</span>
+                                                    <span class="font-weight-bolder font-size-h5">
+                                                        <span class="text-dark-50 font-weight-bold">Rp </span>
+                                                        @{{ Intl.NumberFormat('de-DE').format(clearCurrencyMask(orderNetto)) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <!--end: Item-->
+                                            <!--begin: Item-->
+                                          
+                                            <!--end: Item-->
+                                            <!--begin: Item-->
+                                            
+                                           
+                                            <!--end: Item-->
+                                        </div>
                                          
                                         </div>
                                     </div>
@@ -1517,6 +1550,7 @@
 @section('script')
 <script src="{{ asset('js/pages/features/miscellaneous/sweetalert2.js') }}"></script>
 <script src="{{ asset('plugins/custom/datatables/datatables.bundle.js') }}"></script>
+
 @endsection
 
 @section('pagescript')
@@ -1546,9 +1580,11 @@
             materia:'',
             eventQuotation:null,
             eventQuotations:[],
+            eventQuotations1:[],
             completedDeliveryOrders:[],
             source:"",
-            amount:""
+            amount:"",
+            remainingPayment:"0"
             
         },
         methods: {
@@ -1560,6 +1596,24 @@
                     return 0;
                 }
                 return masked.toString().replaceAll('.', '');
+            },
+            validateAmount:function(){
+                if (this.amount>this.remainingPayment){
+                    this.amount=this.remainingPayment;
+
+                }
+                const division=Number(this.amount)/this.eventQuotation.netto1;
+                this.eventQuotation.asf=Math.round(this.eventQuotation.asf1*division),
+                this.eventQuotation.discount=Math.round(this.eventQuotation.discount1*division),
+                this.eventQuotation.commissionableCost=Math.round(this.eventQuotation.comissionable_cost* division),
+                this.eventQuotation.nonfeeCost=Math.round(this.eventQuotation.nonfee_cost1*division),
+                this.eventQuotation.netto=Math.round(this.eventQuotation.netto1*division),
+                this.eventQuotation.pph=Math.round(this.eventQuotation.pph1*division),
+                this.eventQuotation.ppn=Math.round(this.eventQuotation.ppn1*division),
+                this.eventQuotation.total=Math.round(this.eventQuotation.total1*division),
+                this.eventQuotation.subtotal=Math.round(this.eventQuotation.subtotal1*division)+Math.round(this.eventQuotation.asf1*division)
+                // this.eventQuotation.netto1=netto1,
+
             },
             sendData: function() {
                 // console.log('submitted');
@@ -1586,6 +1640,7 @@
                     event_quotations:vm.eventQuotations,
                     source:vm.selectedData.source,
                     amount:vm.amount,
+                    order_netto:vm.orderNetto,
                     // source:vm.selectedData.data.customer_purchase_order!=null?vm.selectedData.data.customer_purchase_order.source:vm.source
                 }
 
@@ -1599,7 +1654,7 @@
                             allowOutsideClick: false,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // window.location.href = '/customer';
+                                 window.location.href = '/bast';
                             }
                         })
                         // console.log(response);
@@ -1700,9 +1755,31 @@
                     number = 0;
                 }
                 return new Intl.NumberFormat('De-de').format(number);
+            },
+            calculateQuotationEvent:function(){
+            this.eventQuotation.netto="11";
             }
+
         },
         computed: {
+           
+          
+
+
+
+            // end quotation event
+            orderNetto:function(){
+               var sum=0;
+                this.eventQuotations.forEach(element => {
+                element.other_quotation_items.forEach(element1=>{
+                    sum=sum+(Number(element1.quantity)*Number(element1.frequency)*Number(element1.price));
+                });
+
+                    
+                });
+                return sum;
+
+            },
             checkedItems: function() {
                 return this.dataItems.filter(item => this.checkedItemsIds.indexOf(item.id) > -1);
             },
@@ -1731,6 +1808,9 @@
                 }).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0);
+            },
+            netto:function(){
+
             },
             dataItems: function() {
                 let vm = this;
@@ -1805,6 +1885,7 @@
     })
 </script>
 <script>
+    
     $(function() {
         salesOrdersTable = $('#sales-order-table').DataTable({
             processing: true,
@@ -1836,14 +1917,14 @@
 
         $('#sales-order-table tbody').on('click', '.btn-choose', function() {
             const data = salesOrdersTable.row($(this).parents('tr')).data();
-            console.log('event quotation',data.event_quotation)
+           
            
              app.$data.bastId=0
             app.$data.salesOrderId = data.id;
 
             let items = [];
             if (data.source == 'quotation') {
-                 console.log("quotation")
+                
                 
                 if (data.v2_quotation!=null){
 
@@ -1853,38 +1934,46 @@
                    var code =data.event_quotation.number.substring(0, 2)   
                    console.log('code',code);             
 
-                   if (code=="QE"){
-
-
-
-        
-
+            if (code=="QE"){
             const event_quotations=data.event_quotation;
-            var comissionable_cost=data.event_quotation['commissionable_cost'];
-            var netto=data.event_quotation['netto']
-            var nonfee_cost=data.event_quotation['nonfee_cost'];
-            var asf=data.event_quotation['asf'];
-            var discount=data.event_quotation['discount'];
-            var pph=data.event_quotation['pph23_amount'];
+            var netto1=data.event_quotation['netto']
+            app.$data.amount=Number(netto1)-Number(data.payment);
+            app.$data.remainingPayment=Number(netto1)-Number(data.payment);
+           
+            const division=app.$data.amount/netto1;
 
-            
-
-            var ppn=data.event_quotation['ppn_amount'];
-            var total=data.event_quotation['total'];
-            var subtotal=data.event_quotation['subtotal'];
+            var comissionable_cost=data.event_quotation['commissionable_cost'] * division;
+            var netto=data.event_quotation['netto'] * division;
+            var nonfee_cost=data.event_quotation['nonfee_cost'] * division;
+            var asf=data.event_quotation['asf'] * division;
+            var discount=data.event_quotation['discount'] * division;
+            var pph=data.event_quotation['pph23_amount'] *division;
+            var ppn=data.event_quotation['ppn_amount'] *divison;
+            var total=data.event_quotation['total'] * division;
+            var subtotal=data.event_quotation['subtotal'] *division;
             
 
 
             app.$data.eventQuotation={
-                asf:asf,
-                discount:discount,
-                commissionableCost:comissionable_cost,
-                nonfeeCost:nonfee_cost,
-                netto:netto,
-                pph:pph,
-                ppn:ppn,
-                total:total,
-                subtotal:subtotal
+                asf:Math.round(asf),
+                discount:Math.round(discount),
+                commissionableCost:math.round(comissionable_cost),
+                nonfeeCost:Math.round(nonfeeCost),
+                netto:Math.round(netto),
+                pph:Math.round(pph),
+                ppn:Math.round(ppn),
+                total:Math.round(total),
+                subtotal:Math.round(subtotal-asf),
+
+                asf1:data.event_quotation['asf'],
+                discount1:data.event_quotation['total'],
+                commissionableCost1:data.event_quotation['commissionable_cost'],
+                nonfeeCost1:data.event_quotation['nonfee_cost'],
+                netto1:data.event_quotation['netto'],
+                pph1:data.event_quotation['pph'],
+                ppn1:data.event_quotation['ppn'],
+                total1:data.event_quotation['total'],
+                subtotal1:data.event_quotation['subtotal']
 
             }
             
@@ -1943,17 +2032,10 @@ app.$data.completedDeliveryOrders=data.delivery_orders;
 
                 }
                 
-            //     app.$data.selectedData = {
-                
-            //     data,
-                
-            //     source: "metaprint",
-             
-            //   };
-           
+
             
             } else if (data.source == 'purchase_order') {
-                console.log("customer puchase order")
+               
             if (data.customer_purchase_order.source=='other'){
 
               app.$data.eventQuotations=data.customer_purchase_order.event_quotations;
@@ -2000,34 +2082,49 @@ app.$data.completedDeliveryOrders=data.delivery_orders;
 
 
             }else if (data.customer_purchase_order.source=='event'){
-
-          
+           
             const event_quotations=data.customer_purchase_order.event_quotations;
-            var comissionable_cost=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['commissionable_cost']), 0)
-            var netto=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['netto']), 0)
-            var nonfee_cost=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['nonfee_cost']), 0)
-            var asf=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['asf']), 0)
-            var discount=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['discount']), 0)
-            var pph=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['pph23_amount']), 0)
+              app.$data.eventQuotations1=data.customer_purchase_order.event_quotations;
+              var netto1=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['netto']), 0)
+              app.$data.amount=Number(netto1)-Number(data.payment);
+              
+            var division=Number(app.$data.amount)/Number(netto1);
 
-            
-
-            var ppn=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['ppn_amount']), 0)
-            var total=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['total']), 0)
-            var subtotal=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['subtotal']), 0)
-            
-
+            var comissionable_cost=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['commissionable_cost']), 0) * division;
+            var netto=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['netto']), 0) * division;
+            var nonfee_cost=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['nonfee_cost']), 0) *division;
+            var asf=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['asf']), 0)* division;
+            var discount=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['discount']), 0)*division;
+            var pph=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['pph23_amount']), 0) *division;
+            var ppn=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['ppn_amount']), 0) * division;
+            var total=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['total']), 0) * division;
+            var subtotal=event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['subtotal']), 0) * division;
+                
+            app.$data.remainingPayment=Number(netto1)-Number(data.payment);
+            // app.$data.amount=Number(netto)-Number(data.payment);
 
             app.$data.eventQuotation={
-                asf:asf,
-                discount:discount,
-                commissionableCost:comissionable_cost,
-                nonfeeCost:nonfee_cost,
-                netto:netto,
-                pph:pph,
-                ppn:ppn,
-                total:total,
-                subtotal:subtotal
+                asf:Math.round(asf),
+                discount:Math.round(discount),
+                commissionableCost:Math.round(comissionable_cost),
+                nonfeeCost:Math.round(nonfee_cost),
+                netto:Math.round(netto),
+                pph:Math.round(pph),
+                ppn:Math.round(ppn),
+                total:Math.round(total),
+                subtotal:Math.round(subtotal)+Math.round(asf),
+                asf1:event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['asf']), 0),
+                discount1:event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['discount']), 0),
+                commissionableCost1:event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['commissionable_cost']), 0),
+                nonfeeCost1:event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['nonfee_cost']), 0),
+                netto1:Math.round(netto1),
+                pph1:event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['pph23_amount']), 0),
+                
+                ppn1:event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['ppn_amount']), 0),
+                total1:event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['total']), 0) ,
+                subtotal1:event_quotations.reduce((sum, a) => parseInt(sum) + parseInt(a['subtotal']), 0) ,
+
+                netto1:netto1,
 
             }
             

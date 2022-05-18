@@ -45,7 +45,7 @@ class DeliveryOrder extends Model
         return $this->belongsToMany(Invoice::class);
     }
      public function bast(){
-        return $this->belongsTo(Bast::class);
+        return $this->hasOne(Bast::class);
     }
     public function deliveryOrderOtherQuotationItems(){
         return $this->hasMany(DeliveryOrderOtherQuotationItem::class);

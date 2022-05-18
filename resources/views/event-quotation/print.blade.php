@@ -148,7 +148,7 @@ function stringifyDate($date)
         <p style="margin: 15px 0 5px 0;">Dengan Hormat,</p>
         <span>Bersama ini kami Magenta menyampaikan penawaran harga sebgai berikut:</span>
     </div>
-    <table>
+    <table  style="page-break-after:always">
         <thead>
             <tr>
                 <th style="width: 30px">No.</th>
@@ -180,8 +180,8 @@ function stringifyDate($date)
              <td  class="text-right" ><span><strong>{{ rupiahFormat($subtotalNon) }}</strong></span></td>
              </tr>
              <tr>
-             
-        <td colspan="3"><span><strong>Commissionable Cost</strong></span></td>
+        
+        <td colspan="3" ><span><strong>Commissionable Cost</strong></span></td>
          <?php $subtotalCost=0?>
              @foreach($cost as $cosmissionable)
             <tr>
@@ -248,7 +248,7 @@ function stringifyDate($date)
     <div>
     <br>
     <br>
-    <div class="mt-5">
+    <div class="mt-5" >
     <span ><strong>{{$non_length>0?"Nonfee Cost":""}}</strong><span>
     @foreach ($non as $nonfee)
 

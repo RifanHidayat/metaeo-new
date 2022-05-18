@@ -74,6 +74,7 @@
                 <tr class="text-center">
                     <th>Nomor</th>
                     <th>Tanggal</th>
+                    <th>Netto</th>
                     <th>Nomor SO/BAST</th>
                     <th>Pengirim</th>
                     <th>Action</th>
@@ -164,6 +165,13 @@
                     name: 'delivery_orders.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    }
+                },
+                   {
+                    data: 'amount',
+                    name: 'amount',
+                    render: function(data, type) {
+                        return `${Intl.NumberFormat('De-de').format(data)}`;
                     }
                 },
                   {

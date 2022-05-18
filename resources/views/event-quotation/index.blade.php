@@ -76,7 +76,7 @@
                     <th>Tanggal</th>
                          <th>No.PO</th>
                      <th>Netto</th>
-                       <th>Sisa BAST</th>
+                     
                    
                     <th>Action</th>
                 </tr>
@@ -315,13 +315,13 @@
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0 text-right">${currencyFormat(data)}</div>`;
                     }
                 },
-                {
-                    data: 'bast_remaining',
-                    name: 'bast_remaining',
-                    render: function(data, type, row) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0 text-right">${currencyFormat(data)}</div>`;
-                    }
-                },
+                // {
+                //     data: 'bast_remaining',
+                //     name: 'bast_remaining',
+                //     render: function(data, type, row) {
+                //         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0 text-right">${currencyFormat(data)}</div>`;
+                //     }
+                // },
                 
                 {
                     data: 'action',

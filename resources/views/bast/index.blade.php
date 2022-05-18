@@ -203,7 +203,7 @@
                     data: 'amount',
                     name: 'amount',
                     render: function(data, type) {
-                        return `<div class="text-right"><span>${data}</span></div>`;
+                        return `<div class="text-right"><span>${Intl.NumberFormat('De-de').format(data)}</span></div>`;
                     }
                 },
                 {

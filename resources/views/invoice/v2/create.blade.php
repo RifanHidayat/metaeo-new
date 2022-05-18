@@ -68,7 +68,7 @@
                             <div class="row">
                                 <div class="col-md-12 col-lg-6">
                                     <div class="px-3 py-4 mb-3 rounded">
-                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order <a href="#"qw</a></h3>
+                                        <h3 class="mb-0"><i class="flaticon2-correct text-success icon-lg mr-2"></i> Sales Order <a href="#"></a></h3>
                                     </div>
                                 </div>
                             </div>

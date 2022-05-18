@@ -57,6 +57,10 @@
         <div class="card card-custom gutter-b">
             <div class="card-header">
                 <h3 class="card-title">Form Purchase Order</h3>
+                <div class="my-3 text-right">
+                                        <a href="#" type="button" class="btn btn-primary" @click="addItem"></i>PO Meta</a>
+                                        <a href="/customer-purchase-order/quotation/create" type="button" class="btn btn-secondary" @click="addItem"></i>PO EO</a>
+                                    </div>
 
             </div>
             <!--begin::Form-->

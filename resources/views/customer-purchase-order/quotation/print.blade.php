@@ -153,6 +153,7 @@ function stringifyDate($date)
                 <th>No.Quotation</th>
                 <th>Tanggal</th>
                 <th>Title</th>
+                
                 <th>Net Total</th>
             </tr>
         </thead>
@@ -165,8 +166,8 @@ function stringifyDate($date)
            @endphp
             @foreach($cpo->eventQuotations as $item)
            @php
-            $ppn=+(int)$item->ppn_amount!=null?$item->ppn_amount:0;  
-            $pph=+(int)$item->pph23_amount!=null?$item->pph23_amount:0; 
+            $ppn=$item->ppn_amount!=null?$ppn+$item->ppn_amount:$ppn;  
+            $pph=$item->pph23_amount!=null?$pph+$item->pph23_amount:$pph; 
             $total=+(int)$item->total!=null?$item->total:0; 
             
               
@@ -180,6 +181,7 @@ function stringifyDate($date)
                 </td>
                 <td class="text-center align-top">{{ $item->date }}</td>
                 <td class="text-right align-top">{{ $item->title}}</td>
+                     
                 <td class="text-right align-top">{{ rupiahFormat($item->netto) }}</td>
             </tr>
 
@@ -203,20 +205,20 @@ function stringifyDate($date)
                 <td>Subtotal</td>
                 <td class="text-right">Rp {{ rupiahFormat($cpo->subtotal) }}</td>
             </tr>
-            <tr>
+            <!-- <tr>
                 <td>PPN </td>
                 <td class="text-right">Rp{{rupiahFormat($ppn)}} </td>
-            </tr>
+            </tr> -->
            
            
-            <tr>
+            <!-- <tr>
                 <td>PPh </td>
                 <td class="text-right">Rp {{ rupiahFormat($pph) }}</td>
-            </tr>
+            </tr> -->
          
             <tr>
-                <td>Total</td>
-                <td class="text-right">Rp {{ rupiahFormat($total) }}</td>
+                <td>Netto</td>
+                <td class="text-right">Rp {{ rupiahFormat($cpo->subtotal) }}</td>
             </tr>
         </tbody>
     </table>

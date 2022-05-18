@@ -77,6 +77,9 @@
                     <th>Tanggal Source</th>
                     <th>Nomor Quotation / PO</th>
                     <th>Tanggal Quotation / PO</th>
+                    <th>Netto</th>
+                     <th>Pembayaran</th>
+                      <th>Sisa pembayaran</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -180,6 +183,32 @@
                 {
                     data: 'other_date',
                     name: 'other_date',
+                },
+                  {
+                    data: 'netto',
+                    name: 'netto',
+                     render:function(data,type){
+                        return new Intl.NumberFormat('De-de').format(data)
+                    }
+                },
+                 {
+                    data: 'payment',
+                    name: 'payment',
+                     render:function(data,type){
+                        return new Intl.NumberFormat('De-de').format(data)
+                    }
+                },
+                 {
+                    data: 'remaining_payment',
+                    name: 'remaining_payment',
+                    render:function(data,type){
+                       if (data>0){
+                            return `<span class="badge badge-primary">${ new Intl.NumberFormat('De-de').format(data)}</span>`
+                       }else{
+                            return `<span class="badge badge-success">Closed</span>`
+                       }
+                      //  return
+                    }
                 },
                 {
                     data: 'action',

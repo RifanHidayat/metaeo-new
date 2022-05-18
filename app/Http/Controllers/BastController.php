@@ -549,19 +549,19 @@ class BastController extends Controller
     {
         $customerId = $request->query('customer_id');
        
-         $salesOrders = collect(DeliveryOrder::with(['deliveryOrderOtherQuotationItems.otherQuotationItem','v2SalesOrder.customerPurchaseOrder','v2SalesOrder.customer','v2SalesOrder.eventQuotation'])->select('delivery_orders.*')->get());
+         $salesOrders = collect(DeliveryOrder::with(['bast','deliveryOrderOtherQuotationItems.otherQuotationItem','v2SalesOrder.customerPurchaseOrder','v2SalesOrder.customer','v2SalesOrder.eventQuotation'])->select('delivery_orders.*')->get());
      
 
         return DataTables::of($salesOrders)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
-                if ($row->v2SalesOrder->netto-$row->v2SalesOrder->total_bast>0){
-                      $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+               if ($row->bast==null){
+                     $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
 
-                }else{
-                      $button = '';
-                    
-                }
+               }else{
+                     $button = '';
+
+               }
                 
               
                 return $button;

@@ -612,11 +612,16 @@ class CustomerPurchaseOrderController extends Controller
 
       public function datatablesQuotations(Request $request)
     {
+        //return "tes";
     
             
         $customerId = $request->query('customer_id');
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
-        $quotations = EventQuotation::with(['items','subItems' , 'picEvent','picPo','customer','poQuotation','customerPurchaseOrder'])
+        // $quotations = EventQuotation::with(['items','subItems' , 'picEvent','picPo','customer','poQuotation','customerPurchaseOrder'])
+       
+       
+        // ->get();
+         $quotations = EventQuotation::with(['picEvent','picPo','customer','poQuotation','customerPurchaseOrder'])
        
        
         ->get();
@@ -627,7 +632,11 @@ class CustomerPurchaseOrderController extends Controller
             ->addColumn('bastRemaining',function(EventQuotation $quotation){
                 return $quotation->netto - $quotation->total_bast;
             })
-            ->addColumn('action', function ($row) {
+            ->addColumn('customer_name', function ($row) {
+               $name=$row->customer->name!=null?$row->customer->name:"";
+                return $name;
+            })
+             ->addColumn('action', function ($row) {
                 if (count($row->customerPurchaseOrder) > 0) {
                   
                      $content = '<button class="btn btn-light-success"><i class="flaticon2-check-mark"></i></button>';

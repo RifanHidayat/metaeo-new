@@ -112,7 +112,7 @@
                                     <label>Customer:</label>
                                     <!-- <input type="text" class="form-control"> -->
                                     <div class="input-group">
-                                         <input type="text" v-model="customerName" id="customer" class="form-control">
+                                         <input  type="text" v-model="customerName" id="customer" class="form-control" readOnly>
                                        
                                     </div>
                                 </div>

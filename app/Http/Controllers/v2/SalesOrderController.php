@@ -29,7 +29,8 @@ class SalesOrderController extends Controller
     {
         return view('sales-order.v2.index');
     }
-           private function formatDate($date = "", $format = "Y-m-d")
+
+        private function formatDate($date = "", $format = "Y-m-d")
     {
         return date_format(date_create($date), $format);
     }
@@ -41,13 +42,11 @@ class SalesOrderController extends Controller
      */
     public function indexData()
     {
-        $salesOrders = V2SalesOrder::with(['v2Quotation', 'customerPurchaseOrder', 'jobOrders', 'invoices', 'deliveryOrders','eventQuotation'])->select('v2_sales_orders.*');
+        $salesOrders = V2SalesOrder::with(['v2Quotation', 'customerPurchaseOrder.eventQuotations', 'jobOrders', 'invoices', 'deliveryOrders','eventQuotation'])->select('v2_sales_orders.*');
         return DataTables::eloquent($salesOrders)
             ->addIndexColumn()
             ->addColumn('quotation_po_number', function (V2SalesOrder $salesOrder) {
-                // return $salesOrder->v2Quotation->map(function ($quotation) {
-                //     return '<span class="label label-light-info label-pill label-inline text-capitalize">' . $quotation->number . '</span>';
-                // })->implode("");
+               
                 if ($salesOrder->source == 'quotation') {
                     // return $salesOrder->v2Quotation->number;
                     if ($salesOrder->v2Quotation !== null) {
@@ -120,6 +119,16 @@ class SalesOrderController extends Controller
         
 
             })
+            ->addColumn('netto',function($row){
+                return collect($row->customerPurchaseOrder->eventQuotations)->sum('netto');
+            })
+            ->addColumn('payment',function($row){
+                return $row->payment;
+            })
+             ->addColumn('remaining_payment',function($row){
+                return collect($row->customerPurchaseOrder->eventQuotations)->sum('netto')-$row->payment;
+            })
+            
             ->addColumn('action', function ($row) {
                 $button = '
                 <div class="text-center">';

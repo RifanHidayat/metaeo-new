@@ -291,6 +291,7 @@ class DeliveryOrderController extends Controller
         //         // 'errors' => $/e,
         //     ], 400);
         // }
+       // return $request->all();
  
 
         $transactionsByCurrentDateCount = DeliveryOrder::query()->where('date', $request->date)->get()->count();
@@ -300,6 +301,7 @@ class DeliveryOrderController extends Controller
 
         try {
             $deliveryOrder = new DeliveryOrder;
+            $salesOrder = V2SalesOrder::find($request->sales_order_id);
             $source=$request->source;
             // $deliveryOrder->number = $request->number;
             $deliveryOrder->number = $number;
@@ -313,20 +315,26 @@ class DeliveryOrderController extends Controller
             $deliveryOrder->sales_order_id = $request->sales_order_id;
             $deliveryOrder->description = $request->description;
             $deliveryOrder->bast_id=$request->bast_id;
-            $deliveryOrder->amount=$request->amount;
-
+          
             $source = $request->source;
             $items = $request->selected_items;
             
-
-
-            $deliveryOrder->save();
-
-            if ($source=='event'){
             
-
+            if ($source=='event'){
+                 $salesOrder->payment=$salesOrder->payment+$request->amount;
+                   $deliveryOrder->amount=$request->amount;
+                 $deliveryOrder->save();
+            $salesOrder->save();
+                
+            
+        
         
             }else if ($source=="other"){
+                $salesOrder->payment=$salesOrder->payment+$request->order_netto;
+                   $deliveryOrder->amount=$request->order_netto;
+                 $deliveryOrder->save();
+            $salesOrder->save();
+                
                 foreach ($request->event_quotations as $quotation){
                     foreach($quotation['other_quotation_items'] as $item){
                         if ( ($item['isSent']==true)){
@@ -878,6 +886,21 @@ class DeliveryOrderController extends Controller
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
                  $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                 if ($row->source=="purchase_order"){
+                     $netto=collect($row->customerPurchaseOrder->eventQuotations)->each(function($item){})->sum('netto');
+                     if ((int)$row->payment>=(int)$netto){
+                          $button = '';
+
+                     }else{
+                          $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
+                        
+                     }
+
+
+                }else{
+                     $button = '';
+
+                 }
               
                 // if (count($row->deliveryOrders)>0){
                 //     $button = '<button class="btn btn-light-success"><i class="flaticon2-check-mark"></i></button>';

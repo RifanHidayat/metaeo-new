@@ -316,7 +316,7 @@
                     data: 'source',
                     name: 'customer_purchase_orders.source',
                     render: function(data, type, row) {
-                        return `<div class="text-dark-75">${data=="quotation"?"Quotation EO":"Quotation Metaprint"}</div>`;
+                        return `<div class="text-dark-75">${data=="event"?"Quotation Event":data=="other"?"Quotation Other":"Quotation Metaprint"}</div>`;
                     }
                 }, 
                 {

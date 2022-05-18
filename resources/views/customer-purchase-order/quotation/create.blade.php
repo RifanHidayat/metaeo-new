@@ -57,6 +57,10 @@
         <div class="card card-custom gutter-b">
             <div class="card-header">
                 <h3 class="card-title">Form Purchase Order</h3>
+                <div class="my-3 text-right">
+                                        <a href="/customer-purchase-order/create" type="button" class="btn btn-secondary" ></i>PO Meta</a>
+                                        <a href="/customer-purchase-order/quotation/create" type="button" class="btn btn-primary"></i>PO EO</a>
+                                    </div>
 
             </div>
             <!--begin::Form-->
@@ -140,7 +144,9 @@
                             <div class="tab-pane fade show active" id="goods" role="tabpanel" aria-labelledby="goods-tab">
                                 <div class="mt-2">
                                     <div class="my-3 text-right">
-                                        <button type="button" data-toggle="modal" data-target="#quotationModal"><i class="flaticon2-plus"></i> Quotation</button>
+                                        <!-- <button type="button" data-toggle="modal" data-target="#quotationModal"><i class="flaticon2-plus"></i> Quotation</button> -->
+                                        
+                                        <button  data-toggle="modal"  type="button" class="btn btn-success" data-target="#quotationModal"><i class="flaticon2-plus"></i> Tambah</button>
                                     </div>
                                     <div>
                                          <div v-for="(item,index) in selectedData" >
@@ -369,8 +375,10 @@
                         <thead>
                             <th>Nomor</th>
                             <th>Tanggal</th>
+                             <th>Customer</th>
                             <th>Title</th>
-                             <th>Source</th>
+                            
+                              <th>Source</th>
                           
                             <th>Action</th>
                         </thead>
@@ -526,7 +534,12 @@
                 return pph23Amount;
             },
             grandTotal: function() {
-                const grandTotal = this.selectedData.map(item => Number(item.total)).reduce((acc, cur) => {
+                // const grandTotal = this.selectedData.map(item => Number(item.total)).reduce((acc, cur) => {
+                //     return acc + cur;
+                // }, 0);
+
+                // return grandTotal;
+                 const grandTotal = this.selectedData.map(item => Number(item.netto)).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0);
 
@@ -566,6 +579,10 @@
                 {
                     data: 'date',
                     name: 'date'
+                },
+                 {
+                    data: 'customer_name',
+                    name: ''
                 },
                 {
                     data: 'title',
