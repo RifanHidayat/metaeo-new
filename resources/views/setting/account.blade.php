@@ -7,6 +7,9 @@
 <link href="{{ asset('plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css">
 @endsection
 
+
+
+
 @section('subheader')
 <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
     <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
@@ -56,7 +59,7 @@
                     <h3>Mapping Akun</h3>
                     
                 <!-- collapse -->
-                <div class="ml-5 mt-10">
+                <!-- <div class="ml-5 mt-10">
                    <div class="p-3 mb-2 bg-light text-white row">
                    <label class="text-secondary">
                     Sales Order
@@ -77,9 +80,7 @@
                         <div class="col-lg-6">
                             <label>Debit</label>         
                           <select v-model="accountId" class="form-control accounts" style="width: 100%;">
-                           <!-- <option value="">Pilih Akun</option> -->
-                                 <!-- <option v-for="account in accounts" :value="account.id" v-if="account.type=='detail'">
-                                 @{{account.number}} - @{{account.name}}</option> -->
+                           
                               <option value="">Pilih Akun</option>
                               <template>
                                  <optgroup v-for="(category,index) in accounts" :label="category.name" v-if="category.accounts.length>0">
@@ -121,7 +122,7 @@
                             <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading" @click="sendData('sales-order')">
                                 Save
                             </button>
-                            <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
+                           
                         </div>
                         <span class="form-text text-muted mt-10">Berikut ini akun sales order</span>
 
@@ -182,11 +183,11 @@
                    <div data-toggle="collapse" data-target="#event-quotation" class="text-right" aria-controls="demo" style="width: 87%;" >
                 <a href="#"><i class="flaticon2-up text-right"></i></a>
                 </div>
-                   </div>
+                   </div> -->
 
                    <!-- begin content event quotation -->
 
-                    <div class="row collapse" id="event-quotation" aria-expanded="false" >
+                    <!-- <div class="row collapse" id="event-quotation" aria-expanded="false" >
                     <div class="col-lg-8 col-md-12">
                     
                      <div class="form-group row">
@@ -238,7 +239,7 @@
                             <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading" @click="sendData('event-quotation')">
                                 Save
                             </button>
-                            <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
+                           
                         </div>
                         <span class="form-text text-muted mt-10">Berikut ini akun Quotation Event</span>
 
@@ -291,13 +292,13 @@
                         </table>
                       
 
-                </div>
+                </div> -->
 
 
 
 
 
-                      <div class="p-3 mb-2 bg-light text-white row mt-10">
+                      <!-- <div class="p-3 mb-2 bg-light text-white row mt-10">
                    <label class="text-secondary">
                     Quotation Other
                    </label>
@@ -305,11 +306,11 @@
                 <a href="#"><i class="flaticon2-up text-right"></i></a>
                 </div>
                    
-                   </div>
+                   </div> -->
 
 
                           <!-- begin content other quotation -->
-
+<!-- 
                     <div class="row collapse" id="other-quotation" aria-expanded="false" >
                     <div class="col-lg-8 col-md-12">
                     
@@ -359,7 +360,7 @@
                             <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading" @click="sendData('other-quotation')">
                                 Save
                             </button>
-                            <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
+                           
                         </div>
                         <span class="form-text text-muted mt-10">Berikut ini akun quotation other</span>
 
@@ -411,15 +412,15 @@
                         </table>
                       
 
-                </div>
+                </div> -->
                                    <!-- end content event-quotation-->
 
 
-                     <div class="p-3 mb-2 bg-light text-white row mt-10">
+                     <div class="p-3 mb-2 bg-light text-white row mt-10 d-flex justify-content-between">
                    <label class="text-secondary">
                    Project
                    </label>
-                   <div data-toggle="collapse" data-target="#project" class="text-right" aria-controls="demo" style="width: 93%;" >
+                   <div  data-toggle="collapse" data-target="#project" class="text-right" aria-controls="demo" >
                 <a href="#"><i class="flaticon2-up text-right"></i></a>
                 </div>
                    </div>
@@ -536,18 +537,18 @@
                    <!-- end content event-quotation-->
 
              
-                   <div class="p-3 mb-2 bg-light text-white row mt-10">
+                   <!-- <div class="p-3 mb-2 bg-light text-white row mt-10">
                    <label class="text-secondary">
                     Hutang Sales Order
                    </label>
                    <div data-toggle="collapse" data-target="#hutang-sales-order" class="text-right" aria-controls="demo" style="width: 83%;" >
                 <a href="#"><i class="flaticon2-up text-right"></i></a>
                 </div>
-                </div>
+                </div> -->
 
                    <!-- begin content hutang -->
 
-                    <div class="row collapse" id="hutang-sales-order" aria-expanded="false" >
+                    <!-- <div class="row collapse" id="hutang-sales-order" aria-expanded="false" >
                     <div class="col-lg-8 col-md-12">
                     
                      <div class="form-group row">
@@ -596,7 +597,7 @@
                             <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading" @click="sendData('hutang-sales-order')">
                                 Save
                             </button>
-                            <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
+                          
                         </div>
                           <span class="form-text text-muted mt-10">Berikut ini akun hutang (hanya punya 1 akun)</span>
                      
@@ -648,18 +649,18 @@
                         </table>
                       
 
-                </div>
+                </div> -->
 
                    <!-- end content hutang-->
 
                    <!-- end content event-quotation-->
 
              
-                   <div class="p-3 mb-2 bg-light text-white row mt-10">
+                   <div class="p-3 mb-2 bg-light text-white row mt-10 d-flex justify-content-between ">
                    <label class="text-secondary">
-                    Hutang Quotation Event
+                    Hutang Invoice Event
                    </label>
-                   <div data-toggle="collapse" data-target="#hutang-quotation-event" class="text-right" aria-controls="demo" style="width: 80%;" >
+                   <div  data-toggle="collapse" data-target="#hutang-quotation-event"  aria-controls="demo"  >
                 <a href="#"><i class="flaticon2-up text-right"></i></a>
                 </div>
                 </div>
@@ -775,11 +776,11 @@
                    <!-- end content event-quotation-->
 
              
-                   <div class="p-3 mb-2 bg-light text-white row mt-10">
+                   <div class="p-3 mb-2 bg-light text-white row mt-10 d-flex justify-content-between">
                    <label class="text-secondary">
-                    Hutang Quotation Other
+                    Hutang Invoice Other
                    </label>
-                   <div data-toggle="collapse" data-target="#hutang-quotation-other" class="text-right" aria-controls="demo" style="width: 80%;" >
+                   <div data-toggle="collapse" data-target="#hutang-quotation-other" class="text-right" aria-controls="demo" >
                 <a href="#"><i class="flaticon2-up text-right"></i></a>
                 </div>
                 </div>
@@ -892,7 +893,7 @@
                    <!-- end content hutang-->
 
 
-                    <div class="p-3 mb-2 bg-light text-white row mt-10">
+                    <!-- <div class="p-3 mb-2 bg-light text-white row mt-10">
                    <label class="text-secondary">
                     Piutang Sales Order
                    </label>
@@ -900,11 +901,11 @@
                 <a href="#"><i class="flaticon2-up text-right"></i></a>
                 </div>
                    
-                   </div>
+                   </div> -->
 
                                <!-- begin content hutang -->
 
-                    <div class="row collapse" id="piutang-sales-order" aria-expanded="false" >
+                    <!-- <div class="row collapse" id="piutang-sales-order" aria-expanded="false" >
                     <div class="col-lg-8 col-md-12">
                     
                      <div class="form-group row">
@@ -952,7 +953,7 @@
                             <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading" @click="sendData('piutang-sales-order')">
                                 Save
                             </button>
-                            <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
+                          
                         </div>
                           <span class="form-text text-muted mt-10">Berikut ini akun Piutang (hanya punya 1 akun)</span>
                      
@@ -1004,14 +1005,14 @@
                         </table>
                       
 
-                </div>
+                </div> -->
 
 
-                    <div class="p-3 mb-2 bg-light text-white row mt-10">
+                    <div class="p-3 mb-2 bg-light text-white row mt-10 d-flex justify-content-between">
                    <label class="text-secondary">
-                    Piutang Quotation Event
+                    Piutang Invoice Event
                    </label>
-                   <div data-toggle="collapse" data-target="#piutang-quotation-event" class="text-right" aria-controls="demo" style="width: 80%;" >
+                   <div data-toggle="collapse" data-target="#piutang-quotation-event" class="text-right" aria-controls="demo" >
                 <a href="#"><i class="flaticon2-up text-right"></i></a>
                 </div>
                    
@@ -1121,11 +1122,11 @@
 
                 </div>
 
-                      <div class="p-3 mb-2 bg-light text-white row mt-10">
+                      <div class="p-3 mb-2 bg-light text-white row mt-10 d-flex justify-content-between">
                    <label class="text-secondary">
-                    Piutang Quotation Other
+                    Piutang Inovoice Other
                    </label>
-                   <div data-toggle="collapse" data-target="#piutang-quotation-other" class="text-right" aria-controls="demo" style="width: 80%;" >
+                   <div data-toggle="collapse" data-target="#piutang-quotation-other" class="text-right" aria-controls="demo" >
                 <a href="#"><i class="flaticon2-up text-right"></i></a>
                 </div>
                    

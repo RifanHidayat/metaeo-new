@@ -222,7 +222,7 @@
                                                     
                                                     <tr>
                                                    
-                                                        
+                                                         <th>Code</th>
                                                         <th>Quantity</th>
                                                         <th>Frequency</th>
                                                          <th>Unit Price</th>
@@ -233,6 +233,12 @@
                                                     </tr>
                                                     </tr>
                                                     <tr>
+
+                                                        <td>
+                                                            <div class="input-group">
+                                                               <input type="text" v-model="item.code" class="form-control form-control-sm text-right" >
+                                                            </div>
+                                                        </td>
                                                           
                                                             
                                                     
@@ -266,7 +272,7 @@
                                                         
                                                         
                                                         
-                                                        <td  colspan="6">
+                                                        <td  colspan="7">
                                                           <div class="row">
                                                                 <div class="col-md-12 col-lg-6">
                                                                 </div>
@@ -770,6 +776,7 @@
             addItem: function() {
                 let vm = this;
                 vm.items.push({
+                    code:'',
                     
                     name: '',
                     quantity: 1,

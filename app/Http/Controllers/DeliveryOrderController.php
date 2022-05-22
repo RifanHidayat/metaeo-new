@@ -760,10 +760,13 @@ class DeliveryOrderController extends Controller
           
             $otherQuotationItems=collect($otherQuotationItems)->each(function($item){
             $item['description']="";
-            $item['number']="";
+            // $item['code']="";
+            $item['number']=$item['code'];
             $item['unit']="";
             $item['isSent']=false;
         });
+      //  return $otherQuotationItems;
+
 
         // $users = User::select(['id', 'name', 'email', 'created_at', 'updated_at']);
         $salesOrders = V2SalesOrder::with(['eventQuotation.items.subItems','deliveryOrders.deliveryOrderOtherQuotationItems'=>function($query){
@@ -793,6 +796,7 @@ class DeliveryOrderController extends Controller
             })->values()->all();
                      $bast['other_quotation_items']=$items;
                       $bast['isShow']=0;
+                    
               });
               } 
               }else{
@@ -898,7 +902,7 @@ class DeliveryOrderController extends Controller
 
 
                 }else{
-                     $button = '';
+                      $button = '<button class="btn btn-light-primary btn-choose"><i class="flaticon-add-circular-button"></i> Pilih</button>';
 
                  }
               

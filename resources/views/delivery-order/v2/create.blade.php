@@ -1079,7 +1079,7 @@
                                                                             <tr>
                                                                               <th class="text-left"  >#</th>
                                                                                <th class="text-left"  >Kirim</th>
-                                                                                <th class="text-left"  >Kode</th>
+                                                                                <th class="text-left"  >Code</th>
                                                                              
                                                                                 <th class="text-left" >Quantity</th>
                                                                                 <th class="text-left" >KTS</th>
@@ -1948,7 +1948,7 @@
             var asf=data.event_quotation['asf'] * division;
             var discount=data.event_quotation['discount'] * division;
             var pph=data.event_quotation['pph23_amount'] *division;
-            var ppn=data.event_quotation['ppn_amount'] *divison;
+            var ppn=data.event_quotation['ppn_amount'] *division;
             var total=data.event_quotation['total'] * division;
             var subtotal=data.event_quotation['subtotal'] *division;
             
@@ -1957,8 +1957,8 @@
             app.$data.eventQuotation={
                 asf:Math.round(asf),
                 discount:Math.round(discount),
-                commissionableCost:math.round(comissionable_cost),
-                nonfeeCost:Math.round(nonfeeCost),
+                commissionableCost:Math.round(comissionable_cost),
+                nonfeeCost:Math.round(nonfee_cost),
                 netto:Math.round(netto),
                 pph:Math.round(pph),
                 ppn:Math.round(ppn),

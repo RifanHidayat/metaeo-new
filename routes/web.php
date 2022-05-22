@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPurchaseOrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryOrderController;
+use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\EstimationController;
 use App\Http\Controllers\FinanceAccountController;
 use App\Http\Controllers\FinanceTransactionController;
@@ -107,6 +108,15 @@ Route::middleware('auth')->group(function () {
         // Route::post('/', [SupplierController::class, 'kode']);
         Route::patch('/{id}', [SupplierController::class, 'update']);
         Route::delete('/{id}', [SupplierController::class, 'destroy']);
+    });
+     Route::prefix('/division')->group(function () {
+        Route::get('/', [DivisionController::class, 'index']);
+        Route::get('/create', [DivisionController::class, 'create']);
+        Route::get('/edit/{id}', [DivisionController::class, 'edit']);
+        Route::post('/', [DivisionController::class, 'store']);
+        // Route::post('/', [SupplierController::class, 'kode']);
+        Route::patch('/{id}', [DivisionController::class, 'update']);
+        Route::delete('/{id}', [DivisionController::class, 'destroy']);
     });
 
     Route::prefix('/shipment')->group(function () {
@@ -508,6 +518,7 @@ Route::prefix('/login')->group(function () {
     Route::post('/', [AuthController::class, 'authenticate']);
     Route::get('/action/logout', [AuthController::class, 'logout']);
 });
+
 
 Route::prefix('/datatables')->group(function () {
     Route::prefix('/estimations')->group(function () {

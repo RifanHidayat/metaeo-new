@@ -13,6 +13,7 @@ class CreatePoQuotationsTable extends Migration
      */
     public function up()
     {
+        
         Schema::create('po_quotations', function (Blueprint $table) {
             $table->id();
             $table->string('number',100);
@@ -21,6 +22,7 @@ class CreatePoQuotationsTable extends Migration
             $table->bigInteger('amount');
             $table->timestamps();;
         });
+        
     }
 
     /**

@@ -185,7 +185,7 @@
 
          <!-- begin sales order -->
       @if($delivery_order->v2SalesOrder->customerPurchaseOrder->source=='other')
-        <table class="bordered-table" style="width: 100%">
+      <table class="bordered-table"  style="width: 100%">
             <tr>
                 <th>No.</th>
                 <th>Kode Barang</th>
@@ -207,7 +207,7 @@
                    <td class="text-center">{{ $item->unit }}</td>
             </tr>
             @endforeach
-        </table>
+       </table>
         @endif
 
         <!-- end sales order -->

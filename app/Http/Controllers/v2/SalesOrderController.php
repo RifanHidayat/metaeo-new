@@ -43,6 +43,7 @@ class SalesOrderController extends Controller
     public function indexData()
     {
         $salesOrders = V2SalesOrder::with(['v2Quotation', 'customerPurchaseOrder.eventQuotations', 'jobOrders', 'invoices', 'deliveryOrders','eventQuotation'])->select('v2_sales_orders.*');
+        
         return DataTables::eloquent($salesOrders)
             ->addIndexColumn()
             ->addColumn('quotation_po_number', function (V2SalesOrder $salesOrder) {
@@ -120,13 +121,38 @@ class SalesOrderController extends Controller
 
             })
             ->addColumn('netto',function($row){
-                return collect($row->customerPurchaseOrder->eventQuotations)->sum('netto');
+                if ($row->source=="quotation"){
+                      
+                      if ($row->eventQuotation!=null){
+                    return $row->eventQuotation->netto;
+                }else{
+                    return "0";
+                }
+              
+                }else{
+                    return collect($row->customerPurchaseOrder->eventQuotations)->sum('netto');
+                }
+              
             })
             ->addColumn('payment',function($row){
                 return $row->payment;
             })
              ->addColumn('remaining_payment',function($row){
-                return collect($row->customerPurchaseOrder->eventQuotations)->sum('netto')-$row->payment;
+                
+
+                 if ($row->source=="quotation"){
+                      
+                      if ($row->eventQuotation!=null){
+                   return $row->eventQuotation->netto-$row->payment;
+                   
+
+                }else{
+                    return "0";
+                }
+              
+                }else{
+                   return collect($row->customerPurchaseOrder->eventQuotations)->sum('netto')-$row->payment;
+                }
             })
             
             ->addColumn('action', function ($row) {

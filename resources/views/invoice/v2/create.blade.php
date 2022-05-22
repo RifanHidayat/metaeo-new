@@ -1792,7 +1792,7 @@
             processing: true,
             serverSide: true,
             destroy: true,
-            ajax: '/datatables/v2/invoices/bast',
+            ajax: ' ',
             columns: [{
                     data: 'number',
                     name: 'number',
@@ -1837,8 +1837,8 @@
             var ppn=event_quotations['ppn_amount']
             var total=event_quotations['total']
             var subtotal=event_quotations['subtotal'];
-             let division=data.amount/Number(netto)
-              app.$data.grNumber=data.gr_number;
+            let division=data.amount/Number(netto)
+            app.$data.grNumber=data.gr_number;
             app.$data.bastId=data.id
             app.$data.source="bast"
             app.$data.asf =Math.round(division * asf);
@@ -1894,7 +1894,7 @@
             app.$data.source="bast"
            
             app.$data.asf =Math.round(division * asf);
-            app.$data.netto=Math.round(division *netto);
+            app.$data.netto=Math.round(division * netto);
             app.$data.discount=Math.round(division * discount);
             app.$data.ppn=Math.round(division *ppn);
             app.$data.pph23=Math.round(division *pph )

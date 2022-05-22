@@ -621,10 +621,10 @@ class CustomerPurchaseOrderController extends Controller
        
        
         // ->get();
-         $quotations = EventQuotation::with(['picEvent','picPo','customer','poQuotation','customerPurchaseOrder'])
+         $quotations = EventQuotation::with(['picEvent','picPo','customer','poQuotation','customerPurchaseOrder','v2SalesOrder'])
        
        
-        ->get();
+        ->get()->where('v2SalesOrder','==',null);
         //return $quotations;
 
         return DataTables::of($quotations)

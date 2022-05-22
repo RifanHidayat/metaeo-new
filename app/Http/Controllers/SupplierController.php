@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Division;
 use Illuminate\Http\Request;
 use App\Models\Supplier;
 use Exception;
@@ -21,8 +22,11 @@ class SupplierController extends Controller
 
         $kode = Supplier::max('id');
         $number = "S" . sprintf("%03d", $kode + 1);
+        $divisions=Division::all();
+        //return $divisions;
         return view('supplier.create', [
             'number' => $number,
+            'divisions'=>$divisions,
         ]);
     }
 
@@ -31,11 +35,20 @@ class SupplierController extends Controller
 
         $supplier = new Supplier;
         $supplier->number = $request->number;
+        $supplier->division_id=$request->division_id;
         $supplier->name = $request->name;
         $supplier->address = $request->address;
         $supplier->telephone = $request->telephone;
         $supplier->handphone = $request->handphone;
         $supplier->email = $request->email;
+        $supplier->npwp_number=$request->npwp_number;
+        $supplier->npwp_address=$request->npwp_address;
+        $supplier->contact_name = $request->contact_name;
+        $supplier->contact_address = $request->contact_address;
+        $supplier->contact_number = $request->contact_number;
+        $supplier->contact_position = $request->contact_position;
+        $supplier->contact_email = $request->contact_email;
+
 
         if ($request->number == null) {
             $maxSupplier = Supplier::max('id');
@@ -63,20 +76,32 @@ class SupplierController extends Controller
 
     public function edit($id)
     {
+        $divisions=Division::all();
         $supplier = Supplier::findOrFail($id);
-        return view('supplier.edit', ['supplier' => $supplier]);
+        return view('supplier.edit', ['supplier' => $supplier,'divisions'=>$divisions]);
     }
 
     public function update(Request $request, $id)
     {
-        $supplier = Supplier::find($id);
-        $supplier->number = $request->number;
+
+            $supplier = Supplier::findOrFail($id);
+        
+        $supplier->division_id=$request->division_id;
         $supplier->name = $request->name;
         $supplier->address = $request->address;
         $supplier->telephone = $request->telephone;
         $supplier->handphone = $request->handphone;
         $supplier->email = $request->email;
+        $supplier->npwp_number=$request->npwp_number;
+        $supplier->npwp_address=$request->npwp_address;
+        $supplier->contact_name = $request->contact_name;
+        $supplier->contact_address = $request->contact_address;
+        $supplier->contact_number = $request->contact_number;
+        $supplier->contact_position = $request->contact_position;
+        $supplier->contact_email = $request->contact_email;
 
+
+        
 
         try {
             $supplier->save();
@@ -94,6 +119,31 @@ class SupplierController extends Controller
                 'errors' => $e,
             ], 500);
         }
+        // $supplier = Supplier::find($id);
+        // $supplier->number = $request->number;
+        // $supplier->name = $request->name;
+        // $supplier->address = $request->address;
+        // $supplier->telephone = $request->telephone;
+        // $supplier->handphone = $request->handphone;
+        // $supplier->email = $request->email;
+
+
+        // try {
+        //     $supplier->save();
+        //     return response()->json([
+        //         'message' => 'Data has been saved',
+        //         'code' => 200,
+        //         'error' => false,
+        //         'data' => $supplier,
+        //     ]);
+        // } catch (Exception $e) {
+        //     return response()->json([
+        //         'message' => 'Internal error',
+        //         'code' => 500,
+        //         'error' => true,
+        //         'errors' => $e,
+        //     ], 500);
+        // }
     }
 
     public function destroy($id)

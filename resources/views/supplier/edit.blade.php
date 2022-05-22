@@ -25,7 +25,7 @@
             <a href="/supplier" class="text-muted">Supplier</a>
           </li>
           <li class="breadcrumb-item">
-            <a href="" class="text-muted">Edit</a>
+            <a href="/supplier/create" class="text-muted">Edit</a>
           </li>
         </ul>
         <!--end::Breadcrumb-->
@@ -49,41 +49,161 @@
       </div>
       <!--begin::Form-->
       <form class="form" autocomplete="off" @submit.prevent="submitForm">
-        <div class="card-body">
-            <div class="form-group">
+        <div class="card-body ">
+       
+            <!-- <div class="form-group col-lg-6">
+              {{-- <div class=""> --}}
                 <label>Number:</label>
-                <input v-model="number" id="number" type="text" class="form-control" placeholder="Enter supplier's number">
-                <span class="form-text text-muted">Please enter supplier's number</span>
-              </div>
-              <div class="form-group">
-                <label>Name:</label>
-                <input v-model="name" id="name" type="text" class="form-control" placeholder="Enter supplier's name">
-                <span class="form-text text-muted">Please enter supplier's name</span>
-              </div>
+                
+                <input v-model="number" type="text" class="form-control" disabled>
+              {{-- </div> --}}
+              </div> -->
+              <div class="section-block m-0 mb-4">
+                  <h3 class="section-title">Informasi Perusahaan</h3>
+                  
+                </div>
 
-              <div class="form-group">
-                <label>Address:<span class="text-danger">*</span></label>
-                <textarea v-model="address" id="address" class="form-control" rows="3" required placeholder="Enter supplier's address"></textarea>
-                <span class="form-text text-muted">Please enter supplier's address</span>
-              </div>
-          <div class="form-group row">
-            <div class="col-lg-6">
-              <label>Telephone:<span class="text-danger">*</span></label>
-              <input v-model="telephone" id="telephone" type="text" class="form-control" placeholder="Enter supplier's telephone" required>
-              <span class="form-text text-muted">Please enter supplier's telephone</span>
-            </div>
-            <div class="col-lg-6">
-              <label>Handphone:</label>
-              <input v-model="handphone" id="handphone" type="text" class="form-control" placeholder="Enter supplier's handphone">
-              <span class="form-text text-muted">Please enter supplier's handphone</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Email:<span class="text-danger">*</span></label>
-            <textarea v-model="email" id="email" class="form-control" rows="3" required placeholder="Enter supplier's email"></textarea>
-            <span class="form-text text-muted">Please enter supplier's email</span>
-          </div>
-          
+               <div class="form-row col-8" >
+                  <div class="form-group col-lg-6">
+                      <label>Divisi: <span class="text-danger">*</span></label>
+                       <select v-model="divisionId"  class="form-control"    required >
+                         <option selected>Pilih divisi supplier</option>
+                           
+                            <option v-for="(division,index) in divisions" v-bind:value="division.id" >@{{division.name}}</option>                                             
+                            </select>
+                     
+                   </div>
+                  <div class="form-group col-lg-6">
+                      <label>Nama: <span class="text-danger">*</span></label>
+                      <input v-model="name" type="text" class="form-control" >
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+                      
+                     
+                    
+                </div>
+
+                  <div class="form-row col-8" >
+                  <div class="form-group col-lg-6">
+                      <label>Email kantor:</label>
+                      <input v-model="email" type="text" class="form-control">
+                     
+                   </div>
+                  <div class="form-group col-lg-6">
+                      <label>No. Telp kantor:</label>
+                      <input v-model="telephone" type="text" class="form-control">
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+                      
+                </div>
+                 <div class="form-row col-8" >
+                 
+                  <div class="form-group col-lg-6">
+                      <label>No. Handphone Kantor:</label>
+                      <input v-model="handphone" type="text" class="form-control">
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+                      
+                </div>
+                    <div class="form-row col-8" >
+                  <div class="form-group col-lg-12">
+                      <label>Alamat Kantor:</label>
+                      <textarea v-model="address" type="text" class="form-control"  rows="4"></textarea>
+                     
+                   </div>
+                  
+                      
+                </div>
+                  <div class="form-row col-8" >
+                 
+                  <div class="form-group col-lg-12">
+                      <label>No. NPWP:</label>
+                      <input v-model="npwpNumber" type="text" class="form-control" >
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+                      
+                </div>
+                 <div class="form-row col-8" >
+                  <div class="form-group col-lg-12">
+                      <label>Alamat NPWP:</label>
+                      <textarea v-model="npwpAddress" type="text" class="form-control"  rows="4"></textarea>
+                     
+                   </div>
+                  
+                      
+                </div>
+                
+
+                
+ 
+   
+     
+
+          <!-- begin: Example Code-->
+
+          <!-- end: Example Code-->
+        </div>
+           <div class="card-body border-top">
+       
+            <!-- <div class="form-group col-lg-6">
+              {{-- <div class=""> --}}
+                <label>Number:</label>
+                
+                <input v-model="number" type="text" class="form-control" disabled>
+              {{-- </div> --}}
+              </div> -->
+              <div class="section-block m-0 mb-4">
+                  <h3 class="section-title">Informasi Kontak</h3>
+                  
+                </div>
+
+               
+                    
+                 
+               
+                  <div class="form-row col-8" >
+                  <div class="form-group col-lg-6">
+                      <label>Nama  lengkap:</label>
+                      <input v-model="contactName" type="text" class="form-control" >
+                     
+                   </div>
+                  <div class="form-group col-lg-6">
+                      <label>Jabatan:</label>
+                      <input v-model="contactPosition" type="text" class="form-control" >
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+                      
+                </div>
+
+                  <div class="form-row col-8" >
+                  <div class="form-group col-lg-6">
+                      <label>Email:</label>
+                      <input v-model="contactEmail" type="text" class="form-control" >
+                     
+                   </div>
+                  <div class="form-group col-lg-6">
+                      <label>Hanphone:</label>
+                      <input v-model="contactNumber" type="text" class="form-control" >
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+                      
+                </div>
+                   <div class="form-row col-8" >
+                  <div class="form-group col-lg-12">
+                      <label>Alamat:</label>
+                      <textarea v-model="contactAddress" type="text" class="form-control"  rows="4"></textarea>
+                     
+                   </div>
+                  
+                      
+                </div>
+                
+             
+
+            
+            
+            
+         
           
 
           <!-- begin: Example Code-->
@@ -119,12 +239,24 @@
   let app = new Vue({
     el: '#app',
     data: {
-      number: '{{ $supplier->number }}',
+      divisionId:'{{ $supplier->division_id }}',
+    
       name: '{{ $supplier->name }}',
       address: '{{ $supplier->address }}',
-      telephone: '{{ $supplier->telephone }}',
+      telephone: '{{ $supplier->telephone}}',
       handphone: '{{ $supplier->handphone }}',
       email: '{{ $supplier->email }}',
+      npwpNumber:'{{ $supplier->npwp_number }}',
+      npwpAddress:"{{ $supplier->npwp_address }}",
+
+       contactName: '{{ $supplier->contact_name }}',
+      contactAddress:'{{ $supplier->contact_address }}',
+      contactPosition: '{{ $supplier->contact_position }}',
+      contactNumber: '{{ $supplier->number  }}',
+      contactEmail: '{{ $supplier->contact_email  }}',
+
+      divisions:JSON.parse('{!! $divisions !!}'),
+      id:'{{$supplier->id}}',
       loading: false,
     },
     methods: {
@@ -135,13 +267,25 @@
         // console.log('submitted');
         let vm = this;
         vm.loading = true;
-        axios.patch('/supplier/{{ $supplier->id }}', {
+        axios.patch('/supplier/'+this.id, {
+            division_id:this.divisionId,
             number: this.number,
             name: this.name,
             address: this.address,
             telephone: this.telephone,
             handphone: this.handphone,
             email: this.email,
+            npwp_number:this.npwpNumber,
+            npwp_address:this.npwpAddress,
+
+
+             
+            contact_name: this.contactName,
+            contact_address: this.contactAddress,
+            contact_telephone: this.contactTelephone,
+            contact_number: this.contactNumber,
+            contact_email: this.contactEmail,
+                      contact_position: this.contactPosition,
           })
           .then(function(response) {
             vm.loading = false;

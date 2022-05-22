@@ -5,7 +5,7 @@
         <a href="/" class="brand-logo">
             <!-- <img alt="Logo" src="{{ asset('media/logos/logo-light.png') }}" />
              -->
-            <h3 class="text-white">METAPRINT</h3>
+            <h3 class="text-white">METAEO</h3>
         </a>
         <!--end::Logo-->
         <!--begin::Toggle-->

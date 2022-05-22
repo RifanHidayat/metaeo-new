@@ -267,6 +267,7 @@ class OtherQuotationController extends Controller
 
              $items = collect($selectedItems)->map(function ($item) use ($quotation) {
                 return [
+                     'code'=>$item['code'],
                     'name'=>$item['name'],
                     'quantity'=>$item['quantity'],
                     'frequency'=>$item['frequency'],
@@ -537,8 +538,6 @@ class OtherQuotationController extends Controller
     {
         $eventQuotations=EventQuotation::with(['picPo','picEvent','customer'])->where('id',$id)->get();
         $otherQuotationItem=OtherQuotationItem::with('goods')->where('event_quotation_id',$id)->get();
-      
-
         $eventQuotations=collect($eventQuotations)->each((function($item) use($otherQuotationItem){
             $item['items']=$otherQuotationItem;
 
