@@ -40,6 +40,8 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\OtherQuotationController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\QuotationItemController;
+use App\Http\Controllers\TaxSettingController;
+use App\Http\Controllers\UnitController;
 use App\Http\Controllers\v2\JobOrderController;
 use App\Http\Controllers\v2\QuotationController as V2QuotationController;
 use App\Http\Controllers\v2\SalesOrderController as V2SalesOrderController;
@@ -231,6 +233,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [EstimationController::class, 'destroy']);
     });
 
+
     Route::prefix('/quotation')->group(function () {
         Route::get('/', [V2QuotationController::class, 'index']);
         Route::get('/create', [V2QuotationController::class, 'create']);
@@ -241,6 +244,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{id}', [V2QuotationController::class, 'update']);
         Route::delete('/{id}', [V2QuotationController::class, 'destroy']);
     });
+
+
 
      Route::prefix('/event-quotation')->group(function () {
         Route::get('/', [EventQuotationController::class, 'index']);
@@ -421,6 +426,19 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [FinishingItemCategoryController::class, 'destroy']);
     });
 
+    Route::prefix('/unit')->group(function () {
+        Route::post('/', [UnitController::class, 'store']);
+        Route::patch('/{id}', [UnitController::class, 'update']);
+        Route::delete('/{id}', [UnitController::class, 'destroy']);
+    });
+
+
+    Route::prefix('/tax')->group(function () {
+        Route::post('/', [TaxSettingController::class, 'store']);
+        Route::patch('/{id}', [TaxSettingController::class, 'update']);
+        Route::delete('/{id}', [TaxSettingController::class, 'destroy']);
+    });
+
     Route::prefix('/pic-event')->group(function () {
         Route::get('/', [PicEventController::class, 'index']);
         Route::get('/create', [PicEventController::class, 'create']);
@@ -457,6 +475,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [SettingController::class, 'index']);
         Route::get('/account', [SettingController::class, 'account']);
         Route::get('/company', [SettingController::class, 'company']);
+         Route::get('/tax', [SettingController::class, 'tax']);
         // Route::get('/create', [WarehouseController::class, 'create']);
         // Route::get('/edit/{id}', [WarehouseController::class, 'edit']);
         // Route::post('/', [WarehouseController::class, 'store']);

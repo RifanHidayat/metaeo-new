@@ -63,7 +63,7 @@
             <form class="form" autocomplete="off" @submit.prevent="submitForm">
                 <div class="card-body">
                     <div class="row justify-content-between">
-                        <div class="col-lg-6 col-md-12">
+                        <div class="col-lg-4 col-md-12">
                             <!-- <div class="form-group">
                                 <label>Supplier:</label>
                                 <select v-model="supplier" class="form-control" id="supplier-select">
@@ -81,18 +81,18 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-md-12">
+                        <!-- <div class="col-lg-4 col-md-12">
                             <div class="form-group">
                                 <label>Nomor:</label>
-                                <!-- <input type="text" class="form-control"> -->
-                                <div class="input-group">
+                          
+                                <div class="input-grotaup">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">#</span>
                                     </div>
                                     <input type="text" v-model="number" class="form-control">
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                     <!-- <div class="row">
                         <div class="col-lg-6 col-md-12">

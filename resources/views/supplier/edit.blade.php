@@ -62,6 +62,13 @@
                   <h3 class="section-title">Informasi Perusahaan</h3>
                   
                 </div>
+                   <div class="form-group col-md-4">
+                                                    <label class="checkbox">
+                                                        <input v-model="isIndividual" type="checkbox">
+                                                        <span></span>&nbsp;
+                                                        Ya, Penjual jasa orang pribadi (Dikenakan PPh 21)
+                                                    </label>
+                                                </div>
 
                <div class="form-row col-8" >
                   <div class="form-group col-lg-6">
@@ -118,7 +125,7 @@
                  
                   <div class="form-group col-lg-12">
                       <label>No. NPWP:</label>
-                      <input v-model="npwpNumber" type="text" class="form-control" >
+                      <input v-model="npwpNumber" type="text" class="form-control npwp" >
                       <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
                    </div>
                       
@@ -248,6 +255,7 @@
       email: '{{ $supplier->email }}',
       npwpNumber:'{{ $supplier->npwp_number }}',
       npwpAddress:"{{ $supplier->npwp_address }}",
+      isIndividual:parseInt("{{$supplier->is_individual}}"),
 
        contactName: '{{ $supplier->contact_name }}',
       contactAddress:'{{ $supplier->contact_address }}',
@@ -277,9 +285,7 @@
             email: this.email,
             npwp_number:this.npwpNumber,
             npwp_address:this.npwpAddress,
-
-
-             
+            is_individual:this.isIndividual, 
             contact_name: this.contactName,
             contact_address: this.contactAddress,
             contact_telephone: this.contactTelephone,
@@ -314,4 +320,20 @@
     }
   })
 </script>
+
+<script>
+    $(document).ready(function(){
+
+    // // Format mata uang.
+    // $( '.uang' ).mask('0.000.000.000', {reverse: true});
+
+    // // Format nomor HP.
+    // $( '.no_hp' ).mask('0000−0000−0000');
+
+    // Format tahun pelajaran.
+    $( '.npwp' ).mask('00.000.000.0-000.000');
+})
+</script>
+
+  </script>
 @endsection

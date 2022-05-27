@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Goods;
+use App\Models\unit;
 use App\Models\GoodsCategory;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,8 +19,10 @@ class GoodsController extends Controller
     public function index()
     {
         $goods = Goods::with(['goodsCategory'])->get();
+        $units=Unit::all();
         return view('goods.index', [
             'goods' => $goods,
+            'units'=>$units
         ]);
     }
 
@@ -31,8 +34,11 @@ class GoodsController extends Controller
     public function create()
     {
         $categories = GoodsCategory::all();
+        $units=Unit::all();
+       // return $units;
         return view('goods.create', [
             'categories' => $categories,
+            'units'=>$units,
         ]);
     }
 
@@ -44,13 +50,17 @@ class GoodsController extends Controller
      */
     public function store(Request $request)
     {
+        //return $request->all();
         $goods = new Goods();
-        $goods->goods_category_id = $request->category;
+        $goods->goods_category = $request->category;
         $goods->number = $request->number;
         $goods->name = $request->name;
         $goods->unit = $request->unit;
         $goods->purchase_price = $request->purchase_price;
-        $goods->stock = $request->stock;
+        $goods->type=$request->type;
+        $goods->pph=$request->type=="persediaan"?0:$request->pph;
+        
+        $goods->stock = "0";
 
         $goodsWithNumber = Goods::where('number', $request->number)->first();
         if ($goodsWithNumber !== null) {
@@ -99,10 +109,16 @@ class GoodsController extends Controller
     {
         $goods = Goods::findOrFail($id);
         $categories = GoodsCategory::all();
+        $units=Unit::all();
         return view('goods.edit', [
             'goods' => $goods,
             'categories' => $categories,
+             'units'=>$units,
         ]);
+
+    
+    
+    
     }
 
     /**
@@ -115,6 +131,43 @@ class GoodsController extends Controller
     public function update(Request $request, $id)
     {
         //
+
+          //return $request->all();
+        $goods = Goods::findOrFail($id);
+        $goods->goods_category = $request->category;
+        $goods->number = $request->number;
+        $goods->name = $request->name;
+        $goods->unit = $request->unit;
+        $goods->purchase_price = $request->purchase_price;
+        $goods->type=$request->type;
+        $goods->is_active=$request->is_active;
+           $goods->pph=$request->type=="persedian"?0:$request->pph;
+        $goods->stock = "0";
+
+        // $goodsWithNumber = Goods::where('number', $request->number)->first();
+        // if ($goodsWithNumber !== null) {
+        //     return response()->json([
+        //         'message' => 'number or code already used',
+        //         'code' => 400,
+        //         // 'errors' => $/e,
+        //     ], 400);
+        // }
+
+        try {
+            $goods->save();
+
+            return response()->json([
+                'message' => 'data has been saved',
+                'data' => $goods,
+                'code' => 200,
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'internal error',
+                'code' => 500,
+                'errors' => $e,
+            ], 500);
+        }
     }
 
     /**

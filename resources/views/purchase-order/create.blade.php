@@ -66,7 +66,36 @@
             <!--begin::Form-->
             <form class="form" autocomplete="off" @submit.prevent="submitForm">
                 <div class="card-body">
-                    <div class="row justify-content-between">
+                      <div class="form-row col-8" >
+                  <div class="form-group col-lg-6">
+                       <label>Tanggal:</label>
+                               
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
+                                    </div>
+                                    <input type="text" v-model="date" id="po-date" class="form-control">
+                                </div>
+                   </div>
+                  <!-- <div class="form-group col-lg-6">
+                      <label>Number: <span class="text-danger">*</span></label>
+                      <input v-model="number" type="text" class="form-control" disabled  >
+                   
+                   </div>                   -->
+                </div>
+
+                     <div class="form-row col-8" >
+                  
+                  <div class="form-group col-lg-6">
+                         <label>Supplier:</label>
+                                <select v-model="supplier" class="form-control" id="supplier-select">
+                                    <option value="">Pilih Supplier</option>
+                                    <option v-for="(supplier, index) in suppliers" :value="supplier.id">@{{ supplier.name }}(@{{supplier.division!=null?supplier.division.name:""}})  </option>
+                                </select>
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>                  
+                </div>
+                    <!-- <div class="row">
                         <div class="col-lg-6 col-md-12">
                             <div class="form-group">
                                 <label>Supplier:</label>
@@ -79,7 +108,7 @@
                         <div class="col-lg-4 col-md-12">
                             <div class="form-group">
                                 <label>Nomor:</label>
-                                <!-- <input type="text" class="form-control"> -->
+                               
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">#</span>
@@ -88,12 +117,13 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
+                    </div> -->
+                    
+                    <!-- <div class="row">
                         <div class="col-lg-6 col-md-12">
                             <div class="form-group">
                                 <label>Tanggal:</label>
-                                <!-- <input type="text" class="form-control"> -->
+                               
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
@@ -102,7 +132,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="mt-5">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
@@ -139,10 +169,11 @@
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
+                                                <td>PPN</td>
                                                 <td>Nama Barang</td>
                                                 <td>Kode #</td>
                                                 <td>Kuantitas</td>
-                                                <td>Satuan</td>
+                                            
                                                 <td>Harga</td>
                                                 <td>Diskon</td>
                                                 <td>Total Harga</td>
@@ -159,10 +190,18 @@
                                                 </td>
                                             </tr>
                                             <tr v-for="(good, index) in selectedGoods">
+                                                <td>
+                                                    <div class="form-group col-md-4">
+                                                    <label class="checkbox">
+                                                        <input v-model="good.isPpn" type="checkbox">
+                                                        <span></span>
+                                                    </label>
+                                                </div>
+                                                </td>
                                                 <td style="vertical-align: middle;">@{{ good.name }}</td>
                                                 <td style="vertical-align: middle;">@{{ good.number }}</td>
                                                 <td><input type="text" v-model="good.quantity" class="form-control form-control-sm text-right"></td>
-                                                <td style="vertical-align: middle;">@{{ good.unit }}</td>
+                                                
                                                 <td>
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
@@ -195,7 +234,7 @@
                                     </div> -->
                                     <div class="mt-20">
                                         <div class="row justify-content-end">
-                                            <div class="col-lg-3">
+                                            <div class="col-lg-2">
                                                 <div class="border">
                                                     <div class="bg-primary w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
@@ -204,7 +243,25 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-lg-3">
+                                              <div class="col-lg-2" v-if="ppnAmount>0">
+                                                <div class="border">
+                                                    <div class="bg-primary w-100" style="height: 5px;"></div>
+                                                    <div class="p-3">
+                                                        <h4>PPN</h4>
+                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(ppnAmount) }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                               <div class="col-lg-2" v-if="pphAmount>0">
+                                                <div class="border">
+                                                    <div class="bg-primary w-100" style="height: 5px;"></div>
+                                                    <div class="p-3">
+                                                        <h4>PPh</h4>
+                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(pphAmount) }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
                                                 <div class="border">
                                                     <div class="bg-danger w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
@@ -226,7 +283,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-lg-3">
+                                            <div class="col-lg-2">
                                                 <div class="border">
                                                     <div class="bg-success w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
@@ -485,6 +542,7 @@
                         other_cost_description: vm.otherCostDescription,
                         subtotal: vm.subtotal,
                         total: vm.grandTotal,
+                        pph:vm.pphAmount
                     })
                     .then(function(response) {
                         vm.loading = false;
@@ -518,6 +576,9 @@
                     price: item.purchase_price,
                     discount: 0,
                     total: item.purchase_price,
+                    pph: item.pph,
+                    type:item.type,
+                    isPpn:1
                 }
                 vm.selectedGoods.push(newGoods);
                 $('#goodsModal').modal('hide');
@@ -538,14 +599,52 @@
 
                 return subtotal;
             },
-            ppnAmount: function() {
-                let vm = this;
-                if (!vm.ppn) {
-                    return 0;
-                }
+            subtotal: function() {
+                const subtotal = this.selectedGoods.map(goods => Number(goods.total)).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0);
 
-                const ppn = (this.subtotal - Number(this.discount)) * (Number(vm.ppnValue) / 100);
+                return subtotal;
+            },
+            ppnAmount: function() {
+                // let vm = this;
+                // if (!vm.ppn) {
+                //     return 0;
+                // }
+
+                // const ppn = (this.subtotal - Number(this.discount)) * (Number(10) / 100);
+                // return Math.round(ppn);
+
+                // const subtotal = this.selectedGoods.map(goods => Number(goods.total)).reduce((acc, cur) => {
+                //     return acc + cur;
+                // }, 0);
+                const ppn=this.selectedGoods.filter(goods=>{return goods.isPpn==1}).map(goods=>{
+                    const amount=((Number(goods.price)*Number(goods.quantity))-Number(goods.discount))*(Number(11)/100)
+                    return amount;
+                }).reduce((acc,cur)=>{
+                    return Number(acc)+Number(cur)
+                },0)
                 return Math.round(ppn);
+            },
+                 pphAmount: function() {
+                // let vm = this;
+                // if (!vm.ppn) {
+                //     return 0;
+                // }
+
+                // const ppn = (this.subtotal - Number(this.discount)) * (Number(10) / 100);
+                // return Math.round(ppn);
+
+                // const subtotal = this.selectedGoods.map(goods => Number(goods.total)).reduce((acc, cur) => {
+                //     return acc + cur;
+                // }, 0);
+                const pph=this.selectedGoods.filter(goods=>{return goods.type=="jasa" && goods.pph!=0}).map(goods=>{
+                    const amount=((Number(goods.price)*Number(goods.quantity))-Number(goods.discount))*(Number(goods.pph)/100)
+                    return amount;
+                }).reduce((acc,cur)=>{
+                    return Number(acc)+Number(cur)
+                },0)
+                return Math.round(pph);
             },
             grandTotal: function() {
                 const grandTotal = this.subtotal - Number(this.discount) + this.ppnAmount + Number(this.shippingCost) + Number(this.otherCost);

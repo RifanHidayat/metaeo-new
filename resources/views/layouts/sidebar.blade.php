@@ -52,6 +52,92 @@
                     </a>
                 </li>
 
+                    <li class="menu-item menu-item-submenu {{ request()->is('goods*') || request()->is('division*') || request()->is('customer*') ||request()->is('pic-po*') || request()->is('quotation-item*') || request()->is('pic-event*')  || request()->is('supplier*') ? 'menu-item-open menu-item-here' : '' }}" aria-haspopup="true" data-menu-toggle="hover">
+                    <a href="javascript:;" class="menu-link menu-toggle">
+                        <span class="svg-icon menu-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <rect x="0" y="0" width="24" height="24" />
+                                    <path d="M12,4.56204994 L7.76822128,9.6401844 C7.4146572,10.0644613 6.7840925,10.1217854 6.3598156,9.76822128 C5.9355387,9.4146572 5.87821464,8.7840925 6.23177872,8.3598156 L11.2317787,2.3598156 C11.6315738,1.88006147 12.3684262,1.88006147 12.7682213,2.3598156 L17.7682213,8.3598156 C18.1217854,8.7840925 18.0644613,9.4146572 17.6401844,9.76822128 C17.2159075,10.1217854 16.5853428,10.0644613 16.2317787,9.6401844 L12,4.56204994 Z" fill="#000000" fill-rule="nonzero" opacity="0.3" />
+                                    <path d="M3.28077641,9 L20.7192236,9 C21.2715083,9 21.7192236,9.44771525 21.7192236,10 C21.7192236,10.0817618 21.7091962,10.163215 21.6893661,10.2425356 L19.5680983,18.7276069 C19.234223,20.0631079 18.0342737,21 16.6576708,21 L7.34232922,21 C5.96572629,21 4.76577697,20.0631079 4.43190172,18.7276069 L2.31063391,10.2425356 C2.17668518,9.70674072 2.50244587,9.16380623 3.03824078,9.0298575 C3.11756139,9.01002735 3.1990146,9 3.28077641,9 Z M12,12 C11.4477153,12 11,12.4477153 11,13 L11,17 C11,17.5522847 11.4477153,18 12,18 C12.5522847,18 13,17.5522847 13,17 L13,13 C13,12.4477153 12.5522847,12 12,12 Z M6.96472382,12.1362967 C6.43125772,12.2792385 6.11467523,12.8275755 6.25761704,13.3610416 L7.29289322,17.2247449 C7.43583503,17.758211 7.98417199,18.0747935 8.51763809,17.9318517 C9.05110419,17.7889098 9.36768668,17.2405729 9.22474487,16.7071068 L8.18946869,12.8434035 C8.04652688,12.3099374 7.49818992,11.9933549 6.96472382,12.1362967 Z M17.0352762,12.1362967 C16.5018101,11.9933549 15.9534731,12.3099374 15.8105313,12.8434035 L14.7752551,16.7071068 C14.6323133,17.2405729 14.9488958,17.7889098 15.4823619,17.9318517 C16.015828,18.0747935 16.564165,17.758211 16.7071068,17.2247449 L17.742383,13.3610416 C17.8853248,12.8275755 17.5687423,12.2792385 17.0352762,12.1362967 Z" fill="#000000" />
+                                </g>
+                            </svg>
+                        </span>
+                        <span class="menu-text">Master Data</span>
+                        <i class="menu-arrow"></i>
+                    </a>
+                    <div class="menu-submenu">
+                        <i class="menu-arrow"></i>
+                        <ul class="menu-subnav">
+                             <li class="menu-item {{ request()->is('division*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/division" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">Divisi</span>
+                                </a>
+                            </li>
+
+                             <li class="menu-item {{ request()->is('supplier*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/supplier" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">Supplier</span>
+                                </a>
+                            </li>
+                             <li class="menu-item {{ request()->is('customer*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/customer" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">Customer</span>
+                                </a>
+                            </li>
+                             <li class="menu-item {{ request()->is('goods*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/goods" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">Barang</span>
+                                </a>
+                            </li>
+                             <li class="menu-item {{ request()->is('quotation-item*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/quotation-item" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">Item Quotation</span>
+                                </a>
+                            </li>
+                             <li class="menu-item {{ request()->is('pic-po*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/pic-po" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">PIC PO</span>
+                                </a>
+                            </li>
+                             <li class="menu-item {{ request()->is('pic-event*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/pic-event" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">PIC Event</span>
+                                </a>
+                            </li>
+                           
+                        
+                           
+                        </ul>
+                    </div>
+                </li>
+
+                  <li class="menu-section">
+								<h4 class="menu-text">Pembelian</h4>
+								<i class="menu-icon ki ki-bold-more-hor icon-md"></i>
+				</li>
+
                 <li class="menu-item menu-item-submenu {{ request()->is('purchase-order*') || request()->is('purchase-receive*') || request()->is('purchase-return*') || request()->is('purchase-transaction*')  || request()->is('supplier*') ? 'menu-item-open menu-item-here' : '' }}" aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
                         <span class="svg-icon menu-icon">
@@ -69,6 +155,14 @@
                     <div class="menu-submenu">
                         <i class="menu-arrow"></i>
                         <ul class="menu-subnav">
+                             <!-- <li class="menu-item {{ request()->is('supplier*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/supplier" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">Supplier</span>
+                                </a>
+                            </li> -->
                             <li class="menu-item {{ request()->is('purchase-order*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="/purchase-order" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot">
@@ -101,22 +195,20 @@
                                     <span class="menu-text">Pembayaran</span>
                                 </a>
                             </li>
-                            <li class="menu-item {{ request()->is('supplier*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
-                                <a href="/supplier" class="menu-link">
-                                    <i class="menu-bullet menu-bullet-dot">
-                                        <span></span>
-                                    </i>
-                                    <span class="menu-text">Supplier</span>
-                                </a>
-                            </li>
+                           
                         </ul>
                     </div>
                 </li>
 
-                <li class="menu-item {{ request()->is('customer*') || request()->is('warehouse*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                 <li class="menu-section">
+								<h4 class="menu-text">Penjualan</h4>
+								<i class="menu-icon ki ki-bold-more-hor icon-md"></i>
+				</li>
+
+                <!-- <li class="menu-item {{ request()->is('customer*') || request()->is('warehouse*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                     <a href="/customer" class="menu-link">
                         <span class="svg-icon menu-icon">
-                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
+                           
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                     <polygon points="0 0 24 0 24 24 0 24" />
@@ -124,17 +216,17 @@
                                     <path d="M17.6011961,15.0006174 C21.0077043,15.0378534 23.7891749,16.7601418 23.9984937,20.4 C24.0069246,20.5466056 23.9984937,21 23.4559499,21 L19.6,21 C19.6,18.7490654 18.8562935,16.6718327 17.6011961,15.0006174 Z M0.00065168429,20.1992055 C0.388258525,15.4265159 4.26191235,13 8.98334134,13 C13.7712164,13 17.7048837,15.2931929 17.9979143,20.2 C18.0095879,20.3954741 17.9979143,21 17.2466999,21 C13.541124,21 8.03472472,21 0.727502227,21 C0.476712155,21 -0.0204617505,20.45918 0.00065168429,20.1992055 Z" fill="#000000" fill-rule="nonzero" />
                                 </g>
                             </svg>
-                            <!--end::Svg Icon-->
+                       
                         </span>
 
 
                         <span class="menu-text">Customers</span>
                     </a>
-                </li>
-                <li class="menu-item {{ request()->is('goods*') || request()->is('warehouse*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                </li> -->
+                <!-- <li class="menu-item {{ request()->is('goods*') || request()->is('warehouse*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                     <a href="/goods" class="menu-link">
                         <span class="svg-icon menu-icon">
-                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
+                           
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                     <rect x="0" y="0" width="24" height="24" />
@@ -142,17 +234,17 @@
                                     <polygon fill="#000000" points="14.9671522 4.22441676 7.5999999 8.31727912 7.5999999 12.9056825 9.5999999 13.9056825 9.5999999 9.49408582 17.25507 5.24126912" />
                                 </g>
                             </svg>
-                            <!--end::Svg Icon-->
+                            
                         </span>
 
 
                         <span class="menu-text">Barang</span>
                     </a>
-                </li>
-                    <li class="menu-item {{ request()->is('item*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                </li> -->
+                    <!-- <li class="menu-item {{ request()->is('item*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                     <a href="/quotation-item" class="menu-link">
                         <span class="svg-icon menu-icon">
-                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
+                            
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                     <polygon points="0 0 24 0 24 24 0 24" />
@@ -160,17 +252,17 @@
                                     <path d="M6.85714286,3 L14.7364114,3 C15.0910962,3 15.4343066,3.12568431 15.7051108,3.35473959 L20.4686994,7.3839416 C20.8056532,7.66894833 21,8.08787823 21,8.52920201 L21,21.0833333 C21,22.8738751 20.9795521,23 19.1428571,23 L6.85714286,23 C5.02044787,23 5,22.8738751 5,21.0833333 L5,4.91666667 C5,3.12612489 5.02044787,3 6.85714286,3 Z M8,12 C7.44771525,12 7,12.4477153 7,13 C7,13.5522847 7.44771525,14 8,14 L15,14 C15.5522847,14 16,13.5522847 16,13 C16,12.4477153 15.5522847,12 15,12 L8,12 Z M8,16 C7.44771525,16 7,16.4477153 7,17 C7,17.5522847 7.44771525,18 8,18 L11,18 C11.5522847,18 12,17.5522847 12,17 C12,16.4477153 11.5522847,16 11,16 L8,16 Z" fill="#000000" fill-rule="nonzero" />
                                 </g>
                             </svg>
-                            <!--end::Svg Icon-->
+                        
                         </span>
                         <span class="menu-text">Item Quotation</span>
                     </a>
-                </li>
+                </li> -->
 
 
                 
 
 
-                                <li class="menu-item menu-item-submenu {{ request()->is('purchase-order*') || request()->is('purchase-receive*') || request()->is('purchase-return*') || request()->is('purchase-transaction*')  || request()->is('supplier*') ? 'menu-item-open menu-item-here' : '' }}" aria-haspopup="true" data-menu-toggle="hover">
+                        <!-- <li class="menu-item menu-item-submenu {{ request()->is('purchase-order*') || request()->is('purchase-receive*') || request()->is('purchase-return*') || request()->is('purchase-transaction*')  || request()->is('supplier*') ? 'menu-item-open menu-item-here' : '' }}" aria-haspopup="true" data-menu-toggle="hover">
                     <a href="javascript:;" class="menu-link menu-toggle">
                         <span class="svg-icon menu-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -208,7 +300,7 @@
                             
                         </ul>
                     </div>
-                </li>
+                </li> -->
 
 
                 
@@ -231,7 +323,7 @@
                         <span class="menu-text">PIC PO</span>
                     </a>
                 </li> -->
-                <li class="menu-item {{ request()->is('estimation*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                <!-- <li class="menu-item {{ request()->is('estimation*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                     <a href="/estimation" class="menu-link">
                         <span class="svg-icon menu-icon">
                       
@@ -246,7 +338,7 @@
                         </span>
                         <span class="menu-text">Estimation</span>
                     </a>
-                </li>
+                </li> -->
                 <!-- <li class="menu-item {{ request()->is('quotation*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                     <a href="/quotation" class="menu-link">
                         <span class="svg-icon menu-icon"> -->

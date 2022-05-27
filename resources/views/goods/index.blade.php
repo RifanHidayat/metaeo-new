@@ -72,20 +72,31 @@
         <table class="table table-bordered" id="basic-table">
             <thead>
                 <tr class="text-center">
-                    <th>Name</th>
-                    <th>Kategori</th>
+                    <th>Kode Barang</th>
+                    <th>Nama barang</th>
+                    <th>Jenis Barang</th>
+                    <th>Harga Jual</th>
+                     <th>Stok</th>
+                      <th>Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($goods as $good)
                 <tr>
-                    <td>{{ $good->name }}</td>
-                    @if($good->goodsCategory !== null)
+                    <td>{{ $good->number }}</td>
+                     <td>{{ $good->name }}</td>
+                      <td>{{ $good->goods_category }}</td>
+                    <!-- @if($good->goodsCategory !== null)
                     <td>{{ $good->goodsCategory->name }}</td>
-                    @else
-                    <td></td>
-                    @endif
+                    @else -->
+                 
+                    <!-- @endif -->
+                       <td>{{ $good->type }}</td>
+                    <td>{{ $good->purchase_price }}</td>
+                    <td>{{ $good->stock }}</td>
+                     <td>{{ $good->is_active=="1"?"Active":"In Active" }}</td>
+                    
                     <td class="text-center">
                         <a href="/goods/edit/{{ $good->id }}" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                                     <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">

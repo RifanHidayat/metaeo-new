@@ -73,8 +73,11 @@
         <table class="table datatable datatable-bordered datatable-head-custom" id="purchase-receive-table">
             <thead>
                 <tr class="text-center">
-                    <th>Nomor</th>
                     <th>Tanggal</th>
+                    <th>Nomor Pembelian</th>
+                    <th>Nomor Penerimaan</th>   
+                        <th>Pengirim</th>   
+                    
                     <th>Action</th>
                 </tr>
             </thead>
@@ -151,20 +154,36 @@
             order: [
                 [1, 'desc']
             ],
-            columns: [{
-                    data: 'number',
-                    name: 'purchase_receives.number',
-                    render: function(data, type, row) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
-                    }
-                },
-                {
+            columns: [
+                 {
                     data: 'date',
                     name: 'purchase_receives.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
+                {
+                    data: 'purchase_order_number',
+                    name: 'purchase_order_number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    }
+                },
+                 {
+                    data: 'number',
+                    name: 'purchase_receives.number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    }
+                },
+                 {
+                    data: 'shipper',
+                    name: 'shipper',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data!=null?data:""}</div>`;
+                    }
+                },
+               
                 {
                     data: 'action',
                     name: 'action',
@@ -191,7 +210,7 @@
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true,
                 preConfirm: () => {
-                    return axios.delete('/spk/' + id)
+                    return axios.delete('/purchase-receive/' + id)
                         .then(function(response) {
                             console.log(response.data);
                         })

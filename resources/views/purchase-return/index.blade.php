@@ -73,8 +73,9 @@
         <table class="table datatable datatable-bordered datatable-head-custom" id="purchase-return-table">
             <thead>
                 <tr class="text-center">
-                    <th>Nomor</th>
                     <th>Tanggal</th>
+                    <th>Nomor Pemesanan</th>
+                    <th>Nomor Return</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -111,7 +112,7 @@
                     cancelButtonText: 'Cancel',
                     showLoaderOnConfirm: true,
                     preConfirm: () => {
-                        return axios.delete('/customer/' + id)
+                        return axios.delete('/purchase-return/' + id)
                             .then(function(response) {
                                 console.log(response.data);
                             })
@@ -151,20 +152,29 @@
             order: [
                 [1, 'desc']
             ],
-            columns: [{
-                    data: 'number',
-                    name: 'purchase_returns.number',
-                    render: function(data, type, row) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
-                    }
-                },
-                {
+            columns: [
+                  {
                     data: 'date',
                     name: 'purchase_returns.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
+                  {
+                    data: 'purchase_order_number',
+                    name: 'purchase_order_number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    }
+                },
+                {
+                    data: 'number',
+                    name: 'purchase_returns.number',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    }
+                },
+              
                 {
                     data: 'action',
                     name: 'action',
@@ -191,7 +201,7 @@
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true,
                 preConfirm: () => {
-                    return axios.delete('/spk/' + id)
+                    return axios.delete('/purchase-return/' + id)
                         .then(function(response) {
                             console.log(response.data);
                         })

@@ -4,6 +4,7 @@
 
 @section('head')
 <link href="{{ asset('plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css">
+<script src="https://cdn.rawgit.com/igorescobar/jQuery-Mask-Plugin/1ef022ab/dist/jquery.mask.min.js"></script>
 @endsection
 
 @section('subheader')
@@ -62,6 +63,13 @@
                   <h3 class="section-title">Informasi Perusahaan</h3>
                   
                 </div>
+                 <div class="form-group col-md-4">
+                                                    <label class="checkbox">
+                                                        <input v-model="isIndividual" type="checkbox">
+                                                        <span></span>&nbsp;
+                                                        Ya, Penjual jasa orang pribadi (Dikenakan PPh 21)
+                                                    </label>
+                                                </div>
 
                <div class="form-row col-8" >
                   <div class="form-group col-lg-6">
@@ -71,16 +79,12 @@
                            
                             <option v-for="(division,index) in divisions" v-bind:value="division.id" >@{{division.name}}</option>                                             
                             </select>
-                     
                    </div>
                   <div class="form-group col-lg-6">
                       <label>Nama: <span class="text-danger">*</span></label>
                       <input v-model="name" type="text" class="form-control" >
                       <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
-                   </div>
-                      
-                     
-                    
+                   </div>                  
                 </div>
 
                   <div class="form-row col-8" >
@@ -118,7 +122,7 @@
                  
                   <div class="form-group col-lg-12">
                       <label>No. NPWP:</label>
-                      <input v-model="npwpNumber" type="text" class="form-control" >
+                      <input v-model="npwpNumber" type="text" class="form-control npwp" >
                       <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
                    </div>
                       
@@ -171,8 +175,7 @@
                       <label>Jabatan:</label>
                       <input v-model="contactPosition" type="text" class="form-control" >
                       <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
-                   </div>
-                      
+                   </div>  
                 </div>
 
                   <div class="form-row col-8" >
@@ -197,15 +200,6 @@
                   
                       
                 </div>
-                
-             
-
-            
-            
-            
-         
-          
-
           <!-- begin: Example Code-->
 
           <!-- end: Example Code-->
@@ -249,11 +243,13 @@
       npwpNumber:'',
       npwpAddress:"",
 
+
        contactName: '',
       contactAddress: '',
       contactPosition: '',
       contactNumber: '',
       contactEmail: '',
+      isIndividual:'',
 
       divisions:JSON.parse('{!! $divisions !!}'),
       loading: false,
@@ -274,17 +270,15 @@
             telephone: this.telephone,
             handphone: this.handphone,
             email: this.email,
+            is_individual:this.isIndividual,
             npwp_number:this.npwpNumber,
             npwp_address:this.npwpAddress,
-
-
-             
             contact_name: this.contactName,
             contact_address: this.contactAddress,
             contact_telephone: this.contactTelephone,
             contact_number: this.contactNumber,
             contact_email: this.contactEmail,
-                      contact_position: this.contactPosition,
+            contact_position: this.contactPosition,
           })
           .then(function(response) {
             vm.loading = false;
@@ -313,4 +307,20 @@
     }
   })
 </script>
+
+<script>
+  $(document).ready(function(){
+
+    // // Format mata uang.
+    // $( '.uang' ).mask('0.000.000.000', {reverse: true});
+
+    // // Format nomor HP.
+    // $( '.no_hp' ).mask('0000−0000−0000');
+
+    // Format tahun pelajaran.
+    $( '.npwp' ).mask('00.000.000.0-000.000');
+})
+</script>
+
+
 @endsection

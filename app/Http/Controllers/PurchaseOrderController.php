@@ -24,8 +24,15 @@ class PurchaseOrderController extends Controller
      */
     public function index()
     {
+   
         return view('purchase-order.index');
     }
+
+      private function formatDate($date = "", $format = "Y-m-d")
+    {
+        return date_format(date_create($date), $format);
+    }
+
 
     /**
      * Send datatable form.
@@ -34,9 +41,12 @@ class PurchaseOrderController extends Controller
      */
     public function indexData()
     {
-        $purchaseOrders = PurchaseOrder::select('purchase_orders.*');
+        $purchaseOrders = PurchaseOrder::with('supplier')->select('purchase_orders.*');
         return DataTables::eloquent($purchaseOrders)
             ->addIndexColumn()
+            ->addColumn('supplier_name',function($row){
+                return $row->supplier!=null?$row->supplier->name:"";
+            })
             ->addColumn('action', function ($row) {
                 $button = '<div class="text-center">';
                 $button .= '<a href="/purchase-order/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -104,10 +114,11 @@ class PurchaseOrderController extends Controller
      */
     public function create()
     {
+        
         $goods = Goods::with(['goodsCategory'])->get();
         $shipments = Shipment::all();
         $fobItems = FobItem::all();
-        $suppliers = Supplier::all();
+        $suppliers = Supplier::with('division')->get();
 
         return view('purchase-order.create', [
             'goods' => $goods,
@@ -126,6 +137,18 @@ class PurchaseOrderController extends Controller
     public function store(Request $request)
     {
 
+        $supplier = Supplier::findOrFail($request->supplier_id);
+        // return $supplier;
+      
+        DB::beginTransaction();
+        try {
+        $supplier = Supplier::with('division')->findOrFail($request->supplier_id);
+
+        $date = $request->date;
+        
+        $transactionsByCurrentDateCount = PurchaseOrder::query()->where('date', $date)->get()->count();
+          $number = $supplier->division!=null?$supplier->division->code:"".'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+
         $purchaseOrderWithNumber = PurchaseOrder::where('number', $request->number)->first();
         if ($purchaseOrderWithNumber !== null) {
             return response()->json([
@@ -135,12 +158,10 @@ class PurchaseOrderController extends Controller
             ], 400);
         }
 
-        DB::beginTransaction();
-
-        try {
             // Create Purchase Order
             $purchaseOrder = new PurchaseOrder();
-            $purchaseOrder->number = $request->number;
+            $purchaseOrder->number = $number;
+            $purchaseOrder->number = $number;
             $purchaseOrder->date = $request->date;
             $purchaseOrder->supplier_id = $request->supplier_id;
             $purchaseOrder->delivery_address = $request->delivery_address;
@@ -154,6 +175,7 @@ class PurchaseOrderController extends Controller
             $purchaseOrder->ppn = $request->ppn;
             $purchaseOrder->ppn_value = $request->ppn_value;
             $purchaseOrder->ppn_amount = $request->ppn_amount;
+            $purchaseOrder->pph_amount = $request->pph_amount;
             $purchaseOrder->shipping_cost = $request->shipping_cost;
             $purchaseOrder->other_cost = $request->other_cost;
             $purchaseOrder->other_cost_description = $request->other_cost_description;
@@ -170,6 +192,8 @@ class PurchaseOrderController extends Controller
                     'price' => $item['price'],
                     'discount' => $item['discount'],
                     'total' => $item['total'],
+                    'ppn' => $item['total']*0.1,
+                    'pph' => $item['total']*$item['pph'],
                     // 'description' => $item['description'],
                     'created_at' => Carbon::now()->toDateTimeString(),
                     'updated_at' => Carbon::now()->toDateTimeString(),
@@ -194,7 +218,7 @@ class PurchaseOrderController extends Controller
                 'message' => 'Internal error',
                 'code' => 500,
                 'error' => true,
-                'errors' => $e,
+                'errors' => $e.'',
             ], 500);
         }
     }
@@ -220,6 +244,9 @@ class PurchaseOrderController extends Controller
     {
         //
     }
+    public function print($id){
+
+    }
 
     /**
      * Update the specified resource in storage.
@@ -242,6 +269,31 @@ class PurchaseOrderController extends Controller
     public function destroy($id)
     {
         //
+    DB::beginTransaction();
+    
+    try{
+        $purchase=PurchaseOrder::findOrFail($id);
+        $purchase->delete();
+        DB::commit();
+        return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $purchase,
+            ]);
+
+    
+    }catch(Exception $e){
+        DB::rollBack();
+          return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+
+    }
+
     }
 
     /**

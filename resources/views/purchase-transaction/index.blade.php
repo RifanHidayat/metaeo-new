@@ -73,8 +73,10 @@
         <table class="table datatable datatable-bordered datatable-head-custom" id="purchase-transaction-table">
             <thead>
                 <tr class="text-center">
+                      <th>Tanggal</th>
                     <th>Nomor</th>
-                    <th>Tanggal</th>
+                       <th>Pembayara</th>
+                  
                     <th>Action</th>
                 </tr>
             </thead>
@@ -165,6 +167,13 @@
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
+                 {
+                    data: 'total',
+                    name: 'total',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg text-right">${data}</span>`;
+                    }
+                },
                 {
                     data: 'action',
                     name: 'action',
@@ -191,7 +200,7 @@
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true,
                 preConfirm: () => {
-                    return axios.delete('/spk/' + id)
+                    return axios.delete('/purchase-transaction/' + id)
                         .then(function(response) {
                             console.log(response.data);
                         })

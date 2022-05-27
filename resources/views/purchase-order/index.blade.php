@@ -73,8 +73,11 @@
         <table class="table datatable datatable-bordered datatable-head-custom" id="purchase-order-table">
             <thead>
                 <tr class="text-center">
+                      <th>Tanggal</th>
                     <th>Nomor</th>
-                    <th>Tanggal</th>
+                  
+                    <th>Supplier</th>
+                     <th>Total</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -151,18 +154,34 @@
             order: [
                 [1, 'desc']
             ],
-            columns: [{
+            columns: [
+                  {
+                    data: 'date',
+                    name: 'purchase_orders.date',
+                    render: function(data, type) {
+                        return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    }
+                },
+                {
                     data: 'number',
                     name: 'purchase_orders.number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
-                {
-                    data: 'date',
-                    name: 'purchase_orders.date',
+              
+                 {
+                    data: 'supplier_name',
+                    name: 'supplier_name',
                     render: function(data, type) {
-                        return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${data}</span>`;
+                    }
+                },
+                 {
+                    data: 'total',
+                    name: 'total',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
                 {
@@ -191,7 +210,7 @@
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true,
                 preConfirm: () => {
-                    return axios.delete('/spk/' + id)
+                    return axios.delete('/purchase-order/' + id)
                         .then(function(response) {
                             console.log(response.data);
                         })

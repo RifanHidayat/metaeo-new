@@ -51,31 +51,116 @@
             <form class="form" autocomplete="off" @submit.prevent="submitForm">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-lg-6 col-md-12">
-                            <div class="form-group">
-                                <label>Kategori Barang:</label>
+                         <div class="form-row col-8">
+                        <div class="form-group col-lg-6">
+                         <label>Status:</label>
+                                <select v-model="isActive" class="form-control">
+                                    <option value="1">Active</option>
+                                    <option value="0">In Active</option>
+                                    
+                                </select>
+                        </div>
+                      
+                        
+                        </div>
+                        
+                        <div class="form-row col-12">
+                            <div class="form-group col-lg-4">
+                         <label>Kategori Barang:</label>
+                                <select v-model="category" class="form-control" require>
+                                    <option value="">Pilih Kategori</option>
+                                    <option value="finished_goods">barang Jadi</option>
+                                    <option value="tagged_goods">Barang Menta</option>
+                                    <!-- <option v-for="(ctg, index) in categories" :value="ctg.id">@{{ ctg.name }}</option> -->
+                                </select>
+                        </div>
+                        <!-- <div class="form-group col-lg-6">
+                         <label>Kategori Barang:</label>
                                 <select v-model="category" class="form-control goods-category">
                                     <option value="">Pilih Kategori</option>
                                     <option v-for="(ctg, index) in categories" :value="ctg.id">@{{ ctg.name }}</option>
                                 </select>
-                                <!-- <input type="text" class="form-control goods-category"> -->
-                                <!-- <span class="form-text text-muted">23Please enter customer's NPWP (Optional)</span> -->
+                        </div> -->
+                        <div class="form-group col-lg-4">
+                              <label>No. Barang:</label>
+                            <input v-model="number" type="text" class="form-control">
+                    
                             </div>
+
+                             <div class="form-group col-lg-4" v-if="type=='jasa'">
+                     
+                              <label>&nbsp; PPh:</label>
+                            <div class="form-group col-md-12">
+                                                    <div class="input-group">
+                                                        <input type="text" v-model="pphValue" class="form-control text-right" placeholder="Tarif PPh" >
+                                                        <div class="input-group-append">
+                                                            <span class="input-group-text"><strong class="text-dark-50">%</strong></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                    
+                            </div>
+                        
+                        
+                        </div>
+
+
+
+                         <div class="form-row col-8" >
+                             <div class="form-group col-lg-6">
+                              <label>Nama Barang:</label>
+                            <input v-model="name" type="text" class="form-control">
+                    
+                            </div>
+                        <div class="form-group col-lg-6">
+                           <label>Jenis Barang:</label>
+                             <select v-model="type" class="form-control">
+                                    <option value="persedian">Persedian</option>
+                                     <option value="jasa">Jasa</option>
+                                    
+                                </select>
+                        </div>
+                       
+                        </div>
+
+                        <div class="form-row col-8" >
+                             <div class="form-group col-lg-6">
+                            <label>Satuan</label>
+                             <select v-model="unit" class="form-control unit">
+                                    <option value="">Pilih Satuan</option>
+                                    <option v-for="(unit, index) in units" :value="unit.id">@{{ unit.name }}</option>
+                                </select>
+                        
+                               
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                            </div>
+
+                        <div class="form-group col-lg-6">
+                           <label>Harga Beli:</label>
+                            <input v-model="purchasePrice" type="text" class="form-control">
+                        </div>
+                      
+                        </div>
+
+                        
+                        <!-- <div class="col-lg-6 col-md-12">
+                            
+                           
                             <div class="form-group">
                                 <label>Kode Barang:</label>
-                                <input type="text" v-model="number" class="form-control">
+                                <input type="text" v-model="number" class="form-control"> -->
                                 <!-- <span class="form-text text-muted">23Please enter customer's NPWP (Optional)</span> -->
-                            </div>
+                            <!-- </div>
                             <div class="form-group">
                                 <label>Nama Barang:</label>
-                                <input type="text" v-model="name" class="form-control">
+                                <input type="text" v-model="name" class="form-control"> -->
                                 <!-- <span class="form-text text-muted">23Please enter customer's NPWP (Optional)</span> -->
-                            </div>
+                            <!-- </div>
                             <div class="form-group">
                                 <label>Satuan:</label>
-                                <input type="text" v-model="unit" class="form-control">
+                                <input type="text" v-model="unit" class="form-control"> -->
                                 <!-- <span class="form-text text-muted">23Please enter customer's NPWP (Optional)</span> -->
-                            </div>
+                            <!-- </div>
                             <div class="form-group">
                                 <label>Harga Beli:</label>
                                 <div class="input-group">
@@ -83,17 +168,17 @@
                                         <span class="input-group-text">Rp</span>
                                     </div>
                                     <input type="text" v-model="purchasePrice" class="form-control text-right">
-                                </div>
+                                </div> -->
 
                                 <!-- <span class="form-text text-muted">23Please enter customer's NPWP (Optional)</span> -->
-                            </div>
+                            <!-- </div>
                             <div class="form-group">
                                 <label>Stok:</label>
-                                <input type="text" v-model="stock" class="form-control text-right">
+                                <input type="text" v-model="stock" class="form-control text-right"> -->
                                 <!-- <span class="form-text text-muted">23Please enter customer's NPWP (Optional)</span> -->
-                            </div>
+                            <!-- </div>
                         </div>
-                    </div>
+                    </div> -->
                     <!-- begin: Example Code-->
 
                     <!-- end: Example Code-->
@@ -128,13 +213,19 @@
         el: '#app',
         data: {
             categories: JSON.parse(String.raw `{!! $categories !!}`),
-            category: '{{ $goods->goods_category_id }}',
-            number: '{{ $goods->number }}',
-            name: '{{ $goods->name }}',
-            unit: '{{ $goods->unit }}',
-            purchasePrice: '{{ $goods->purchase_price }}',
-            stock: '{{ $goods->stock }}',
+            units: JSON.parse(String.raw `{!! $units !!}`),
+            category:'{!!$goods->goods_category!!}',
+            number: '{!!$goods->number!!}',
+            name: '{!!$goods->name!!}',
+            unit: '{!!$goods->unit!!}',
+            purchasePrice: '{!!$goods->purchase_price!!}',
+            id:'{!!$goods->id!!}',
+             pphValue:'{!!$goods->pph!!}',
+            stock: '',
             loading: false,
+            type:'{!!$goods->type!!}',  
+            loading: false,
+            isActive:'{!!$goods->is_active!!}',    
         },
         methods: {
             submitForm: function() {
@@ -144,13 +235,18 @@
                 // console.log('submitted');
                 let vm = this;
                 vm.loading = true;
-                axios.patch('/goods/{{ $goods->id }}', {
+                axios.patch('/goods/'+this.id, {
                         category: vm.category,
                         number: vm.number,
                         name: vm.name,
                         unit: vm.unit,
                         purchase_price: vm.purchasePrice,
                         stock: vm.stock,
+                        type:vm.type,
+                        is_active:vm.isActive,
+                        pph:vm.pphValue
+
+
                     })
                     .then(function(response) {
                         vm.loading = false;
@@ -201,9 +297,38 @@
             },
         });
         $(".goods-category").on('change', function() {
+            console.log('clicked');
             app.$data.category = $(this).val();
             // console.log(searchText);
         });
+
+
+         $(".unit").select2({
+            language: {
+                noResults: function() {
+                    const searchText = $(".unit").data("select2").dropdown.$search.val();
+                    if (!searchText) {
+                        return "No Result Found";
+                    }
+                    return `
+                        <a href="#" class="d-block" id="btn-add-unit"><i class="fas fa-plus fa-sm"></i> Tambah ${searchText} </a>
+                        <div class="progress mt-2" id="loadingCategory" style="display: none">
+                            <div class="progress-bar bg-primary w-100 progress-bar-striped progress-bar-animated" data-progress="100"></div>
+                        </div>
+                        `;
+                },
+            },
+            escapeMarkup: function(markup) {
+                return markup;
+            },
+        });
+        $(".unit").on('change', function() {
+            console.log('clicked');
+            app.$data.unit = $(this).val();
+            console.log(app.$data.unit);
+            // console.log(searchText);
+        });
+
 
         $(document).on('click', '#btn-add-category', function(e) {
             e.preventDefault();
@@ -214,6 +339,19 @@
             }
 
             addCategory(data);
+            // console.log('clicked');
+        })
+
+          $(document).on('click', '#btn-add-unit', function(e) {
+            e.preventDefault();
+            const searchText = $(".unit").data("select2").dropdown.$search.val();
+            const data = {
+                name: searchText,
+                status: 1,
+            }
+            addUnit(data)
+       
+        
             // console.log('clicked');
         })
 
@@ -242,6 +380,32 @@
                     // vm.loading = false;
                     $('.goods-category').select2('close');
                     hideElement('#loadingCategory');
+                    console.log(error);
+                    Swal.fire(
+                        'Terjadi Kesalahan',
+                        'Gagal menambahkan kategori barang',
+                        'error'
+                    )
+                });
+        }
+             function addUnit(data) {
+            showElement('#loadingCategory');
+            axios.post('/unit', data)
+                .then(function(response) {
+                    const {
+                        data
+                    } = response.data;
+                    console.log(response.data);
+                    app.$data.units.push(data);
+                    app.$data.unit = data.id;
+                    $('.unit').val(data.id);
+                    $('.unit').select2('close');
+                  showElement('#loadingCategory');
+                })
+                .catch(function(error) {
+                    // vm.loading = false;
+                    $('.unit').select2('close');
+                    hideElement('#units');
                     console.log(error);
                     Swal.fire(
                         'Terjadi Kesalahan',

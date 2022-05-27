@@ -260,6 +260,32 @@ class PurchaseTransactionController extends Controller
     public function destroy($id)
     {
         //
+
+
+            DB::beginTransaction();
+    
+    try{
+        $purchase=PurchaseTransaction::findOrFail($id);
+        $purchase->delete();
+        DB::commit();
+        return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $purchase,
+            ]);
+
+    
+    }catch(Exception $e){
+        DB::rollBack();
+          return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+
+    }
     }
 
     /**

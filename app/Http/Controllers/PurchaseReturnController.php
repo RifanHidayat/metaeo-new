@@ -21,6 +21,10 @@ class PurchaseReturnController extends Controller
     {
         return view('purchase-return.index');
     }
+      private function formatDate($date = "", $format = "Y-m-d")
+    {
+        return date_format(date_create($date), $format);
+    }   
 
     /**
      * Send datatable form.
@@ -29,9 +33,12 @@ class PurchaseReturnController extends Controller
      */
     public function indexData()
     {
-        $purchaseReturns = PurchaseReturn::select('purchase_returns.*');
+        $purchaseReturns = PurchaseReturn::with('purchaseOrder')->select('purchase_returns.*');
         return DataTables::eloquent($purchaseReturns)
             ->addIndexColumn()
+             ->addColumn('purchase_order_number',function($row){
+                return $row->purchaseOrder!=null?$row->purchaseOrder->number:"";
+            })
             ->addColumn('action', function ($row) {
                 $button = '<div class="text-center">';
                 $button .= '<a href="/purchase-return/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -94,7 +101,12 @@ class PurchaseReturnController extends Controller
      */
     public function store(Request $request)
     {
-        $purchaseReturnWithNumber = PurchaseReturn::where('number', $request->number)->first();
+        $date=$request->date;
+        $transactionsByCurrentDateCount = PurchaseReturn::query()->where('date', $date)->get()->count();
+        $number = 'PR'.'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+        $number = PurchaseReceive::where('number', $number)->first();
+
+        $purchaseReturnWithNumber = PurchaseReturn::where('number', $number)->first();
         if ($purchaseReturnWithNumber !== null) {
             return response()->json([
                 'message' => 'number or code already used',
@@ -109,7 +121,7 @@ class PurchaseReturnController extends Controller
             // Create Purchase Order
             $purchaseReturn = new PurchaseReturn();
             $purchaseReturn->purchase_order_id = $request->purchase_order_id;
-            $purchaseReturn->number = $request->number;
+            $purchaseReturn->number = $number;
             $purchaseReturn->date = $request->date;
             // $purchaseReturn->shipper = $request->shipper;
             // $purchaseReturn->recipient = $request->recipient;
@@ -193,6 +205,32 @@ class PurchaseReturnController extends Controller
      */
     public function destroy($id)
     {
+      //  return "tes";
         //
+
+            DB::beginTransaction();
+    
+    try{
+        $purchase=PurchaseReturn::findOrFail($id);
+        $purchase->delete();
+        DB::commit();
+        return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $purchase,
+            ]);
+
+    
+    }catch(Exception $e){
+        DB::rollBack();
+          return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+
+    }
     }
 }

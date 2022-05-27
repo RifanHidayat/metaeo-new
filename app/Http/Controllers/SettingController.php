@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Tax;
+use App\Models\TaxSetting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,6 +42,15 @@ class SettingController extends Controller
 
         return view('setting.company', [
             'company' => $company,
+        ]);
+    }
+     public function tax()
+    {
+        $tax = TaxSetting::all()->first();
+       
+
+        return view('setting.tax', [
+            'tax' => $tax,
         ]);
     }
 }

@@ -32,6 +32,7 @@ class SupplierController extends Controller
 
     public function store(Request $request)
     {
+        //return $request->all();
 
         $supplier = new Supplier;
         $supplier->number = $request->number;
@@ -48,6 +49,7 @@ class SupplierController extends Controller
         $supplier->contact_number = $request->contact_number;
         $supplier->contact_position = $request->contact_position;
         $supplier->contact_email = $request->contact_email;
+         $supplier->is_individual = $request->is_individual;
 
 
         if ($request->number == null) {
@@ -78,11 +80,13 @@ class SupplierController extends Controller
     {
         $divisions=Division::all();
         $supplier = Supplier::findOrFail($id);
+       // return $supplier;
         return view('supplier.edit', ['supplier' => $supplier,'divisions'=>$divisions]);
     }
 
     public function update(Request $request, $id)
     {
+      //  return $request->all();
 
             $supplier = Supplier::findOrFail($id);
         
@@ -99,6 +103,7 @@ class SupplierController extends Controller
         $supplier->contact_number = $request->contact_number;
         $supplier->contact_position = $request->contact_position;
         $supplier->contact_email = $request->contact_email;
+          $supplier->is_individual = $request->is_individual;
 
 
         

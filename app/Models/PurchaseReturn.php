@@ -13,4 +13,8 @@ class PurchaseReturn extends Model
     {
         return $this->belongsToMany(Goods::class)->withPivot('quantity', 'cause', 'description');
     }
+       public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class);
+    }
 }

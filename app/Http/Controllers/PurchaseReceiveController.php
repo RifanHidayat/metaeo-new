@@ -21,6 +21,10 @@ class PurchaseReceiveController extends Controller
     {
         return view('purchase-receive.index');
     }
+      private function formatDate($date = "", $format = "Y-m-d")
+    {
+        return date_format(date_create($date), $format);
+    }
 
     /**
      * Send datatable form.
@@ -29,9 +33,13 @@ class PurchaseReceiveController extends Controller
      */
     public function indexData()
     {
-        $purchaseReceives = PurchaseReceive::select('purchase_receives.*');
+       // return "tes";
+        $purchaseReceives = PurchaseReceive::with('purchaseOrder')->select('purchase_receives.*');
         return DataTables::eloquent($purchaseReceives)
             ->addIndexColumn()
+            ->addColumn('purchase_order_number',function($row){
+                return $row->purchaseOrder!=null?$row->purchaseOrder->number:"";
+            })
             ->addColumn('action', function ($row) {
                 $button = '<div class="text-center">';
                 $button .= '<a href="/purchase-receive/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -94,7 +102,14 @@ class PurchaseReceiveController extends Controller
      */
     public function store(Request $request)
     {
-        $purchaseReceiveWithNumber = PurchaseReceive::where('number', $request->number)->first();
+
+        DB::beginTransaction();
+        
+        $date=$request->date;
+        $transactionsByCurrentDateCount = PurchaseReceive::query()->where('date', $date)->get()->count();
+        $number = 'PR'.'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+        $purchaseReceiveWithNumber = PurchaseReceive::where('number', $number)->first();
+
         if ($purchaseReceiveWithNumber !== null) {
             return response()->json([
                 'message' => 'number or code already used',
@@ -103,13 +118,12 @@ class PurchaseReceiveController extends Controller
             ], 400);
         }
 
-        DB::beginTransaction();
-
+  
         try {
             // Create Purchase Order
             $purchaseReceive = new PurchaseReceive();
             $purchaseReceive->purchase_order_id = $request->purchase_order_id;
-            $purchaseReceive->number = $request->number;
+            $purchaseReceive->number = $number;
             $purchaseReceive->date = $request->date;
             $purchaseReceive->shipper = $request->shipper;
             $purchaseReceive->recipient = $request->recipient;
@@ -207,5 +221,32 @@ class PurchaseReceiveController extends Controller
     public function destroy($id)
     {
         //
+
+             //
+    DB::beginTransaction();
+    
+    try{
+        $purchase=PurchaseReceive::findOrFail($id);
+        $purchase->delete();
+        DB::commit();
+        return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $purchase,
+            ]);
+
+    
+    }catch(Exception $e){
+        DB::rollBack();
+          return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+
+    }
+
     }
 }

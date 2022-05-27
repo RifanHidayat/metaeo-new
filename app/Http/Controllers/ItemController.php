@@ -41,6 +41,7 @@ class ItemController extends Controller
     
        
         return view('item.create');
+
     
     }
 
@@ -57,16 +58,16 @@ class ItemController extends Controller
         $item->type = $request->type;
         $item->is_active = $request->is_active;
         $item->is_stock=$request->is_stock;
-
-
         try{
             $item->save();
+            
             return response()->json([
                 'message' => 'Data has been saved',
                 'code' => 200,
                 'error' => false,
                 'data' => $item,
             ]);
+
         } catch(Exception $e) {
             return response()->json([
                 'message' => 'Internal error',

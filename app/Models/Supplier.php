@@ -13,4 +13,7 @@ class Supplier extends Model
     {
         return $this->hasMany(PurchaseOrder::class);
     }
+    public function division(){
+        return $this->belongsTo(Division::class);
+    }
 }
