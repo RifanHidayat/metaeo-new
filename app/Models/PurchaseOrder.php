@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use PhpParser\Node\Expr\FuncCall;
 
 class PurchaseOrder extends Model
 {
@@ -31,6 +32,19 @@ class PurchaseOrder extends Model
 
     public function purchaseTransactions()
     {
-        return $this->belongsToMany(PurchaseTransaction::class)->withPivot('amount');
+        return $this->hasMany(PurchaseTransaction::class);
     }
+    
+    public function goodsPurchaseOrders(){
+        return $this->belongsToMany(Goods::class)->withPivot('quantity','price','discount','total','ppn','pph');
+
+    }
+    public function purchaseReturns (){
+        return $this->hasMany(PurchaseReturn::class);
+    }
+     public function purchaseReceives (){
+        return $this->hasMany(PurchaseReceive::class);
+    }
+    
+
 }

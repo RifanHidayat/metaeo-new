@@ -69,8 +69,8 @@
                          <label>Kategori Barang:</label>
                                 <select v-model="category" class="form-control" require>
                                     <option value="">Pilih Kategori</option>
-                                    <option value="finished_goods">barang Jadi</option>
-                                    <option value="tagged_goods">Barang Menta</option>
+                                    <option value="finished_goods">Barang Jadi</option>
+                                    <option value="tagged_goods">Barang Mentah</option>
                                     <!-- <option v-for="(ctg, index) in categories" :value="ctg.id">@{{ ctg.name }}</option> -->
                                 </select>
                         </div>
@@ -128,7 +128,7 @@
                             <label>Satuan</label>
                              <select v-model="unit" class="form-control unit">
                                     <option value="">Pilih Satuan</option>
-                                    <option v-for="(unit, index) in units" :value="unit.id">@{{ unit.name }}</option>
+                                    <option v-for="(unit, index) in units" :value="unit.name">@{{ unit.name }}</option>
                                 </select>
                         
                                
@@ -136,7 +136,7 @@
                             </div>
 
                         <div class="form-group col-lg-6">
-                           <label>Harga Beli:</label>
+                           <label>Harga Satuan:</label>
                             <input v-model="purchasePrice" type="text" class="form-control">
                         </div>
                       

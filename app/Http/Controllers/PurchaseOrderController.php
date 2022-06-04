@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\FobItem;
 use App\Models\Goods;
 use App\Models\PurchaseOrder;
@@ -47,6 +48,10 @@ class PurchaseOrderController extends Controller
             ->addColumn('supplier_name',function($row){
                 return $row->supplier!=null?$row->supplier->name:"";
             })
+             ->addColumn('remaining',function($row){
+                return $row->total-$row->payment;
+            })
+
             ->addColumn('action', function ($row) {
                 $button = '<div class="text-center">';
                 $button .= '<a href="/purchase-order/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -79,6 +84,14 @@ class PurchaseOrderController extends Controller
                                         <span class="navi-text">Cetak</span>
                                     </a>
                                 </li>
+                                 <li class="navi-item">
+                                    <a href="/purchase-order/detail/' . $row->id . '"  class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon-open-box"></i>
+                                        </span>
+                                        <span class="navi-text">Detail</span>
+                                    </a>
+                                </li>
                                 <li class="navi-item">
                                     <a href="/purchase-order/receive/' . $row->id . '"  class="navi-link">
                                         <span class="navi-icon">
@@ -93,6 +106,14 @@ class PurchaseOrderController extends Controller
                                             <i class="flaticon-logout"></i>
                                         </span>
                                         <span class="navi-text">Retur</span>
+                                    </a>
+                                </li>
+                                 <li class="navi-item">
+                                    <a href="/purchase-order/transaction/' . $row->id . '" class="navi-link">
+                                        <span class="navi-icon">
+                                            <i class="flaticon-logout"></i>
+                                        </span>
+                                        <span class="navi-text">Pembayaran</span>
                                     </a>
                                 </li>
                             </ul>
@@ -147,7 +168,8 @@ class PurchaseOrderController extends Controller
         $date = $request->date;
         
         $transactionsByCurrentDateCount = PurchaseOrder::query()->where('date', $date)->get()->count();
-          $number = $supplier->division!=null?$supplier->division->code:"".'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+        $code=$supplier->division!=null?$supplier->division->code:"";
+          $number = $code."".'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
 
         $purchaseOrderWithNumber = PurchaseOrder::where('number', $request->number)->first();
         if ($purchaseOrderWithNumber !== null) {
@@ -161,7 +183,7 @@ class PurchaseOrderController extends Controller
             // Create Purchase Order
             $purchaseOrder = new PurchaseOrder();
             $purchaseOrder->number = $number;
-            $purchaseOrder->number = $number;
+            
             $purchaseOrder->date = $request->date;
             $purchaseOrder->supplier_id = $request->supplier_id;
             $purchaseOrder->delivery_address = $request->delivery_address;
@@ -245,6 +267,63 @@ class PurchaseOrderController extends Controller
         //
     }
     public function print($id){
+        //return "tes";
+    //    return $id;
+    $purchaseOrder=PurchaseOrder::with(['goodsPurchaseOrders','supplier'])->findOrFail($id);
+    //return  $purchaseOrder->goodsPurchaseOrders[0]['pivot']->quantity;
+    //return $purchaseOrder;
+    // $purchaseOrder=PurchaseOrder::with('goodsPurchaseOrders')->get();
+    // return $purchaseOrder->goodsPurchaseOrders;
+    $compny=Company::first();
+
+            $mpdf = new \Mpdf\Mpdf([
+            'format' => 'A5',
+            'mode' => 'utf-8',
+            'orientation' => 'L',
+            'margin_left' => 3,
+            'margin_top' => 3,
+            'margin_right' => 3,
+            'margin_bottom' => 3,
+        ]);
+
+        // return $finishingItems;
+
+        $html = view('purchase-order.print', [
+            'goods' => $purchaseOrder->goodsPurchaseOrders,
+            'purchase_order'=>$purchaseOrder,
+            'company'=>$compny
+        ]);
+
+        // return $jobOrder;
+        $mpdf->WriteHTML($html);
+        $mpdf->Output();
+
+
+    
+    
+
+    }
+
+    public function detail($id){
+    $purchaseOrder=PurchaseOrder::with(['goods','purchaseReturns.goods','purchaseReceives.goods','purchaseTransactions'])->findOrFail($id);  
+    $purchaseReceives=collect($purchaseOrder->purchaseReceives)->each(function($item){
+        $item['total']=$item['goods']->sum('pivot.quantity');
+    });
+  
+  // return $purchaseReceives->sum('total')   ;
+
+    $goods = Goods::with(['goodsCategory'])->get();
+        $shipments = Shipment::all();
+        $fobItems = FobItem::all();
+        $suppliers = Supplier::with('division')->get();
+        return view('purchase-order.detail', [
+            'goods' => $goods,
+            'shipments' => $shipments,
+            'fob_items' => $fobItems,
+            'suppliers' => $suppliers,
+            'purchase_order'=>$purchaseOrder,
+            'purchase_receives_total'=>$purchaseReceives->sum('total')
+        ]);
 
     }
 
@@ -386,7 +465,77 @@ class PurchaseOrderController extends Controller
      */
     public function return($id)
     {
+       
         $purchaseOrder = PurchaseOrder::with(['goods', 'supplier', 'fobItem', 'shipment'])->findOrFail($id);
+
+
+
+        $purchaseReturnGoods = PurchaseReturn::with(['goods'])
+            ->where('purchase_order_id', $id)
+            ->get()
+            ->flatMap(function ($purchaseReturn) {
+                return $purchaseReturn->goods;
+            })->groupBy('id')
+            ->map(function ($group, $id) {
+                $returnedQuantity = collect($group)->map(function ($goods) {
+                    return $goods->pivot->quantity;
+                })->sum();
+                return [
+                    'id' => $id,
+                    'returned_quantity' => $returnedQuantity,
+                ];
+            })
+            ->all();
+
+        $purchaseReceiveGoods = PurchaseReceive::with(['goods'])
+            ->where('purchase_order_id', $id)
+            ->get()
+            ->flatMap(function ($purchaseReceive) {
+                return $purchaseReceive->goods;
+            })->groupBy('id')
+            ->map(function ($group, $id) {
+                $receivedQuantity = collect($group)->map(function ($goods) {
+                    return $goods->pivot->quantity;
+                })->sum();
+                return [
+                    'id' => $id,
+                    'received_quantity' => $receivedQuantity,
+                ];
+            })
+            ->all();
+
+        // return $saleReturnProducts;
+
+        $selectedGoods = collect($purchaseOrder->goods)->each(function ($good) use ($purchaseReturnGoods, $purchaseReceiveGoods) {
+            $purchaseReturn = collect($purchaseReturnGoods)->where('id', $good->id)->first();
+            $purchaseReceive = collect($purchaseReceiveGoods)->where('id', $good->id)->first();
+            $good['returned_quantity'] = 0;
+            if ($purchaseReturn !== null) {
+                $good['returned_quantity'] = $purchaseReturn['returned_quantity'];
+            }
+            $availableQuantity = $good->pivot->quantity - $good['returned_quantity'];
+
+            $good['return_quantity'] = 0;
+            $good['cause'] = 'defective';
+            $good['finish'] = $good['returned_quantity'] >= $good->pivot->quantity ? 1 : 0;
+
+            $good['received_quantity'] = $purchaseReceive !== null ? $purchaseReceive['received_quantity'] : 0;
+        })->sortBy('finish')->values()->all();
+
+       //  return $selectedGoods;
+
+        return view('purchase-order.return', [
+            'purchase_order' => $purchaseOrder,
+            'selected_goods' => $selectedGoods,
+        ]);
+    }
+
+        public function transaction($id)
+    {
+        
+        $purchaseOrder = PurchaseOrder::with(['goods', 'supplier', 'fobItem', 'shipment','goods','purchaseTransactions'])->findOrFail($id);
+        //return $purchaseOrder
+        
 
         $purchaseReturnGoods = PurchaseReturn::with(['goods'])
             ->where('purchase_order_id', $id)
@@ -441,10 +590,13 @@ class PurchaseOrderController extends Controller
         })->sortBy('finish')->values()->all();
 
         // return $selectedGoods;
+       // return $purchaseOrder->purchaseTransaction;
 
-        return view('purchase-order.return', [
+        return view('purchase-order.transaction', [
             'purchase_order' => $purchaseOrder,
             'selected_goods' => $selectedGoods,
+            'purchase_transaction'=>$purchaseOrder->purchaseTransactions,
+        
         ]);
     }
 }

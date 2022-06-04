@@ -52,6 +52,7 @@ use App\Models\EventQuotation;
 use App\Models\FinishingItem;
 use App\Models\FinishingItemCategory;
 use App\Models\PurchaseReturn;
+use App\Models\PurchaseTransaction;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Row;
@@ -166,6 +167,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [PurchaseOrderController::class, 'store']);
         Route::patch('/{id}', [PurchaseOrderController::class, 'update']);
         Route::delete('/{id}', [PurchaseOrderController::class, 'destroy']);
+        Route::get('/print/{id}', [PurchaseOrderController::class, 'print']);
+        Route::get('/transaction/{id}', [PurchaseOrderController::class, 'transaction']);
+         Route::get('/detail/{id}', [PurchaseOrderController::class, 'detail']);
+
     });
 
     Route::prefix('/purchase-receive')->group(function () {

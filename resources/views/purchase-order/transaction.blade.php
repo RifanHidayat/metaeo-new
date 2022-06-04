@@ -26,7 +26,7 @@
             <!--begin::Page Heading-->
             <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Pembayaran</h5>
+                <h5 class="text-dark font-weight-bold my-1 mr-5">Tambah Retur</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -34,7 +34,7 @@
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="" class="text-muted">Pembayaran</a>
+                        <a href="" class="text-muted">Retur</a>
                     </li>
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Tambah</a>
@@ -63,51 +63,40 @@
             <form class="form" autocomplete="off" @submit.prevent="submitForm">
                 <div class="card-body">
                     <div class="row justify-content-between">
-                        <div class="col-lg-6 col-md-12">
-                                 <div class="form-group col-lg-8">
-                         <label>Tanggal:</label>
-                                   <div class="input-group">
+                        <div class="col-lg-4 col-md-8">
+                            <!-- <div class="form-group">
+                                <label>Supplier:</label>
+                                <select v-model="supplier" class="form-control" id="supplier-select">
+                                    <option value="">Pilih Pengiriman</option>
+                                    <option v-for="(supplier, index) in suppliers" :value="supplier.id">@{{ supplier.name }}</option>
+                                </select>
+                            </div> -->
+                            <div class="form-group">
+                                <label>Tanggal:</label>
+                                <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
                                     </div>
                                     <input type="text" v-model="date" id="po-date" class="form-control">
                                 </div>
-                            <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
-                        </div> 
-                            <div class="form-group col-lg-8">
-                         <label>Supplier:</label>
-                                <select v-model="supplier" class="form-control" id="supplier-select">
-                                    <option value="">Pilih Supplier</option>
-                                    <option v-for="(supplier, index) in suppliers" :value="supplier.id">@{{ supplier.name }}(@{{supplier.division!=null?supplier.division.name:""}})  </option>
-                                </select>
-                            <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
-                        </div> 
-                        
-                    
-
-                         <div class="form-group col-lg-8">
+                            </div>
+                              <div class="form-group ">
                          <label>Pembayaran:</label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp</span>
                                     </div>
-                                    <input type="text" v-model="paymentAmount" class="form-control text-right">
+                                    <input type="text" @input="validatePayment" v-model="amount" class="form-control text-right">
+                              
                                 </div>
+                                      <span class="text-danger">Sisa Pembayaran :@{{toCurrencyFormat(remaining)}}<span>
                             <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
                         </div> 
-                            <!-- <div class="form-group">
-                                <label>Supplier:</label>
-                                <select v-model="supplier" class="form-control" id="supplier-select" :disabled="selectedPurchaseOrders.length > 0">
-                                    <option value="">Pilih Supplier</option>
-                                    <option v-for="(supplier, index) in suppliers" :value="supplier.id">@{{ supplier.name }}</option>
-                                </select>
-                                <em v-if="selectedPurchaseOrders.length > 0" class="text-muted">Kosongkan list pembelian untuk mengganti supplier</em>
-                            </div> -->
                         </div>
                         <!-- <div class="col-lg-4 col-md-12">
                             <div class="form-group">
                                 <label>Nomor:</label>
-                                
+                               
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">#</span>
@@ -117,9 +106,19 @@
                             </div>
                         </div> -->
                     </div>
-                    <div class="row">
-                    
-                    </div>
+                    <!-- <div class="row">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="form-group">
+                                <label>Tanggal:</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
+                                    </div>
+                                    <input type="text" v-model="date" id="po-date" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
                     <div class="mt-5">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
@@ -127,87 +126,182 @@
                                     <span class="nav-icon">
                                         <i class="flaticon-signs-1"></i>
                                     </span>
-                                    <span class="nav-text">List Pembelian</span>
+                                    <span class="nav-text">List Barang</span>
                                 </a>
                             </li>
-                            <li class="nav-item" role="presentation">
-                                <a class="nav-link" id="other-tab" data-toggle="tab" href="#other">
-                                    <span class="nav-icon">
-                                        <i class="flaticon-information"></i>
-                                    </span>
-                                    <span class="nav-text">info Lainnya</span>
-                                </a>
-                            </li>
+                          
                         </ul>
                         <div class="tab-content" id="myTabContent">
                             <div class="tab-pane fade show active" id="goods" role="tabpanel" aria-labelledby="goods-tab">
                                 <div class="mt-2">
-                                    <div class="my-3 text-right">
-                                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#POModal"><i class="flaticon2-plus"></i> Tambah</button>
+                                    <!-- <div class="my-3 text-right">
+                                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#goodsModal"><i class="flaticon2-plus"></i> Tambah</button>
+                                    </div> -->
+                                    <div class="my-3 bg-light rounded p-5">
+                                        <a data-toggle="collapse" href="#collapsePOInfo" role="button" aria-expanded="false" aria-controls="collapsePOInfo" class="d-block text-dark-50">
+                                            <div class="row justify-content-between">
+                                                <div class="col-sm-6">
+                                                    <strong class="d-block"><i class="flaticon2-information align-middle text-success"></i>&nbsp;Informasi Pesanan Pembelian</strong>
+                                                </div>
+                                                <div class="col-sm-6 text-right">
+                                                    <i class="flaticon2-down"></i>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <div class="collapse" id="collapsePOInfo">
+                                            <div class="row pt-3">
+                                                <div class="col-lg-6 col-md-12">
+                                                    <table class="table">
+                                                        <tr>
+                                                            <td>Nomor</td>
+                                                            <td><strong>{{ $purchase_order->number }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Tanggal</td>
+                                                            <td><strong>{{ \Carbon\Carbon::parse($purchase_order->date)->isoFormat('LL') }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Supplier</td>
+                                                            <td><strong>{{ $purchase_order->supplier !== null ? $purchase_order->supplier->name : '' }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Alamat Kirim</td>
+                                                            <td><strong>{{ $purchase_order->delivery_address }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Tanggal Pengiriman</td>
+                                                            <td><strong>{{ \Carbon\Carbon::parse($purchase_order->deliveryDate)->isoFormat('LL') }}</strong></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div class="col-lg-6 col-md-12">
+                                                    <table class="table">
+                                                        <tr>
+                                                            <td>Pengiriman</td>
+                                                            <td><strong>{{ $purchase_order->shipment !== null ? $purchase_order->shipment->name : '' }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Syarat Pembayaran</td>
+                                                            <td><strong>{{ $purchase_order->payment_term }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>FOB</td>
+                                                            <td><strong>{{ $purchase_order->fobItem !== null ? $purchase_order->fobItem->name : '' }}</strong></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Keterangan</td>
+                                                            <td><strong>{{ $purchase_order->description }}</strong></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
-                                                <td>Kode #</td>
-                                                <td>Tanggal</td>
-                                                <td>Subtotal</td>
-                                                <td>Diskon</td>
-                                                <td>Total</td>
-                                                <td>Dibayar</td>
-                                                <td>Sisa Bayar</td>
-                                                <td></td>
+                                                 <th>Kode #</th>
+                                             
+                                                <th>Nama Barang</th>
+                                               
+                                                <th>Kuantitas</th>
+                                                <th>Satuan</th>
+                                                <th>harga</th>
+                                                <th>Total</th>
+                                                
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr v-if="!selectedPurchaseOrders.length">
-                                                <td colspan="8">
-                                                    <p class="text-center">
-                                                        <i class="flaticon2-open-box font-size-h1"></i>
-                                                    </p>
-                                                    <p class="text-center">Belum ada barang</p>
-                                                </td>
+                                            <tr v-if="!selectedGoods.length">
+                                               
                                             </tr>
-                                            <tr v-for="(po, index) in selectedPurchaseOrders">
-                                                <td class="align-middle">@{{ po.number }}</td>
-                                                <td class="align-middle">@{{ po.date }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(po.subtotal) }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(po.discount) }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(po.total) }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(po.total_payment) }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(Number(po.total) - Number(po.total_payment)) }}</td>
-                                                <td class="align-middle text-center"><a href="#" @click.prevent="removePurchaseOrder(index)"><i class="flaticon2-trash text-danger"></i></a></td>
+                                            <tr v-for="(good, index) in purchaseOrder.goods">
+                                                    <td style="vertical-align: middle;">@{{ good.number }}</td>
+                                              
+                                                <td  style="vertical-align: middle;">@{{ good.name }}</td>
+                                                  <td style="vertical-align: middle;" class="text-center">@{{ toCurrencyFormat(good.pivot.quantity) }}</td>
+                                            
+                                                <td style="vertical-align: middle;">@{{ good.unit }}</td>
+                                              
+                                                <td style="vertical-align: middle;" class="text-center">@{{ toCurrencyFormat(good.pivot.price) }}</td>
+                                                   <td style="vertical-align: middle;" class="text-center">@{{ toCurrencyFormat(good.pivot.total) }}</td>
+                                                
+                                               
+                                                <!-- <td style="vertical-align: middle;" class="text-center">
+                                                    <a href="#" @click.prevent="removeGoods(index)"><i class="flaticon2-trash text-danger"></i></a>
+                                                </td> -->
                                             </tr>
                                         </tbody>
                                     </table>
                                     <div class="mt-20">
                                         <div class="row justify-content-end">
-                                            <div class="col-lg-3">
+                                            <div class="col-lg-2">
                                                 <div class="border">
-                                                    <div class="bg-primary w-100" style="height: 5px;"></div>
+                                                    <div class="bg-success w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
-                                                        <strong>Jumlah Pembayaran</strong>
-                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(paymentAmount) }}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-3">
-                                                <div class="border">
-                                                    <div class="bg-danger w-100" style="height: 5px;"></div>
-                                                    <div class="p-3">
-                                                        <strong>Total Sisa Bayar</strong>
-                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(remainingPayments) }}</p>
+                                                        <strong>Subtotal</strong>
+                                                        <p class="text-right font-size-h4">@{{toCurrencyFormat(purchaseOrder.subtotal)}}</p>
                                                     </div>
                                                 </div>
                                             </div>
                                             <!-- <div class="col-lg-3">
                                                 <div class="border">
-                                                    <div class="bg-success w-100" style="height: 5px;"></div>
+                                                    <div class="bg-danger w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
-                                                        <strong>Sisa Bayar</strong>
-                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(grandTotal) }}</p>
+                                                        <h4>Diskon <a data-toggle="collapse" href=".collapseDiscount" role="button" aria-expanded="false" aria-controls="collapseDiscount"><i class="flaticon-edit text-primary"></i></a></h4>
+                                                        <div class="collapse show collapseDiscount">
+                                                            <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(discount) }}</p>
+                                                        </div>
+                                                        <div class="collapse collapseDiscount">
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text">Rp</span>
+                                                                </div>
+                                                                <input type="text" v-model="discount" class="form-control form-control text-right">
+                                                                <div class="input-group-append">
+                                                                    <button type="button" class="btn btn-success" data-toggle="collapse" data-target=".collapseDiscount" aria-expanded="false" aria-controls="collapseDiscount"><i class="fas fa-save"></i></button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div> -->
+                                            <div v-if="purchaseOrder.ppn_amount>0" class="col-lg-2">
+                                                <div class="border">
+                                                    <div class="bg-success w-100" style="height: 5px;"></div>
+                                                    <div class="p-3">
+                                                        <strong>PPN</strong>
+                                                        <p class="text-right font-size-h4">@{{toCurrencyFormat(purchaseOrder.ppn_amount)}}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                             <div if="purchaseOrder.pph_amount>0 " class="col-lg-2">
+                                                <div class="border">
+                                                    <div class="bg-success w-100" style="height: 5px;"></div>
+                                                    <div class="p-3">
+                                                        <strong>PPh</strong>
+                                                        <p class="text-right font-size-h4">@{{toCurrencyFormat(purchaseOrder.pph_amount)}}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                             <div v-if="purchaseOrder.discount>0 " class="col-lg-2">
+                                                <div class="border">
+                                                    <div class="bg-success w-100" style="height: 5px;"></div>
+                                                    <div class="p-3">
+                                                        <strong>Diskon</strong>
+                                                        <p class="text-right font-size-h4">@{{ toCurrencyFormat(purchaseOrder.discount)}}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                              <div class="col-lg-2">
+                                                <div class="border">
+                                                    <div class="bg-success w-100" style="height: 5px;"></div>
+                                                    <div class="p-3">
+                                                        <strong>Total</strong>
+                                                        <p class="text-right font-size-h4">@{{ toCurrencyFormat(purchaseOrder.total)}}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -216,6 +310,14 @@
                                 <div class="pt-5 pb-3">
                                     <div class="row">
                                         <div class="col-lg-6 col-md-12">
+                                            <!-- <div class="form-group">
+                                                <label>Pengirim:</label>
+                                                <input type="text" v-model="shipper" class="form-control">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Penerima:</label>
+                                                <input type="text" v-model="recipient" class="form-control">
+                                            </div> -->
                                             <div class="form-group">
                                                 <label>Keterangan:</label>
                                                 <textarea v-model="description" class="form-control"></textarea>
@@ -247,43 +349,6 @@
             <!--end::Form-->
         </div>
     </div>
-    <!-- Modal -->
-    <div class="modal fade" id="POModal" tabindex="-1" aria-labelledby="POModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="POModalLabel">Pilih Pesanan Pembelian</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table" id="table-po" ref="POTable">
-                        <thead>
-                            <tr>
-                                <th>Nama</th>
-                                <th></th>
-                                <!-- <th></th> -->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(po, index) in purchaseOrders">
-                                <td>@{{ po.number }}</td>
-                                <td class="text-right">
-                                    <button v-if="!isSelectedPO(po.id)" type="button" href="#" @click.prevent="selectPurchaseOrder(po)" class="btn btn-primary btn-sm" :class="isSelectedPO(po.id) ? 'disabled' : ''">Pilih</button>
-                                    <span v-if="isSelectedPO(po.id)" class="label label-outline-warning label-pill label-inline mr-2">Selected</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 @endsection
 
@@ -297,19 +362,31 @@
     let app = new Vue({
         el: '#app',
         data: {
-            suppliers: JSON.parse(String.raw `{!! $suppliers !!}`),
-            supplier: '',
+            suppliers: [],
+            goods: [],
+            shipments: [],
+            fobItems: [],
+            supplier: '{{ $purchase_order->supplier_id }}',
             number: '',
             date: '',
-            paymentAmount: 0,
+            shipper: '',
+            recipient: '',
+            deliveryAddress: '',
+            deliveryDate: '',
+            shipment: '',
+            paymentTerm: 'net_7',
+            fob: '',
             description: '',
+            selectedGoods: JSON.parse(String.raw `{!! json_encode($selected_goods) !!}`),
+            purchaseOrder: JSON.parse(String.raw `{!! json_encode($purchase_order) !!}`),
+            checkedGoodsIds: [],
+            discount: 0,
+            purchaseOrderId: '{{ $purchase_order->id }}',
+            amount:'',
+            remaining:'{!! $purchase_order->total-$purchase_order->payment!!}',
+
+         
             loading: false,
-            purchaseOrders: [],
-            selectedPurchaseOrders: [],
-            dataTable: null,
-        },
-        mounted() {
-            this.dataTable = $(this.$refs.POTable).DataTable();
         },
         methods: {
             submitForm: function() {
@@ -320,13 +397,25 @@
                 let vm = this;
                 vm.loading = true;
                 axios.post('/purchase-transaction', {
-                        supplier_id: vm.supplier,
-                        number: vm.number,
+
+                        // supplier_id: vm.supplier,
+                        purchase_order_id: vm.purchaseOrderId,
+                        // number: vm.number,
+                        amount:vm.amount,
                         date: vm.date,
-                        payment_amount: vm.paymentAmount,
-                        description: vm.description,
-                        total: 0,
-                        selected_purchase_orders: vm.selectedPurchaseOrders,
+                        supplier_id:vm.supplier
+                        // delivery_address: vm.deliveryAddress,
+                        // delivery_date: vm.deliveryDate,
+                        // shipper: vm.shipper,
+                        // recipient: vm.recipient,
+                        // shipment_id: vm.shipment,
+                        // payment_term: vm.paymentTerm,
+                        // fob_item_id: vm.fob,
+                        // description: vm.description,
+                        // selected_goods: vm.checkedGoods,
+                        // discount: vm.discount,
+                        // subtotal: vm.subtotal,
+                        // total: vm.grandTotal,
                     })
                     .then(function(response) {
                         vm.loading = false;
@@ -337,7 +426,7 @@
                             allowOutsideClick: false,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // window.location.href = '/goods';
+                                 window.location.href = '/purchase-order';
                             }
                         })
                         // console.log(response);
@@ -352,65 +441,62 @@
                         )
                     });
             },
-            selectPurchaseOrder: function(item) {
+            selectGoods: function(item) {
                 let vm = this;
-                const newPO = {
+                const newGoods = {
                     ...item,
+                    quantity: 1,
+                    price: item.purchase_price,
+                    discount: 0,
+                    total: item.purchase_price,
                 }
-                vm.selectedPurchaseOrders.push(newPO);
-                $('#POModal').modal('hide');
+                vm.selectedGoods.push(newGoods);
+                $('#goodsModal').modal('hide');
             },
-            removePurchaseOrder: function(index) {
+            removeGoods: function(index) {
                 let vm = this;
-                vm.selectedPurchaseOrders.splice(index, 1);
+                vm.selectedGoods.splice(index, 1);
             },
             toCurrencyFormat: function(number) {
                 return new Intl.NumberFormat('De-de').format(number);
             },
-            onChangeSupplier: function() {
-                let vm = this;
-                const supplierId = vm.supplier;
-                axios.get('/api/suppliers/' + supplierId + '/purchase-orders')
-                    .then(res => {
-                        vm.purchaseOrders = res.data.data;
-                    }).catch(err => {
-                        Swal.fire(
-                            'Oops!',
-                            'Something wrong',
-                            'error'
-                        )
-                    })
-            },
-            isSelectedPO: function(id) {
-                const selectedPurchaseOrdersIds = this.selectedPurchaseOrders.map(po => po.id);
-                if (selectedPurchaseOrdersIds.indexOf(id) > -1) {
-                    return true;
-                } else {
-                    return false;
-                }
+            validatePayment: function(){
+              
+            if (Number(this.amount)>Number(this.remaining)){
+                this.amount=this.remaining;
+            }
 
-                return false;
             }
         },
         computed: {
-            remainingPayments: function() {
-                return this.selectedPurchaseOrders.map(po => Number(po.total) - Number(po.total_payment)).reduce((acc, cur) => {
-                    return acc + cur;
-                }, 0)
-            },
-            subtotal: function() {
-                const subtotal = 0;
+            // subtotal: function() {
+            //     const subtotal = this.selectedGoods.map(goods => Number(goods.total)).reduce((acc, cur) => {
+            //         return acc + cur;
+            //     }, 0);
 
-                return subtotal;
-            },
-            grandTotal: function() {
-                const grandTotal = 0;
-                return grandTotal;
-            },
-            // filteredPurchaseOrders: function() {
-            //     const selectedPurchaseOrdersIds = this.selectedPurchaseOrders.map(po => po.id);
-            //     return this.purchaseOrders.filter(po => selectedPurchaseOrdersIds.indexOf(po.id) < 0);
+            //     return subtotal;
             // },
+            // grandTotal: function() {
+            //     const grandTotal = this.subtotal - Number(this.discount);
+            //     return grandTotal;
+            // }
+            checkedGoods: function() {
+                return this.selectedGoods.filter(goods => this.checkedGoodsIds.indexOf(goods.id) > -1);
+            },
+            totalReturnedQuantity: function() {
+                const returnedQuantity = this.selectedGoods.map(goods => Number(goods.returned_quantity)).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0);
+
+                return returnedQuantity;
+            },
+            totalWillBeReturned: function() {
+                const total = this.checkedGoods.map(goods => Number(goods.return_quantity)).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0);
+
+                return total;
+            }
         },
         watch: {
             selectedGoods: {
@@ -420,46 +506,13 @@
                     });
                 },
                 deep: true
-            },
-            supplier: {
-                handler: function(newval) {
-                    let vm = this;
-                    vm.dataTable.destroy();
-                    if (newval) {
-                        axios.get('/api/suppliers/' + newval + '/purchase-orders')
-                            .then(res => {
-                                vm.purchaseOrders = Array.isArray(res.data.data) ? res.data.data : [];
-                                // const newPurchaseOrders = vm.purchaseOrders.map(po => [po.number]);
-                                // $('#table-po').DataTable().rows.add(newPurchaseOrders).draw(false);
-                                // $('#table-po').DataTable().draw(false);
-                                // console.log($('#table-po'));
-                                vm.$nextTick(() => {
-                                    vm.dataTable = $(vm.$refs.POTable).DataTable()
-                                    console.log('NEXT TICK FILLED')
-                                });
-                            }).catch(err => {
-                                Swal.fire(
-                                    'Oops!',
-                                    'Something wrong',
-                                    'error'
-                                )
-                            })
-                    } else {
-                        // $('#table-po').DataTable().rows.remove().draw(false);
-                        vm.purchaseOrders = [];
-                        vm.$nextTick(() => {
-                            vm.dataTable = $(vm.$refs.POTable).DataTable()
-                            console.log('NEXT TICK EMPTY')
-                        });
-                    }
-                }
             }
         }
     })
 </script>
 <script>
     $(function() {
-        // $('#table-po').DataTable();
+        $('#table-goods').DataTable();
 
         function hideElement(el) {
             $(el).hide();

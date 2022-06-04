@@ -52,7 +52,7 @@
 
             <!--end::Dropdown-->
             <!--begin::Button-->
-            <a href="/purchase-transaction/create" class="btn btn-primary font-weight-bolder">
+            <!-- <a href="/purchase-transaction/create" class="btn btn-primary font-weight-bolder">
                 <span class="svg-icon svg-icon-md">
 
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -65,7 +65,7 @@
 
                 </span>Pembayaran Baru
             </a>
-            <!--end::Button-->
+            end::Button -->
         </div>
     </div>
     <div class="card-body">
@@ -75,7 +75,7 @@
                 <tr class="text-center">
                       <th>Tanggal</th>
                     <th>Nomor</th>
-                       <th>Pembayara</th>
+                       <th>Pembayaran</th>
                   
                     <th>Action</th>
                 </tr>
@@ -171,7 +171,7 @@
                     data: 'total',
                     name: 'total',
                     render: function(data, type) {
-                        return `<span class="text-dark-75 font-weight-bolder font-size-lg text-right">${data}</span>`;
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg text-right">${Intl.NumberFormat('De-de').format(data)}</span>`;
                     }
                 },
                 {
@@ -184,7 +184,7 @@
             ]
         });
 
-        $('#purchase-return-table').on('click', 'tr .btn-delete', function(e) {
+        $('#purchase-transaction-table').on('click', 'tr .btn-delete', function(e) {
             e.preventDefault();
             // alert('click');
             const id = $(this).attr('data-id');

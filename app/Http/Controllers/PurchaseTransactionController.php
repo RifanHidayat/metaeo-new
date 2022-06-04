@@ -25,6 +25,10 @@ class PurchaseTransactionController extends Controller
     {
         return view('purchase-transaction.index');
     }
+      private function formatDate($date = "", $format = "Y-m-d")
+    {
+        return date_format(date_create($date), $format);
+    }   
 
     /**
      * Send datatable form.
@@ -44,6 +48,8 @@ class PurchaseTransactionController extends Controller
                   <path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "></path>
                   <rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"></rect>
                 </g>
+
+
               </svg> </span> </a>
               <a href="#" data-id="' . $row->id . '" class="btn btn-sm btn-clean btn-icon btn-delete" title="Delete"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -52,6 +58,8 @@ class PurchaseTransactionController extends Controller
                   <path d="M14,4.5 L14,4 C14,3.44771525 13.5522847,3 13,3 L11,3 C10.4477153,3 10,3.44771525 10,4 L10,4.5 L5.5,4.5 C5.22385763,4.5 5,4.72385763 5,5 L5,5.5 C5,5.77614237 5.22385763,6 5.5,6 L18.5,6 C18.7761424,6 19,5.77614237 19,5.5 L19,5 C19,4.72385763 18.7761424,4.5 18.5,4.5 L14,4.5 Z" fill="#000000" opacity="0.3"></path>
                 </g>
               </svg> </span> </a>';
+
+
 
                 $button .= '<div class="dropdown dropdown-inline" data-toggle="tooltip" title="" data-placement="left" data-original-title="Quick actions">
                         <a href="#" class="btn btn-clean btn-hover-light-primary btn-sm btn-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -108,113 +116,147 @@ class PurchaseTransactionController extends Controller
      */
     public function store(Request $request)
     {
-        $purchaseTransactionWithNumber = PurchaseTransaction::where('number', $request->number)->first();
-        if ($purchaseTransactionWithNumber !== null) {
-            return response()->json([
-                'message' => 'number or code already used',
-                'code' => 400,
-                // 'errors' => $/e,
-            ], 400);
-        }
+        $date=$request->date;
+        $transactionsByCurrentDateCount = PurchaseTransaction::query()->where('date', $date)->get()->count();
+        
+        $number = 'PT'.'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+       
 
-        $progress = '';
-        DB::beginTransaction();
+        try{
+             DB::beginTransaction();
+            $purchaseTransaction=new PurchaseTransaction();
+            $purchaseOrder=PurchaseOrder::findOrFail($request->purchase_order_id);
 
-        try {
-            $paymentAmount = $this->clearThousandFormat($request->payment_amount);
+            $purchaseTransaction->date=$request->date;
+            $purchaseTransaction->number=$number;
+            $purchaseTransaction->payment_amount=$request->amount;
+            $purchaseTransaction->total=$request->amount;
+            $purchaseTransaction->supplier_id=$request->supplier_id;
+            $purchaseTransaction->purchase_order_id=$request->purchase_order_id;
+            $purchaseOrder->payment=$purchaseOrder->payment+$request->amount;
 
-            // $progress = 'saving data...';
-
-            $purchaseTransaction = new PurchaseTransaction();
-            $purchaseTransaction->number = $request->number;
-            $purchaseTransaction->date = $request->date;
-            $purchaseTransaction->payment_amount = $request->payment_amount;
-            $purchaseTransaction->supplier_id = $request->supplier_id;
-            $purchaseTransaction->description = $request->description;
-            $purchaseTransaction->total = $request->total;
             $purchaseTransaction->save();
-
-            $purchaseOrders = $request->selected_purchase_orders;
-            $selectedPurchaseOrdersIds = collect($purchaseOrders)->pluck('id')->all();
-
-            $payments = [];
-            $totalPurchaseOrders = 0;
-
-            $progress = 'saving calculate distribution...';
-
-            PurchaseOrder::with(['purchaseTransactions'])
-                ->whereIn('id', $selectedPurchaseOrdersIds)
-                ->orderBy('date', 'ASC')
-                // ->where('paid', 0)
-                ->get()
-                ->each(function ($po) {
-                    $po['total_payment'] = collect($po->purchaseTransactions)
-                        ->map(function ($transaction) {
-                            return $transaction->pivot->amount;
-                        })->sum();
-                })
-                ->filter(function ($po) {
-                    return $po->total_payment < $po->total;
-                })
-                ->each(function ($po) use ($paymentAmount, &$totalPurchaseOrders, &$payments, $purchaseTransaction) {
-                    // Remaining Debt Has To Pay Per Invoice
-                    $remainingPOTotal = $po->total - $po->total_payment;
-
-                    $amount = $remainingPOTotal;
-
-                    $remainingPaymentAmount = $paymentAmount - $totalPurchaseOrders;
-
-                    if ($remainingPOTotal > $remainingPaymentAmount) {
-                        $amount = $remainingPaymentAmount;
-                    }
-
-                    $payment = [
-                        'purchase_transaction_id' => $purchaseTransaction->id,
-                        'purchase_order_id' => $po->id,
-                        'amount' => $amount,
-                    ];
-
-                    array_push($payments, $payment);
-
-                    $totalPurchaseOrders = $totalPurchaseOrders + $remainingPOTotal;
-                    if (($paymentAmount - $totalPurchaseOrders) <= 0) {
-                        return false;
-                    }
-                });
-
-            $progress = 'mapping with keys...';
-            $keyedPayments = collect($payments)->mapWithKeys(function ($item) {
-                return [
-                    $item['purchase_order_id'] => [
-                        'amount' => $item['amount'],
-                        'created_at' => Carbon::now()->toDateTimeString(),
-                        'updated_at' => Carbon::now()->toDateTimeString(),
-                    ]
-                ];
-            });
-
-            $progress = 'attaching purchase orders';
-            $purchaseTransaction->purchaseOrders()->attach($keyedPayments);
-
-            $progress = 'commiting query...';
+            $purchaseOrder->save();
+           
             DB::commit();
-
-            return response()->json([
-                'message' => 'Data has been saved',
-                'code' => 200,
-                'error' => false,
-                'data' => $purchaseTransaction,
-            ]);
-        } catch (Exception $e) {
+        }catch(Exception $e){
             DB::rollBack();
-            return response()->json([
+                return response()->json([
                 'message' => 'Internal error',
-                'progress' => $progress,
+                'progress' => '',
                 'code' => 500,
                 'error' => true,
                 'errors' => $e,
             ], 500);
+
         }
+        // $purchaseTransactionWithNumber = PurchaseTransaction::where('number', $request->number)->first();
+        // if ($purchaseTransactionWithNumber !== null) {
+        //     return response()->json([
+        //         'message' => 'number or code already used',
+        //         'code' => 400,
+        //         // 'errors' => $/e,
+        //     ], 400);
+        // }
+
+        // $progress = '';
+        // DB::beginTransaction();
+
+        // try {
+        //     $paymentAmount = $this->clearThousandFormat($request->payment_amount);
+
+        //     // $progress = 'saving data...';
+
+        //     $purchaseTransaction = new PurchaseTransaction();
+        //     $purchaseTransaction->number = $request->number;
+        //     $purchaseTransaction->date = $request->date;
+        //     $purchaseTransaction->payment_amount = $request->payment_amount;
+        //     $purchaseTransaction->supplier_id = $request->supplier_id;
+        //     $purchaseTransaction->description = $request->description;
+        //     $purchaseTransaction->total = $request->total;
+        //     $purchaseTransaction->save();
+
+        //     $purchaseOrders = $request->selected_purchase_orders;
+        //     $selectedPurchaseOrdersIds = collect($purchaseOrders)->pluck('id')->all();
+
+        //     $payments = [];
+        //     $totalPurchaseOrders = 0;
+
+        //     $progress = 'saving calculate distribution...';
+
+        //     PurchaseOrder::with(['purchaseTransactions'])
+        //         ->whereIn('id', $selectedPurchaseOrdersIds)
+        //         ->orderBy('date', 'ASC')
+        //         // ->where('paid', 0)
+        //         ->get()
+        //         ->each(function ($po) {
+        //             $po['total_payment'] = collect($po->purchaseTransactions)
+        //                 ->map(function ($transaction) {
+        //                     return $transaction->pivot->amount;
+        //                 })->sum();
+        //         })
+        //         ->filter(function ($po) {
+        //             return $po->total_payment < $po->total;
+        //         })
+        //         ->each(function ($po) use ($paymentAmount, &$totalPurchaseOrders, &$payments, $purchaseTransaction) {
+        //             // Remaining Debt Has To Pay Per Invoice
+        //             $remainingPOTotal = $po->total - $po->total_payment;
+
+        //             $amount = $remainingPOTotal;
+
+        //             $remainingPaymentAmount = $paymentAmount - $totalPurchaseOrders;
+
+        //             if ($remainingPOTotal > $remainingPaymentAmount) {
+        //                 $amount = $remainingPaymentAmount;
+        //             }
+
+        //             $payment = [
+        //                 'purchase_transaction_id' => $purchaseTransaction->id,
+        //                 'purchase_order_id' => $po->id,
+        //                 'amount' => $amount,
+        //             ];
+
+        //             array_push($payments, $payment);
+
+        //             $totalPurchaseOrders = $totalPurchaseOrders + $remainingPOTotal;
+        //             if (($paymentAmount - $totalPurchaseOrders) <= 0) {
+        //                 return false;
+        //             }
+        //         });
+
+        //     $progress = 'mapping with keys...';
+        //     $keyedPayments = collect($payments)->mapWithKeys(function ($item) {
+        //         return [
+        //             $item['purchase_order_id'] => [
+        //                 'amount' => $item['amount'],
+        //                 'created_at' => Carbon::now()->toDateTimeString(),
+        //                 'updated_at' => Carbon::now()->toDateTimeString(),
+        //             ]
+        //         ];
+        //     });
+
+        //     $progress = 'attaching purchase orders';
+        //     $purchaseTransaction->purchaseOrders()->attach($keyedPayments);
+
+        //     $progress = 'commiting query...';
+        //     DB::commit();
+
+        //     return response()->json([
+        //         'message' => 'Data has been saved',
+        //         'code' => 200,
+        //         'error' => false,
+        //         'data' => $purchaseTransaction,
+        //     ]);
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     return response()->json([
+        //         'message' => 'Internal error',
+        //         'progress' => $progress,
+        //         'code' => 500,
+        //         'error' => true,
+        //         'errors' => $e,
+        //     ], 500);
+        // }
     }
 
     /**
@@ -260,19 +302,20 @@ class PurchaseTransactionController extends Controller
     public function destroy($id)
     {
         //
-
-
-            DB::beginTransaction();
-    
+    DB::beginTransaction();
     try{
-        $purchase=PurchaseTransaction::findOrFail($id);
-        $purchase->delete();
+        $purchaseTransaction=PurchaseTransaction::findOrFail($id);
+        $purchaseOrder=PurchaseOrder::findOrFail($purchaseTransaction->purchase_order_id);
+        $purchaseOrder->payment=$purchaseOrder->payment-$purchaseTransaction->payment_amount;
+        $purchaseOrder->save();
+
+        $purchaseTransaction->delete();
         DB::commit();
         return response()->json([
                 'message' => 'Data has been saved',
                 'code' => 200,
                 'error' => false,
-                'data' => $purchase,
+                'data' => $purchaseTransaction,
             ]);
 
     

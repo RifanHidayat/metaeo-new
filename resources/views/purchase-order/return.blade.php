@@ -226,7 +226,9 @@
                                                 <td style="vertical-align: middle;">@{{ good.unit }}</td>
                                                 <td style="vertical-align: middle;" class="text-center">@{{ good.received_quantity }}</td>
                                                 <td style="vertical-align: middle;" class="text-center">@{{ good.returned_quantity }}</td>
-                                                <td><input type="text" v-model="good.return_quantity" class="form-control form-control-sm text-right"></td>
+                                                <td><input @input="validateQuantity(index)" type="text" v-model="good.return_quantity" class="form-control form-control-sm text-right">
+                                                <span class="text-danger" > Max Retur :@{{Number(good.received_quantity )- Number(good.returned_quantity )}} </span>
+                                            </td>
                                                 <td class="align-middle">
                                                     <select class="form-control form-control-sm" v-model="good.cause">
                                                         <option value="defective">Cacat / Rusak</option>
@@ -398,7 +400,7 @@
                             allowOutsideClick: false,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // window.location.href = '/goods';
+                                 window.location.href = '/purchase-order';
                             }
                         })
                         // console.log(response);
@@ -431,6 +433,18 @@
             },
             toCurrencyFormat: function(number) {
                 return new Intl.NumberFormat('De-de').format(number);
+            },
+
+            validateQuantity:function(index){
+                
+                let remaining=(Number(this.selectedGoods[index].received_quantity)-Number(this.selectedGoods[index].returned_quantity));
+                console.log(this.selectedGoods[index].return_quantity);
+                  console.log(this.selectedGoods[index].return_quantity);
+                if (Number(this.selectedGoods[index].return_quantity)>Number(remaining) ){
+                   this.selectedGoods[index].return_quantity=remaining;
+               
+                
+                }
             }
         },
         computed: {

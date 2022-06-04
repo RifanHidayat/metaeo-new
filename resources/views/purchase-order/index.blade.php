@@ -78,6 +78,8 @@
                   
                     <th>Supplier</th>
                      <th>Total</th>
+                    <th>Pembayaran</th>
+                       <th>Sisa Bayar</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -181,7 +183,21 @@
                     data: 'total',
                     name: 'total',
                     render: function(data, type) {
-                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${data}</span>`;
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg">${Intl.NumberFormat('De-de').format(data)}</span>`;
+                    }
+                },
+                   {
+                    data: 'payment',
+                    name: 'payment',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg text-right">${Intl.NumberFormat('De-de').format(data)}</span>`;
+                    }
+                },
+                  {
+                    data: 'remaining',
+                    name: 'remaining',
+                    render: function(data, type) {
+                        return `<span class="text-dark-75 font-weight-bolder font-size-lg text-right">${Intl.NumberFormat('De-de').format(data)}</span>`;
                     }
                 },
                 {

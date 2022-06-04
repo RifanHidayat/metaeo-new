@@ -86,7 +86,7 @@
                 <tr>
                     <td>{{ $good->number }}</td>
                      <td>{{ $good->name }}</td>
-                      <td>{{ $good->goods_category }}</td>
+                    
                     <!-- @if($good->goodsCategory !== null)
                     <td>{{ $good->goodsCategory->name }}</td>
                     @else -->

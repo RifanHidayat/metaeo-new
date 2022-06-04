@@ -326,20 +326,20 @@
                                     <div class="row">
                                         <div class="col-lg-6 col-md-12">
                                             <div class="form-row align-items-center">
-                                                <div class="form-group col-md-4">
+                                                <!-- <div class="form-group col-md-4">
                                                     <label class="checkbox">
                                                         <input v-model="ppn" type="checkbox">
                                                         <span></span>&nbsp;PPN
                                                     </label>
-                                                </div>
-                                                <div class="form-group col-md-8">
+                                                </div> -->
+                                                <!-- <div class="form-group col-md-8">
                                                     <div class="input-group">
                                                         <input type="text" v-model="ppnValue" class="form-control text-right" placeholder="Tarif PPN" :readonly="!ppn">
                                                         <div class="input-group-append">
                                                             <span class="input-group-text"><strong class="text-dark-50">%</strong></span>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> -->
                                             </div>
                                             <div class="form-group">
                                                 <label>Ongkos Kirim:</label>
@@ -461,12 +461,16 @@
                         <thead>
                             <tr>
                                 <th>Nama</th>
+                                 <th>Jenis</th>
                                 <!-- <th></th> -->
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(good, index) in goods">
-                                <td><a href="#" @click.prevent="selectGoods(good)" class="d-block p-3 bg-hover-light text-dark">@{{ good.name }}</a></td>
+                                <td><a href="#" @click.prevent="selectGoods(good)" class="d-block p-3 bg-hover-light text-dark">@{{ good.name }}</a>
+                            </td>
+                            <td><a href="#" @click.prevent="selectGoods(good)" class="d-block p-3 bg-hover-light text-dark">@{{ good.type }}</a>
+                            </td>
                                 <!-- <td><a href="#">Pilih</a></td> -->
                             </tr>
                         </tbody>
@@ -542,7 +546,7 @@
                         other_cost_description: vm.otherCostDescription,
                         subtotal: vm.subtotal,
                         total: vm.grandTotal,
-                        pph:vm.pphAmount
+                        pph_amount:vm.pphAmount
                     })
                     .then(function(response) {
                         vm.loading = false;
@@ -553,7 +557,7 @@
                             allowOutsideClick: false,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // window.location.href = '/goods';
+                                 window.location.href = '/purchase-order';
                             }
                         })
                         // console.log(response);
@@ -647,7 +651,7 @@
                 return Math.round(pph);
             },
             grandTotal: function() {
-                const grandTotal = this.subtotal - Number(this.discount) + this.ppnAmount + Number(this.shippingCost) + Number(this.otherCost);
+                const grandTotal = Number(this.subtotal) - Number(this.discount) + Number(this.ppnAmount) + Number(this.shippingCost) + Number(this.otherCost)-Number(this.pphAmount);
                 return grandTotal;
             }
         },

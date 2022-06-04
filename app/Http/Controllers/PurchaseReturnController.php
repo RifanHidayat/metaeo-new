@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Goods;
 use App\Models\PurchaseReceive;
 use App\Models\PurchaseReturn;
 use Carbon\Carbon;
@@ -104,7 +105,7 @@ class PurchaseReturnController extends Controller
         $date=$request->date;
         $transactionsByCurrentDateCount = PurchaseReturn::query()->where('date', $date)->get()->count();
         $number = 'PR'.'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
-        $number = PurchaseReceive::where('number', $number)->first();
+       /// $number = PurchaseReceive::where('number', $number)->first();
 
         $purchaseReturnWithNumber = PurchaseReturn::where('number', $number)->first();
         if ($purchaseReturnWithNumber !== null) {
@@ -130,7 +131,12 @@ class PurchaseReturnController extends Controller
 
             // Attach Goods
             $selectedGoods = $request->selected_goods;
+        
             $goods = collect($selectedGoods)->mapWithKeys(function ($item) {
+                $goodsUpdate=Goods::findOrFail($item['id']);
+                $goodsUpdate->stock=$goodsUpdate->stock-$item['return_quantity'];
+                $goodsUpdate->save();
+
                 return [
                     $item['id'] => [
                         'quantity' => $item['return_quantity'],

@@ -396,7 +396,7 @@
                             allowOutsideClick: false,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // window.location.href = '/goods';
+                                 window.location.href = '/purchase-order';
                             }
                         })
                         // console.log(response);

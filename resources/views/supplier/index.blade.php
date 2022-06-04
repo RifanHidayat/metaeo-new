@@ -73,10 +73,10 @@
       <thead>
         <tr class="text-center">
           <th>Number</th>
-          <th>Name</th>
-          <th>Address</th>
-          <th>Telephone</th>
-          <th>Handphone</th>
+          <th>Nama</th>
+          <th>Alamat</th>
+          <th>No. Telp</th>
+          <th>No. Handphne</th>
           <th>Email</th>
           <th>Action</th>
         </tr>
@@ -108,12 +108,12 @@
                     </g>
                   </svg> </span>
               </a>
-              <div class="dropdown dropdown-inline">
+              <!-- <div class="dropdown dropdown-inline">
                 <a href="#" class="btn btn-clean btn-hover-light-primary btn-sm btn-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <i class="ki ki-bold-more-hor"></i>
                 </a>
                 
-              </div>
+              </div> -->
             </td>
         </tr>
         @endforeach
