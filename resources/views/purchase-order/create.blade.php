@@ -90,7 +90,7 @@
                          <label>Supplier:</label>
                                 <select v-model="supplier" class="form-control" id="supplier-select">
                                     <option value="">Pilih Supplier</option>
-                                    <option v-for="(supplier, index) in suppliers" :value="supplier.id">@{{ supplier.name }}(@{{supplier.division!=null?supplier.division.name:""}})  </option>
+                                    <option v-for="(supplier, index) in suppliers" :value="supplier.id">@{{ supplier.name }}  </option>
                                 </select>
                       <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
                    </div>                  
@@ -642,8 +642,9 @@
                 // const subtotal = this.selectedGoods.map(goods => Number(goods.total)).reduce((acc, cur) => {
                 //     return acc + cur;
                 // }, 0);
-                const pph=this.selectedGoods.filter(goods=>{return goods.type=="jasa" && goods.pph!=0}).map(goods=>{
-                    const amount=((Number(goods.price)*Number(goods.quantity))-Number(goods.discount))*(Number(goods.pph)/100)
+                const pph=this.selectedGoods.filter(goods=>{return goods.type=="jasa"}).map(goods=>{
+                    const  percentage=goods.pph_rates!=null?goods.pph_rates.amount:0;
+                    const amount=((Number(goods.price)*Number(goods.quantity))-Number(goods.discount))*(Number(percentage)/100)
                     return amount;
                 }).reduce((acc,cur)=>{
                     return Number(acc)+Number(cur)

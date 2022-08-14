@@ -16,4 +16,11 @@ class Supplier extends Model
     public function division(){
         return $this->belongsTo(Division::class);
     }
+
+    public function supplierAccounts(){
+        return $this->hasMany(SupplierAccount::class);
+    }
+    public function purchaseReceives(){
+      return $this->hasMany(PurchaseReceive::class);
+     }
 }

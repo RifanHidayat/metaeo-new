@@ -36,8 +36,10 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EventQuotationController;
+use App\Http\Controllers\GoodsSubCategoryController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\OtherQuotationController;
+use App\Http\Controllers\PphRateController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\QuotationItemController;
 use App\Http\Controllers\TaxSettingController;
@@ -51,8 +53,10 @@ use App\Models\DeliveryOrder;
 use App\Models\EventQuotation;
 use App\Models\FinishingItem;
 use App\Models\FinishingItemCategory;
+use App\Models\GoodsSubCategory;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseTransaction;
+use App\Models\Supplier;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Row;
@@ -157,6 +161,24 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{id}', [GoodsCategoryController::class, 'update']);
         Route::delete('/{id}', [GoodsCategoryController::class, 'destroy']);
     });
+        Route::prefix('/goods-subcategory')->group(function () {
+        Route::get('/', [GoodsSubCategoryController::class, 'index']);
+        Route::get('/create', [GoodsSubCategoryController::class, 'create']);
+        Route::get('/edit/{id}', [GoodsSubCategoryController::class, 'edit']);
+        Route::post('/', [GoodsSubCategoryController::class, 'store']);
+        Route::patch('/{id}', [GoodsSubCategoryController::class, 'update']);
+        Route::delete('/{id}', [GoodsSubCategoryController::class, 'destroy']);
+    });
+
+        Route::prefix('/pph-rates')->group(function () {
+        Route::get('/', [PphRateController::class, 'index']);
+        Route::get('/create', [PphRateController::class, 'create']);
+        Route::get('/edit/{id}', [PphRateController::class, 'edit']);
+        Route::post('/', [PphRateController::class, 'store']);
+        Route::patch('/{id}', [PphRateController::class, 'update']);
+        Route::delete('/{id}', [PphRateController::class, 'destroy']);
+    });
+
 
     Route::prefix('/purchase-order')->group(function () {
         Route::get('/', [PurchaseOrderController::class, 'index']);
@@ -180,6 +202,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [PurchaseReceiveController::class, 'store']);
         Route::patch('/{id}', [PurchaseReceiveController::class, 'update']);
         Route::delete('/{id}', [PurchaseReceiveController::class, 'destroy']);
+          Route::get('/print/{id}', [PurchaseReceiveController::class, 'print']);
+      
     });
 
     Route::prefix('/purchase-return')->group(function () {
@@ -198,6 +222,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [PurchaseTransactionController::class, 'store']);
         Route::patch('/{id}', [PurchaseTransactionController::class, 'update']);
         Route::delete('/{id}', [PurchaseTransactionController::class, 'destroy']);
+         Route::get('/supplier/{id}', [PurchaseTransactionController::class, 'supplierTransactions']);
     });
 
     Route::prefix('/customer-purchase-order')->group(function () {
@@ -264,6 +289,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [EventQuotationController::class, 'store']);
         Route::patch('/{id}', [EventQuotationController::class, 'update']);
         Route::delete('/{id}', [EventQuotationController::class, 'destroy']);
+        Route::get('/item/{id}/subitem', [EventQuotationController::class, 'subitem']);
     });
 
        Route::prefix('/other-quotation')->group(function () {
@@ -470,6 +496,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{id}', [ItemController::class, 'subitemEdit']); 
         Route::patch('/{id}', [ItemController::class, 'subitemUpdate']);
         Route::delete('/{id}', [ItemController::class, 'subitemDestroy']);
+        Route::get('/detail', [ItemController::class, 'detail']);
 
         });
 
@@ -585,6 +612,9 @@ Route::prefix('/datatables')->group(function () {
     Route::prefix('/v2')->group(function () {
         Route::prefix('/purchase-orders')->group(function () {
             Route::get('/', [PurchaseOrderController::class, 'indexData']);
+        });
+         Route::prefix('/supplier')->group(function () {
+            Route::get('/', [SupplierController::class, 'indexData']);
         });
         
         Route::prefix('/purchase-receives')->group(function () {

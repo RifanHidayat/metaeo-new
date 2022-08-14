@@ -1792,7 +1792,7 @@
             processing: true,
             serverSide: true,
             destroy: true,
-            ajax: ' ',
+             ajax: '/datatables/v2/invoices/bast',
             columns: [{
                     data: 'number',
                     name: 'number',
@@ -1928,11 +1928,6 @@
            
 
             }
-
-
-            
-
-            
             
            
             $('#bastModal').modal('hide');

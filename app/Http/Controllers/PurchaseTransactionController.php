@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\FobItem;
 use App\Models\Goods;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseReceive;
 use App\Models\PurchaseTransaction;
 use App\Models\Shipment;
 use App\Models\Supplier;
 use Carbon\Carbon;
+
+
+
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,10 +41,16 @@ class PurchaseTransactionController extends Controller
      */
     public function indexData()
     {
-        $purchaseTransactions = PurchaseTransaction::select('purchase_transactions.*');
+        $purchaseTransactions = PurchaseTransaction::with(['supplier'])->select('purchase_transactions.*');
+       // return $purchaseTransactions;
         return DataTables::eloquent($purchaseTransactions)
             ->addIndexColumn()
+              ->addColumn('supplier',function($row){
+                return $row->supplier!=null?$row->supplier->name:"";
+            })
+
             ->addColumn('action', function ($row) {
+                
                 $button = '<div class="text-center">';
                 $button .= '<a href="/purchase-transaction/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -61,25 +71,25 @@ class PurchaseTransactionController extends Controller
 
 
 
-                $button .= '<div class="dropdown dropdown-inline" data-toggle="tooltip" title="" data-placement="left" data-original-title="Quick actions">
-                        <a href="#" class="btn btn-clean btn-hover-light-primary btn-sm btn-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="ki ki-bold-more-hor"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
-                            <!--begin::Navigation-->
-                            <ul class="navi navi-hover">
-                                <li class="navi-item">
-                                    <a href="/purchase-transaction/print/' . $row->id . '" target="_blank" class="navi-link">
-                                        <span class="navi-icon">
-                                            <i class="flaticon2-print"></i>
-                                        </span>
-                                        <span class="navi-text">Cetak</span>
-                                    </a>
-                                </li>
-                            </ul>
-                            <!--end::Navigation-->
-                        </div>
-                    </div>';
+                // $button .= '<div class="dropdown dropdown-inline" data-toggle="tooltip" title="" data-placement="left" data-original-title="Quick actions">
+                //         <a href="#" class="btn btn-clean btn-hover-light-primary btn-sm btn-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                //             <i class="ki ki-bold-more-hor"></i>
+                //         </a>
+                //         <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                //             <!--begin::Navigation-->
+                //             <ul class="navi navi-hover">
+                //                 <li class="navi-item">
+                //                     <a href="/purchase-transaction/print/' . $row->id . '" target="_blank" class="navi-link">
+                //                         <span class="navi-icon">
+                //                             <i class="flaticon2-print"></i>
+                //                         </span>
+                //                         <span class="navi-text">Cetak</span>
+                //                     </a>
+                //                 </li>
+                //             </ul>
+                //             <!--end::Navigation-->
+                //         </div>
+                //     </div>';
 
                 $button .= '</div>';
                 return $button;
@@ -115,7 +125,8 @@ class PurchaseTransactionController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
+    {   
+      // return $request->all();
         $date=$request->date;
         $transactionsByCurrentDateCount = PurchaseTransaction::query()->where('date', $date)->get()->count();
         
@@ -125,18 +136,61 @@ class PurchaseTransactionController extends Controller
         try{
              DB::beginTransaction();
             $purchaseTransaction=new PurchaseTransaction();
-            $purchaseOrder=PurchaseOrder::findOrFail($request->purchase_order_id);
-
+            // $purchaseOrder=PurchaseOrder::findOrFail($request->purchase_order_id);
+            
+            $purchases=$request->selected_purchase_orders;
             $purchaseTransaction->date=$request->date;
             $purchaseTransaction->number=$number;
-            $purchaseTransaction->payment_amount=$request->amount;
-            $purchaseTransaction->total=$request->amount;
+            $purchaseTransaction->payment_amount=$request->payment_amount;
+            $purchaseTransaction->total=$request->payment_amount;
             $purchaseTransaction->supplier_id=$request->supplier_id;
-            $purchaseTransaction->purchase_order_id=$request->purchase_order_id;
-            $purchaseOrder->payment=$purchaseOrder->payment+$request->amount;
-
+            $purchaseTransaction->purchase_order_id=1;
+            $payment=$request->payment_amount;
             $purchaseTransaction->save();
-            $purchaseOrder->save();
+
+          
+
+            foreach ($purchases as $purchase){
+               if ($purchase['is_checked']==true){
+                   if ($payment>0){
+                    $purchaseReceive=PurchaseReceive::findOrFail($purchase['id']);
+                  if ($payment>=$purchase['total']){
+                      $purchaseReceive->payment=$purchase['total'];
+                      $purchaseReceive->save();
+                   
+                      $data=[
+                          'purchase_transaction_id'=>$purchaseTransaction->id,
+                          'purchase_receive_id'=>$purchase['id'],
+                          'amount'=>$purchase['total']
+                      ];
+                      $payment=$payment-$purchase['total'];
+                       DB::table('purchase_receive_purchase_transaction')->insert($data);
+
+                  }else{
+                      $purchaseReceive->payment=$payment;
+                      $purchaseReceive->save();
+                      $data=[
+                          'purchase_transaction_id'=>$purchaseTransaction->id,
+                          'purchase_receive_id'=>$purchase['id'],
+                          'amount'=>$payment
+                      ];
+                      $payment=0;
+                       DB::table('purchase_receive_purchase_transaction')->insert($data);
+
+                  }  
+                   }
+                 
+                 
+               }
+
+            }
+            
+
+
+            // $purchaseOrder->payment=$purchaseOrder->payment+$request->amount;
+
+          
+            // $purchaseOrder->save();
            
             DB::commit();
         }catch(Exception $e){
@@ -146,7 +200,7 @@ class PurchaseTransactionController extends Controller
                 'progress' => '',
                 'code' => 500,
                 'error' => true,
-                'errors' => $e,
+                'errors' => $e.'',
             ], 500);
 
         }
@@ -278,7 +332,39 @@ class PurchaseTransactionController extends Controller
      */
     public function edit($id)
     {
+        $transaction=PurchaseTransaction::findOrFail($id);
+      //  return $transaction;
         //
+$purchaseReceives=PurchaseReceive::with(['purchaseOrder','goods','purchaseTransactions'])->wherehas('purchaseOrder',function($q) use ($transaction){
+            $q->where('supplier_id','=',$transaction->supplier_id);
+        })->whereHas('purchaseTransactions',function($item) use($id){
+            return $item->where('purchase_transactions.id','=',$id);
+        })->get();
+
+         $purchaseReceives=collect($purchaseReceives)->each(function($item){
+            $item['receive_discount']=0;
+            $item['is_checked']=$item['purchaseTransactions']->sum('pivot.amount')>0?true:false;
+            $item['payment']=$item['payment']-$item['purchaseTransactions']->sum('pivot.amount');
+
+        });
+
+
+       // return $purchaseReceives;
+        $goods = Goods::with(['goodsCategory'])->get();
+        $shipments = Shipment::all();
+        $fobItems = FobItem::all();
+        $suppliers = Supplier::all();
+      //  return $transaction;
+
+        return view('purchase-transaction.edit', [
+            'goods' => $goods,
+            'shipments' => $shipments,
+            'fob_items' => $fobItems,
+            'suppliers' => $suppliers,
+            'transaction'=>$transaction,
+            'selected_purchase_orders'=>$purchaseReceives
+            
+        ]);
     }
 
     /**
@@ -290,7 +376,194 @@ class PurchaseTransactionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
+              // return $request->all();
+        $date=$request->date;
+        $transactionsByCurrentDateCount = PurchaseTransaction::query()->where('date', $date)->get()->count();
+        
+        $number = 'PT'.'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+       
+
+        try{
+             DB::beginTransaction();
+            $purchaseTransaction=PurchaseTransaction::findOrFail($id);
+            DB::table('purchase_receive_purchase_transaction')->where("purchase_transaction_id",$id)->delete();
+            // $purchaseOrder=PurchaseOrder::findOrFail($request->purchase_order_id);
+            
+            $purchases=$request->selected_purchase_orders;
+            $purchaseTransaction->date=$request->date;
+            $purchaseTransaction->number=$number;
+            $purchaseTransaction->payment_amount=$request->payment_amount;
+            $purchaseTransaction->total=$request->payment_amount;
+            $purchaseTransaction->supplier_id=$request->supplier_id;
+            $purchaseTransaction->purchase_order_id=1;
+            $payment=$request->payment_amount;
+            $purchaseTransaction->save();
+
+          
+
+            foreach ($purchases as $purchase){
+               if ($purchase['is_checked']==true){
+                   if ($payment>0){
+                    $purchaseReceive=PurchaseReceive::findOrFail($purchase['id']);
+                  if ($payment>=$purchase['total']){
+                      $purchaseReceive->payment=$purchase['total'];
+                      $purchaseReceive->save();
+                   
+                      $data=[
+                          'purchase_transaction_id'=>$purchaseTransaction->id,
+                          'purchase_receive_id'=>$purchase['id'],
+                          'amount'=>$purchase['total']
+                      ];
+                      $payment=$payment-$purchase['total'];
+                       DB::table('purchase_receive_purchase_transaction')->insert($data);
+
+                  }else{
+                      $purchaseReceive->payment=$payment;
+                      $purchaseReceive->save();
+                      $data=[
+                          'purchase_transaction_id'=>$purchaseTransaction->id,
+                          'purchase_receive_id'=>$purchase['id'],
+                          'amount'=>$payment
+                      ];
+                      $payment=0;
+                       DB::table('purchase_receive_purchase_transaction')->insert($data);
+
+                  }  
+                   }
+                 
+                 
+               }
+
+            }
+            
+
+
+            // $purchaseOrder->payment=$purchaseOrder->payment+$request->amount;
+
+          
+            // $purchaseOrder->save();
+           
+            DB::commit();
+        }catch(Exception $e){
+            DB::rollBack();
+                return response()->json([
+                'message' => 'Internal error',
+                'progress' => '',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+
+        }
+        // $purchaseTransactionWithNumber = PurchaseTransaction::where('number', $request->number)->first();
+        // if ($purchaseTransactionWithNumber !== null) {
+        //     return response()->json([
+        //         'message' => 'number or code already used',
+        //         'code' => 400,
+        //         // 'errors' => $/e,
+        //     ], 400);
+        // }
+
+        // $progress = '';
+        // DB::beginTransaction();
+
+        // try {
+        //     $paymentAmount = $this->clearThousandFormat($request->payment_amount);
+
+        //     // $progress = 'saving data...';
+
+        //     $purchaseTransaction = new PurchaseTransaction();
+        //     $purchaseTransaction->number = $request->number;
+        //     $purchaseTransaction->date = $request->date;
+        //     $purchaseTransaction->payment_amount = $request->payment_amount;
+        //     $purchaseTransaction->supplier_id = $request->supplier_id;
+        //     $purchaseTransaction->description = $request->description;
+        //     $purchaseTransaction->total = $request->total;
+        //     $purchaseTransaction->save();
+
+        //     $purchaseOrders = $request->selected_purchase_orders;
+        //     $selectedPurchaseOrdersIds = collect($purchaseOrders)->pluck('id')->all();
+
+        //     $payments = [];
+        //     $totalPurchaseOrders = 0;
+
+        //     $progress = 'saving calculate distribution...';
+
+        //     PurchaseOrder::with(['purchaseTransactions'])
+        //         ->whereIn('id', $selectedPurchaseOrdersIds)
+        //         ->orderBy('date', 'ASC')
+        //         // ->where('paid', 0)
+        //         ->get()
+        //         ->each(function ($po) {
+        //             $po['total_payment'] = collect($po->purchaseTransactions)
+        //                 ->map(function ($transaction) {
+        //                     return $transaction->pivot->amount;
+        //                 })->sum();
+        //         })
+        //         ->filter(function ($po) {
+        //             return $po->total_payment < $po->total;
+        //         })
+        //         ->each(function ($po) use ($paymentAmount, &$totalPurchaseOrders, &$payments, $purchaseTransaction) {
+        //             // Remaining Debt Has To Pay Per Invoice
+        //             $remainingPOTotal = $po->total - $po->total_payment;
+
+        //             $amount = $remainingPOTotal;
+
+        //             $remainingPaymentAmount = $paymentAmount - $totalPurchaseOrders;
+
+        //             if ($remainingPOTotal > $remainingPaymentAmount) {
+        //                 $amount = $remainingPaymentAmount;
+        //             }
+
+        //             $payment = [
+        //                 'purchase_transaction_id' => $purchaseTransaction->id,
+        //                 'purchase_order_id' => $po->id,
+        //                 'amount' => $amount,
+        //             ];
+
+        //             array_push($payments, $payment);
+
+        //             $totalPurchaseOrders = $totalPurchaseOrders + $remainingPOTotal;
+        //             if (($paymentAmount - $totalPurchaseOrders) <= 0) {
+        //                 return false;
+        //             }
+        //         });
+
+        //     $progress = 'mapping with keys...';
+        //     $keyedPayments = collect($payments)->mapWithKeys(function ($item) {
+        //         return [
+        //             $item['purchase_order_id'] => [
+        //                 'amount' => $item['amount'],
+        //                 'created_at' => Carbon::now()->toDateTimeString(),
+        //                 'updated_at' => Carbon::now()->toDateTimeString(),
+        //             ]
+        //         ];
+        //     });
+
+        //     $progress = 'attaching purchase orders';
+        //     $purchaseTransaction->purchaseOrders()->attach($keyedPayments);
+
+        //     $progress = 'commiting query...';
+        //     DB::commit();
+
+        //     return response()->json([
+        //         'message' => 'Data has been saved',
+        //         'code' => 200,
+        //         'error' => false,
+        //         'data' => $purchaseTransaction,
+        //     ]);
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     return response()->json([
+        //         'message' => 'Internal error',
+        //         'progress' => $progress,
+        //         'code' => 500,
+        //         'error' => true,
+        //         'errors' => $e,
+        //     ], 500);
+        // }
+     
     }
 
     /**
@@ -301,11 +574,14 @@ class PurchaseTransactionController extends Controller
      */
     public function destroy($id)
     {
+
         //
     DB::beginTransaction();
     try{
         $purchaseTransaction=PurchaseTransaction::findOrFail($id);
+      
         $purchaseOrder=PurchaseOrder::findOrFail($purchaseTransaction->purchase_order_id);
+  
         $purchaseOrder->payment=$purchaseOrder->payment-$purchaseTransaction->payment_amount;
         $purchaseOrder->save();
 
@@ -340,5 +616,24 @@ class PurchaseTransactionController extends Controller
     private function clearThousandFormat($number)
     {
         return str_replace(".", "", $number);
+    }
+
+     public function supplierTransactions($id){
+     
+        $purchaseReceives=PurchaseReceive::with(['purchaseOrder','goods'])->wherehas('purchaseOrder',function($q) use ($id){
+            $q->where('supplier_id','=',$id);
+        })->get();
+         $purchaseReceives=collect($purchaseReceives)->each(function($item){
+            $item['receive_discount']=0;
+            $item['is_checked']=false;
+
+        });
+        
+
+            return response()->json([
+                'data' => $purchaseReceives,
+                'code' => 200,
+            ]);
+       
     }
 }

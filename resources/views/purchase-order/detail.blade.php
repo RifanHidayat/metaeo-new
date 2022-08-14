@@ -58,7 +58,7 @@
 @section('content')
 <div class="row" id="app">
     <div class="col-lg-12">
-        <h3 class="text-muted"> No.  @{{purchaseOrder.number}} </h3>
+        <h3 class="text-muted"> </h3>
         <div class="card card-custom gutter-b">
             <div class="card-header">
                 <h3 class="card-title">Detail Pembelian</h3>
@@ -326,7 +326,7 @@
                                     </div>
 
 
-                                             <div class="my-3 rounded p-5">
+                                             <!-- <div class="my-3 rounded p-5">
                                         <a data-toggle="collapse" href="#collapseReturnInfo" role="button" aria-expanded="false" aria-controls="collapsePOInfo" class="d-block text-dark-50">
                                             <div class="row justify-content-between">
                                                 <div class="col-sm-6">
@@ -404,28 +404,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <!-- <div class="col-lg-3">
-                                                <div class="border">
-                                                    <div class="bg-danger w-100" style="height: 5px;"></div>
-                                                    <div class="p-3">
-                                                        <h4>Diskon <a data-toggle="collapse" href=".collapseDiscount" role="button" aria-expanded="false" aria-controls="collapseDiscount"><i class="flaticon-edit text-primary"></i></a></h4>
-                                                        <div class="collapse show collapseDiscount">
-                                                            <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(discount) }}</p>
-                                                        </div>
-                                                        <div class="collapse collapseDiscount">
-                                                            <div class="input-group">
-                                                                <div class="input-group-prepend">
-                                                                    <span class="input-group-text">Rp</span>
-                                                                </div>
-                                                                <input type="text" v-model="discount" class="form-control form-control text-right">
-                                                                <div class="input-group-append">
-                                                                    <button type="button" class="btn btn-success" data-toggle="collapse" data-target=".collapseDiscount" aria-expanded="false" aria-controls="collapseDiscount"><i class="fas fa-save"></i></button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div> -->
+                                         
                                           
                                         </div>
                                     </div>
@@ -434,7 +413,7 @@
   
                                         </template>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <div class="my-3  rounded p-5">
                                         <a data-toggle="collapse" href="#collapseTrInfo" role="button" aria-expanded="false" aria-controls="collapseTrInfo" class="d-block text-dark-50">

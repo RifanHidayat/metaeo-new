@@ -52,7 +52,7 @@
 
             <!--end::Dropdown-->
             <!--begin::Button-->
-            <!-- <a href="/purchase-transaction/create" class="btn btn-primary font-weight-bolder">
+            <a href="/purchase-transaction/create" class="btn btn-primary font-weight-bolder">
                 <span class="svg-icon svg-icon-md">
 
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -65,7 +65,7 @@
 
                 </span>Pembayaran Baru
             </a>
-            end::Button -->
+             
         </div>
     </div>
     <div class="card-body">
@@ -74,7 +74,9 @@
             <thead>
                 <tr class="text-center">
                       <th>Tanggal</th>
-                    <th>Nomor</th>
+                       <th>Nomor</th>
+                         <th>Supplier</th>
+                   
                        <th>Pembayaran</th>
                   
                     <th>Action</th>
@@ -153,18 +155,27 @@
             order: [
                 [1, 'desc']
             ],
-            columns: [{
+            columns: [
+                {
                     data: 'number',
                     name: 'purchase_transactions.number',
                     render: function(data, type, row) {
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
+              
                 {
                     data: 'date',
                     name: 'purchase_transactions.date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
+                    }
+                },
+                  {
+                    data: 'supplier',
+                    name: 'supplier',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
                     }
                 },
                  {

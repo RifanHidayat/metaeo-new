@@ -78,7 +78,7 @@
                          <label>Supplier:</label>
                                 <select v-model="supplier" class="form-control" id="supplier-select">
                                     <option value="">Pilih Supplier</option>
-                                    <option v-for="(supplier, index) in suppliers" :value="supplier.id">@{{ supplier.name }}(@{{supplier.division!=null?supplier.division.name:""}})  </option>
+                                    <option v-for="(supplier, index) in suppliers" :value="supplier.id">@{{ supplier.name }}  </option>
                                 </select>
                             <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
                         </div> 
@@ -91,8 +91,9 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp</span>
                                     </div>
-                                    <input type="text" v-model="paymentAmount" class="form-control text-right">
+                                    <input type="text" v-model="paymentAmount" class="form-control text-right" @input="validateAmount">
                                 </div>
+                                <span class="text-danger">Pembayaran : @{{ toCurrencyFormat(subtotal )}}</span>
                             <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
                         </div> 
                             <!-- <div class="form-group">
@@ -143,19 +144,22 @@
                             <div class="tab-pane fade show active" id="goods" role="tabpanel" aria-labelledby="goods-tab">
                                 <div class="mt-2">
                                     <div class="my-3 text-right">
-                                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#POModal"><i class="flaticon2-plus"></i> Tambah</button>
+                                        <!-- <button type="button" class="btn btn-success" data-toggle="modal" data-target="#POModal"><i class="flaticon2-plus"></i> Tambah</button> -->
                                     </div>
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
-                                                <td>Kode #</td>
-                                                <td>Tanggal</td>
-                                                <td>Subtotal</td>
-                                                <td>Diskon</td>
-                                                <td>Total</td>
-                                                <td>Dibayar</td>
+                                             <td></td>
+                                                <td>Tgl Invoice</td>
+                                                <td>No. invoice</td>
+                                                <td>Kuantitas</td>
+                                                 <!-- <td>discount</td> -->
+                                                 <td>Harga</td>
+                                               
+                                                
+                                                 <td>Pembayaran</td>
                                                 <td>Sisa Bayar</td>
-                                                <td></td>
+                                                
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -164,18 +168,39 @@
                                                     <p class="text-center">
                                                         <i class="flaticon2-open-box font-size-h1"></i>
                                                     </p>
-                                                    <p class="text-center">Belum ada barang</p>
+                                                    <p class="text-center">Belum ada penerimaan</p>
                                                 </td>
                                             </tr>
                                             <tr v-for="(po, index) in selectedPurchaseOrders">
-                                                <td class="align-middle">@{{ po.number }}</td>
-                                                <td class="align-middle">@{{ po.date }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(po.subtotal) }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(po.discount) }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(po.total) }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(po.total_payment) }}</td>
-                                                <td class="align-middle text-right">@{{ toCurrencyFormat(Number(po.total) - Number(po.total_payment)) }}</td>
-                                                <td class="align-middle text-center"><a href="#" @click.prevent="removePurchaseOrder(index)"><i class="flaticon2-trash text-danger"></i></a></td>
+                                                   <td class="text-center align-middle">
+                                                    <label v-if="po.payment<po.total" class="checkbox justify-content-center">
+                                                        <input type="checkbox" v-model="po.is_checked">
+                                                        <span></span>
+                                                    </label>
+                                                </td>
+                                                <td class="align-middle">@{{po.invoice_number}}</td>
+                                                <td class="align-middle">
+                                                    @{{po.invoice_date}}
+                                                </td>
+                                                <td class="align-middle text-right">
+                                                     @{{po.quantity}}
+                                                </td>
+                                                
+                                                <!-- <td class="align-middle text-right">
+                                                      @{{po.discount}}
+                                                </td> -->
+                                                <td class="align-middle text-right">
+                                                        @{{Number(po.total)}}
+
+                                                </td>
+                                                
+                                                <td class="align-middle text-right">
+                                                      @{{po.payment}}
+                                                </td>
+                                                <td class="align-middle text-right">
+                                                      @{{Number(po.total) - Number(po.payment)}}
+                                                </td>
+                                               
                                             </tr>
                                         </tbody>
                                     </table>
@@ -185,8 +210,8 @@
                                                 <div class="border">
                                                     <div class="bg-primary w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
-                                                        <strong>Jumlah Pembayaran</strong>
-                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(paymentAmount) }}</p>
+                                                        <strong>Total Pembayaran</strong>
+                                                        <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(subtotal) }}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -194,7 +219,7 @@
                                                 <div class="border">
                                                     <div class="bg-danger w-100" style="height: 5px;"></div>
                                                     <div class="p-3">
-                                                        <strong>Total Sisa Bayar</strong>
+                                                        <strong>Total Hutang</strong>
                                                         <p class="text-right font-size-h4">Rp @{{ toCurrencyFormat(remainingPayments) }}</p>
                                                     </div>
                                                 </div>
@@ -390,18 +415,31 @@
                 }
 
                 return false;
+            },
+            validateAmount:function(){
+                if (this.paymentAmount>this.subtotal){
+                    this.paymentAmount=this.subtotal;
+                }
+
             }
         },
         computed: {
             remainingPayments: function() {
-                return this.selectedPurchaseOrders.map(po => Number(po.total) - Number(po.total_payment)).reduce((acc, cur) => {
+                return this.selectedPurchaseOrders.map(po => Number(po.total) - Number(po.  payment)).reduce((acc, cur) => {
                     return acc + cur;
                 }, 0)
             },
             subtotal: function() {
-                const subtotal = 0;
+                  return this.selectedPurchaseOrders.filter(po =>{
+                      return po.is_checked==true;
+                    
 
-                return subtotal;
+                  }).map(po=>{
+                      const amount=Number(po.total)-Number(po.payment);
+                      return amount;
+                  }).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0)
             },
             grandTotal: function() {
                 const grandTotal = 0;
@@ -652,9 +690,22 @@
         });
 
         $("#supplier-select").on('change', function() {
-            console.log('clicked');
+            
             app.$data.supplier = $(this).val();
-            // console.log(searchText);
+
+            axios.get(`/purchase-transaction/supplier/${$(this).val()}`)
+            .then((response)=>{
+                app.$data.selectedPurchaseOrders=response.data.data;
+                 console.log(response.data.data);
+
+            
+            
+            }).catch((err)=>{
+
+            
+            
+            });
+           
         });
 
         $(document).on('click', '#btn-add-supplier', function(e) {

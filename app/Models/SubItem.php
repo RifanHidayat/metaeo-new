@@ -14,7 +14,7 @@ class SubItem extends Model
 
     }
     public function goods(){
-         return $this->belongsTo(Goods::class);
+         return $this->belongsTo(Goods::class,'product_id');
     
         }
 

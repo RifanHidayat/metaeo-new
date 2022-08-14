@@ -43,7 +43,7 @@
 <div class="card card-custom gutter-b" id="app">
   <div class="card-header flex-wrap py-3">
     <div class="card-title">
-      <h3 class="card-label">List Subitem
+      <h3 class="card-label">List Subitem {{$item->name }}
         <!-- <span class="d-block text-muted pt-2 font-size-sm">sorting &amp; pagination remote datasource</span> -->
       </h3>
     </div>
@@ -75,6 +75,7 @@
           <td>Nama</td>
           <td>Satuan Quantity</td>
           <td>Satuan Frekuensi</td>
+          <td>Category</td>
           <td>Status</td>
           <td>Action</td>
         </tr>
@@ -85,6 +86,7 @@
           <td>{{ $subitem->name }}</td>
           <td>{{ $subitem->unit_quantity }}</td>
          <td>{{ $subitem->unit_frequency }}</td>
+         <td>{{ $subitem->product_id!=0?"Stock":"Non Stock" }}</td>
         <td>{{ $subitem->is_active=="1"?"Active ":"In Active" }}</td>
           <td class="text-center">
             <a href="/quotation-item/{{$item->id}}/subitem/edit/{{ $subitem->id }}" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">

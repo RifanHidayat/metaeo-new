@@ -74,8 +74,8 @@
         <tr>
           <td>Nama</td>
           <td>Total subitem</td>
-          <td>type</td>
-          <td>Category</td>
+          <td>Objek PPh</td>
+         
            <td>Status</td>
           <td>Action</td>
         </tr>
@@ -85,8 +85,8 @@
         <tr>
           <td>{{ $item->name }}</td>
           <td class="text-right">{{ $item->subitem_total }}</td>
-          <td>{{ $item->type=="cost"?"Commissionable Cost":"Nonfee Cost" }}</td>
-          <td>{{ $item->is_stock==1?"Stock":"Non Stock" }}</td>
+          <td>{{ $item->pph_object=="pph23"?"PPh23":"PPh Pasal 4" }}</td>
+         
           <td>{{ $item->is_active=="1"?"Active": "In Active" }}</td>
           <td class="text-center">
             <a href="/quotation-item/edit/{{ $item->id }}" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">

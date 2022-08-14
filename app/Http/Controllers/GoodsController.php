@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\Goods;
 use App\Models\unit;
 use App\Models\GoodsCategory;
+use App\Models\GoodsSubCategory;
+use App\Models\PphRate;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Calculation\Category;
 
 class GoodsController extends Controller
@@ -19,6 +23,7 @@ class GoodsController extends Controller
     public function index()
     {
         $goods = Goods::with(['goodsCategory'])->get();
+       
         $units=Unit::all();
         return view('goods.index', [
             'goods' => $goods,
@@ -34,11 +39,18 @@ class GoodsController extends Controller
     public function create()
     {
         $categories = GoodsCategory::all();
+        $subCategories = GoodsSubCategory::all();
         $units=Unit::all();
+         $pphRate=PphRate::all();
+         $accounts=Account::all();
+       
        // return $units;
         return view('goods.create', [
             'categories' => $categories,
+            'sub_categories'=>$subCategories,
             'units'=>$units,
+            'pph_rate'=>$pphRate,
+            'accounts'=>$accounts
         ]);
     }
 
@@ -50,17 +62,36 @@ class GoodsController extends Controller
      */
     public function store(Request $request)
     {
-        //return $request->all();
+        DB::beginTransaction();
+          if (strlen($request->number) < 15) {
+            return response()->json([
+                'message' => 'Kode produk diisi dengan 15 karakter',
+                'code' => 400,
+                // 'errors' => $/e,
+            ], 400);
+        }
+
+
+
+        
         $goods = new Goods();
         $goods->goods_category = $request->category;
+        $goods->goods_category_id = $request->category;
         $goods->number = $request->number;
         $goods->name = $request->name;
         $goods->unit = $request->unit;
         $goods->purchase_price = $request->purchase_price;
+        $goods->goods_sub_category_id= $request->goods_sub_category_id ;
+        $goods->pph_rate_id= $request->type=="persediaan"?0:$request->pph_rate_id;
         $goods->type=$request->type;
-        $goods->pph=$request->type=="persediaan"?0:$request->pph;
-        
+        $goods->pph=$request->type=="persediaan"?0:0;
+        $goods->expense_account=$request->expense_account;
+        $goods->sales_account=$request->sales_account;
+        $goods->discount_sales_account=$request->discount_sales_account;
+        $goods->purchases_unbilled_account=$request->purchases_unbilled_account;
         $goods->stock = "0";
+
+
 
         $goodsWithNumber = Goods::where('number', $request->number)->first();
         if ($goodsWithNumber !== null) {
@@ -73,13 +104,14 @@ class GoodsController extends Controller
 
         try {
             $goods->save();
-
+            DB::commit();
             return response()->json([
                 'message' => 'data has been saved',
                 'data' => $goods,
                 'code' => 200,
             ]);
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'internal error',
                 'code' => 500,
@@ -141,7 +173,7 @@ class GoodsController extends Controller
         $goods->purchase_price = $request->purchase_price;
         $goods->type=$request->type;
         $goods->is_active=$request->is_active;
-           $goods->pph=$request->type=="persedian"?0:$request->pph;
+        $goods->pph=$request->type=="persedian"?0:$request->pph;
         $goods->stock = "0";
 
         // $goodsWithNumber = Goods::where('number', $request->number)->first();

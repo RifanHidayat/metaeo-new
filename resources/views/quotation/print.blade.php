@@ -196,7 +196,7 @@ function stringifyDate($date)
                     @endif
                 </td>
             </tr>
-            <tr>
+            <!-- <tr>
                 <td>PPN 10%</td>
                 <td style="text-align:right">
                     @if(count($quotation->estimations) == 1)
@@ -206,7 +206,7 @@ function stringifyDate($date)
                     </div>
                     @endif
                 </td>
-            </tr>
+            </tr> -->
             <?php if ($quotation->pph > 0) : ?>
                 <tr>
                     <td>PPH 23</td>

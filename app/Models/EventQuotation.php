@@ -17,7 +17,7 @@ class EventQuotation extends Model
     }
      public function subitems()
     {
-        return $this->belongsToMany(SubItem::class)->withPivot('sub_item_id', 'event_quotation_id','quantity','frequency','is_stock','rate','subtotal',);
+        return $this->belongsToMany(SubItem::class)->withPivot('sub_item_id', 'event_quotation_id','quantity','frequency','is_stock','rate','subtotal','duration',);
     }
       public function goods()
     {
@@ -52,6 +52,9 @@ class EventQuotation extends Model
 
     public function v2SalesOrder(){
         return $this->hasOne(V2SalesOrder::class);
+    }
+    public function user(){
+        return $this->belongsTo(User::class,'created_by');
     }
     // public function deliveryOrders()
     // {

@@ -50,7 +50,20 @@
       <!--begin::Form-->
       <form class="form" autocomplete="off" @submit.prevent="submitForm">
         <div class="card-body">
+          
           <div class="form-group row">
+          <div class="form-row col-9">
+                        <div class="form-group col-lg-8">
+                         <label>Status:</label>
+                                <select v-model="type" class="form-control">
+                                    <option value="po">PIC PO</option>
+                                    <option value="event">PIC Event</option>
+                                    
+                                </select>
+                        </div>
+                      
+                        
+                        </div>
             <div class="col-lg-6">
               <label>Nama:<span class="text-danger">*</span></label>
               <input v-model="name" type="text" class="form-control" placeholder="Enter pic's name" required>
@@ -169,6 +182,7 @@
       customerId: '',
       customers: JSON.parse('{!! $customers !!}'),
       loading: false,
+      type:'' 
     },
     methods: {
       submitForm: function() {
@@ -184,6 +198,7 @@
             email: this.email,
             position: this.position,
             customer_id: this.customerId,
+            type:this.type
           })
           .then(function(response) {
             vm.loading = false;

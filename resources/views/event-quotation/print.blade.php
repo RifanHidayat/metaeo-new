@@ -86,7 +86,7 @@
 
 function rupiahFormat($number)
 {
-    return number_format($number, 0, ',', '.');
+    return number_format($number, 2, ',', '.');
 }
 
 function isValidDate($date, $format = 'Y-m-d')
@@ -112,7 +112,7 @@ function stringifyDate($date)
 <body>
     <div class="header">
         <div class="header-left">
-            <img src="{{ $company->logo !== null ? Storage::disk('s3')->url($company->logo) : '' }}" alt="Logo" height="40"><br>
+          
             <span style="display: block;">{{ $company->name }}</span>
             <div style="display: block;">{{ $company->address }}</div>
             <span style="display: block;">Phone {{ $company->phone }}; Fax {{ $company->fax }}</span>
@@ -141,6 +141,7 @@ function stringifyDate($date)
             <span>Title : <strong><?= $quotation->title ?></strong></span><br>
              <span>Venue : <strong><?= $quotation->venue     ?></strong></span><br>
                <span style="text-transform: capitalize">To : <strong><?= $quotation->picEvent->name ?></strong></span><br>
+               <span style="text-transform: capitalize">Date Event: <strong><?= $quotation->event_date ?></strong></span><br>
             
         </div>
     </div>
@@ -157,12 +158,10 @@ function stringifyDate($date)
             </tr>
         </thead>
         <tbody>
-        <tr>
-        <td colspan="3"><span><strong>Nonfee Cost</strong></span></td>
-        </tr>
+        
 
             <?php $subtotalNon=0?>
-            @foreach($non as $nonfee)
+            @foreach($all as $nonfee)
             <tr>
                 <td class="align-top text-center">{{ $loop->iteration }}</td>
                 <td class="align-top">
@@ -174,72 +173,89 @@ function stringifyDate($date)
             </tr>
             <?php $subtotalNon+=$nonfee->subtotal ?>
             @endforeach
-             <tr>
+             <!-- <tr>
              
             <td colspan="2"><span>Total</span></td>
              <td  class="text-right" ><span><strong>{{ rupiahFormat($subtotalNon) }}</strong></span></td>
-             </tr>
-             <tr>
-        
-        <td colspan="3" ><span><strong>Commissionable Cost</strong></span></td>
-         <?php $subtotalCost=0?>
-             @foreach($cost as $cosmissionable)
-            <tr>
-                <td class="align-top text-center">{{ $loop->iteration }}</td>
-                <td class="align-top">
-                    
-                    <p>{{ $cosmissionable->name }}</p>
-                </td>
-                
-                <td class="text-right align-top">{{ rupiahFormat($cosmissionable->subtotal) }}</td>
-            </tr>
-             <?php $subtotalCost+=$cosmissionable->subtotal ?>
-            @endforeach
-             <tr>
-             
-            <td colspan="2"><span>Total</span></td>
-             <td class="text-right" ><span><strong>{{ rupiahFormat($subtotalCost) }}</strong></span></td>
-             </tr>
+             </tr> -->
+            
         </tr>
             <?php
             $rowspan = 2;
             $colspan=2;
-            if ($quotation->ppn == 1) {
+            if ($quotation->is_show_ppn == 1) {
                 $rowspan += 1;
             }
-            if ($quotation->pph23 == 1) {
+            if ($quotation->is_show_pph == 1) {
                 $rowspan += 1;
             }
             ?>
+            @php
+            $total=$quotation->netto;
+            $netto=$quotation->netto;
+            if ($quotation->is_show_discount==1){
+               
+            }else{
+                $netto=$netto+$quotation->discount;
+                $total=$total+$quotation->discount;
+            }
+            if ($quotation->is_show_ppn==1){
+                $ppn=$netto * ($quotation->ppn_percent/100);
+                $total=$total+$ppn;
+               
+            }
+            if ($quotation->is_show_pph==1){
+                $total=$total-$quotation->pph23_amount;
+            }
+            if ($quotation->is_show_pphfinal==1){
+                $total=$total-$quotation->pphfinal_amount;
+            }
+            @endphp
             <tr>
               
-                <td colspan="{{$colspan}}">Subtotal</td>
-                <td class="text-right">{{ rupiahFormat($subtotalCost+$subtotalNon) }}</td>
+                <td colspan="{{$colspan}}">Netto</td>
+                <td class="text-right">{{ rupiahFormat($subtotalNon) }}</td>
             </tr>
              <tr>
-                <td colspan="{{$colspan}}">ASF {{ $quotation->asf_percent }}%</td>
+                <td colspan="{{$colspan}}">ASF </td>
                 <td class="text-right"> {{ rupiahFormat($quotation->asf) }}</td>
             </tr>
+            @if($quotation->is_show_discount==1):
             <tr>
-                <td colspan="{{$colspan}}">Discount {{ $quotation->discount_percent }}%</td>
+                <td colspan="{{$colspan}}">Discount </td>
                 <td class="text-right"> {{ rupiahFormat($quotation->discount) }}</td>
             </tr>
+            @endif
+            
          
             <tr>
-                <td colspan="{{$colspan}}"  >Netto</td>
-                <td class="text-right">Rp {{ rupiahFormat($quotation->netto) }}</td>
+                <td colspan="{{$colspan}}"  >Subtotal</td>
+                <td class="text-right">Rp {{ rupiahFormat($netto) }}</td>
             </tr>
+           
+            @if($quotation->is_show_ppn==1):
              <tr>
-                <td colspan="{{$colspan}}"  >PPN 10%</td>
-                <td class="text-right">Rp {{ rupiahFormat($quotation->ppn_amount) }}</td>
+                <td colspan="{{$colspan}}"  >PPN {{$quotation->ppn_percent}}%</td>
+                <td class="text-right">Rp {{ rupiahFormat($ppn) }}</td>
             </tr>
+            @endif
+            @if($quotation->is_show_pph==1):
              <tr>
-                <td colspan="{{$colspan}}"  >PPh 2%</td>
+                <td colspan="{{$colspan}}"  >PPh23  {{$quotation->pph23_percent}}%</td>
                 <td class="text-right">Rp {{ rupiahFormat($quotation->pph23_amount) }}</td>
             </tr>
+            @endif
+
+            @if($quotation->is_show_pphfinal==1):
              <tr>
-                <td colspan="{{$colspan}}"  >Total</td>
-                <td class="text-right"><strong>Rp {{ rupiahFormat($quotation->total) }}
+                <td colspan="{{$colspan}}"  >PPh Pasal 4 {{$quotation->pphfinal_percent}}% </td>
+                <td class="text-right">Rp {{ rupiahFormat($quotation->pphfinal_amount) }}</td>
+            </tr>
+            @endif
+            
+             <tr>
+                <td colspan="{{$colspan}}"><strong>Total<strong></td>
+                <td class="text-right"><strong>Rp @php echo rupiahFormat($total)@endphp
                 </strong>
                 </td>
             </tr>
@@ -249,12 +265,12 @@ function stringifyDate($date)
     <br>
     <br>
     <div class="mt-5" >
-    <span ><strong>{{$non_length>0?"Nonfee Cost":""}}</strong><span>
-    @foreach ($non as $nonfee)
+    
+    @foreach ($all as $nonfee)
 
     <table border="1">
      <tr>
-     <th class="text-left" align="left" colspan="6">
+     <th class="text-left" align="left" colspan="7">
      <strong>{{$nonfee->name}}</strong>
      <tr>
             
@@ -269,6 +285,9 @@ function stringifyDate($date)
             </th>
               <th style="width: 15%;">
                 Quantity
+            </th>
+            <th style="width: 15%;">
+                Duration
             </th>
              <th style="width: 15%;">
                 Frequency
@@ -291,16 +310,16 @@ function stringifyDate($date)
      <!-- <span>{{$subitem->pivot->is_stock==1?"Barang":""}}</span> -->
      </td>
       <td align="center"> {{$subitem->pivot->quantity}} {{$subitem->pivot->is_stock==0?$subitem->unit_quantity:$subitem->unit}} </td>
-       
+      <td align="right" >{{rupiahFormat($subitem->pivot->duration)}} </td>
        <td align="center"> {{$subitem->pivot->is_stock==0?$subitem->pivot->frequency:""}} {{$subitem->pivot->is_stock==0?$subitem->unit_frequency:"0"}} </td>
-      
+     
        <td align="right" >{{rupiahFormat($subitem->pivot->rate)}} </td>
        <td align="right"> {{rupiahFormat($subitem->pivot->subtotal)}}</td>
     
     <tr>
      @endforeach
      <tr>
-     <th colspan="5" align="left">Total</th>
+     <th colspan="6" align="left">Total</th>
       <th align="right">{{rupiahFormat($nonfee->subtotal)}}</th>
      </tr>
       <tr>
@@ -314,77 +333,12 @@ function stringifyDate($date)
     @endforeach
 
     </div>
-     <br>
-    <br>
-    <div>
-
-
-    <span><strong>{{$cost_length>0?"Commissionable Cost":""}}</strong><span>
-    @foreach ($cost as $nonfee)
-
-    <table border="1">
-     <tr>
-     <th class="text-left" align="left" colspan="6">
-     <strong>{{$nonfee->name}}</strong>
-     <tr>
-            
-     </th>
-     <thead>
- <tr>
-            <th style="width: 5%;">
-                No
-            </th>
-             <th style="width: 20%;">
-                Description
-            </th>
-              <th style="width: 15%;">
-                Quantity
-            </th>
-             <th style="width: 15%;">
-                Frequency
-            </th>
-              <th style="width: 20%;">
-                Rate
-              <th style="width: 25%;">
-            
-                Subtotal
-            </th>
-            <tr>
-     </thead>
-     <tbody>
-     @foreach ($nonfee->sub_items as $subitem)
-     <tr>
-     <td align="right">{{ $loop->iteration }}</td>
-     <td>{{$subitem->name}}</td>
-        <td align="center"> {{$subitem->pivot->quantity}} {{$subitem->unit_quantity}} </td>
-       <td align="center"> {{$subitem->pivot->frequency}} {{$subitem->unit_frequency}} </td>
-  
-       <td align="right" >{{rupiahFormat($subitem->pivot->rate)}} </td>
-       <td align="right"> {{rupiahFormat($subitem->pivot->subtotal)}}</td>
-    
-    <tr>
-     @endforeach
-    <tr>
-     <th colspan="5" align="left">Total</th>
-     <th align="right">{{rupiahFormat($nonfee->subtotal)}}</th>
-     </tr>
-
-          <tr>
-     <th style="border:none" colspan="6" align="left"><br></th> 
-     </tr>
-    
-    
-     </tbody>
-     </tr>
-
-    </table>
-    @endforeach
-    </div>
+     
     
     <div>
         <p>Demikian penawaran kami, atas perhatian dan kerjasamanya kami ucapkan terima kasih.</p>
         <span>Hormat kami,</span><br>
-        <span>{{ $company->name }}</span><br>
+        <span>Magenta Mediatama</span><br>
         <!-- <span>Tinco</span> -->
     </div>
 </body>

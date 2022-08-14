@@ -43,6 +43,7 @@ class SalesOrderController extends Controller
     public function indexData()
     {
         $salesOrders = V2SalesOrder::with(['v2Quotation', 'customerPurchaseOrder.eventQuotations', 'jobOrders', 'invoices', 'deliveryOrders','eventQuotation'])->select('v2_sales_orders.*');
+        //return $salesOrders->get();
         
         return DataTables::eloquent($salesOrders)
             ->addIndexColumn()
@@ -64,6 +65,7 @@ class SalesOrderController extends Controller
                 } else {
                     return '';
                 }
+
             })
             ->addColumn('quotation_po_date', function (V2SalesOrder $salesOrder) {
                 // return $salesOrder->v2Quotation->map(function ($quotation) {
@@ -123,10 +125,10 @@ class SalesOrderController extends Controller
             ->addColumn('netto',function($row){
                 if ($row->source=="quotation"){
                       
-                      if ($row->eventQuotation!=null){
+                    if ($row->eventQuotation!=null){
                     return $row->eventQuotation->netto;
                 }else{
-                    return "0";
+                    return $row->netto;
                 }
               
                 }else{

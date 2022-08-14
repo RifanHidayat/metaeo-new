@@ -72,11 +72,16 @@
         <table class="table datatable datatable-bordered datatable-head-custom" id="quotation-table">
             <thead>
                 <tr >
+                <th>Tanggal</th>
                     <th>Number</th>
-                    <th>Tanggal</th>
-                         <th>No.PO</th>
-                     <th>Netto</th>
-                     
+                    <th>Title Event</th>
+                    <th>Created By</th>
+                    <th>Customer</th>
+                    <th>Pic Event</th>
+                    <th>Pic Po</th>
+                    <th>Netto</th>
+                    
+                         
                    
                     <th>Action</th>
                 </tr>
@@ -284,28 +289,63 @@
             order: [
                 [1, 'desc']
             ],
-            columns: [{
-                    data: 'number',
-                    name: 'number',
-                    render: function(data, type, row) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div><span  class="text-muted font-weight-bold text-hover-primary">${row.title}</span>`;
-                    }
-                },
-                
-                
-                {
+            columns: [  {
                     data: 'date',
                     name: 'date',
                     render: function(data, type) {
                         return `<span class="text-primary font-weight-bolder font-size-lg">${data}</span>`;
                     },
                     className: 'text-center',
-                },
-                 {
-                    data: 'po_quotation_number',
-                    name: 'po_quotation_number',
+                },{
+                
+                    data: 'number',
+                    name: 'number',
                     render: function(data, type, row) {
-                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0 text-left">${data}</div>`;
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data}</div>`;
+                    }
+                },
+                {
+                
+                data: 'title',
+                name: 'title',
+                render: function(data, type, row) {
+                    return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${row.title}</div></span>`;
+                }
+            },
+            {
+                
+                data: 'title',
+                name: 'title',
+                render: function(data, type, row) {
+                    return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${row.user!=null?row.user.name:""}</div>`;
+                }
+            },
+            
+            {
+                data: 'title',
+                name: 'title',
+                render: function(data, type, row) {
+                    return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${row.customer!=null?row.customer.name:""}</div>`;
+                }
+            },
+            
+            {
+                
+                data: 'title',
+                name: 'title',
+                render: function(data, type, row) {
+                    return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${row.pic_event!=null?row.pic_event.name:""}</div>`;
+                }
+            },
+            
+                
+                
+              
+                 {
+                    data: 'title',
+                name: 'title',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0 text-left">${row.pic_po!=null?row.pic_po.name:""}</div>`;
                     }
                 },
                 {

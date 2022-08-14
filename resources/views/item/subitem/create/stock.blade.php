@@ -57,13 +57,34 @@
       <!--begin::Form-->
       <form class="form" autocomplete="off" @submit.prevent="submitForm">
         <div class="card-body">
+        </div>
+                
 
       
             <div class="form-group col-lg-6">
-            <div class="col-lg-12">
+            <div class="form-row col-12">
+                        <div class="form-group col-lg-12">
+                         <label>Category :</label>
+                                <select v-model="category" class="form-control">
+                                    
+                                    <option value="non" selected>Non Stock</option>
+                                    <option value="stock">Stock</option>
+                                    
+                                </select>
+                        </div>
+                      
+                        
+                        </div>
+            <div class="col-lg-12" v-if="category=='stock'">
               <label>Nama:<span class="text-danger">*</span></label>
               <select2 v-model="productId" :options="products" class="form-control" required>
             </select2>
+             <span class="form-text text-muted">      Please enter subitem's name</span>
+            </div>
+            
+            <div class="col-lg-12" v-if="category=='non'">
+              <label>Nama:<span class="text-danger">*</span></label>
+              <input v-model="name" type="text" class="form-control" placeholder="Enter item's name" required>
              <span class="form-text text-muted">Please enter subitem's name</span>
             </div>
             <div class="col-lg-12">
@@ -100,7 +121,7 @@
 
             </div>
             <div class="col-lg-6 text-lg-right">
-              <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+              <button type="submit" @click="sendData" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
                 Save
               </button>
               <!-- <button type="reset" class="btn btn-secondary">Cancel</button> -->
@@ -176,13 +197,14 @@
     el: '#app',
     data: {
       name: '',
-      uniQuantity: '',
+      unitQuantity: '',
       unitFrequency: '',
       isStock:'',
       isActive:1,
       productId:'', 
       products: JSON.parse('{!! $products !!}'),
       goods:JSON.parse('{!! $goods !!}'),
+      category:'non',
 
     
     
@@ -190,6 +212,7 @@
     },
     methods: {
       submitForm: function() {
+        console.log("tes")
         //console.log(this.productId)
        this.sendData()
        
@@ -207,7 +230,8 @@
             is_stock:1,
             product_id:vm.productId,
             item_id:'{{$item->id}}',
-            is_active:vm.isActive
+            is_active:vm.isActive,
+            category:vm.category
 
         
           })

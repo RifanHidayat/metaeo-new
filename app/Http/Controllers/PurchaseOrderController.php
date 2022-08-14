@@ -42,16 +42,22 @@ class PurchaseOrderController extends Controller
      */
     public function indexData()
     {
-        $purchaseOrders = PurchaseOrder::with('supplier')->select('purchase_orders.*');
+        $purchaseOrders = PurchaseOrder::with('supplier','purchaseReceives')->select('purchase_orders.*');
+        
         return DataTables::eloquent($purchaseOrders)
             ->addIndexColumn()
             ->addColumn('supplier_name',function($row){
                 return $row->supplier!=null?$row->supplier->name:"";
             })
-             ->addColumn('remaining',function($row){
-                return $row->total-$row->payment;
+             ->addColumn('payment_amount',function($row){
+                return $row->purchaseReceives->sum('payment');
             })
+            ->addColumn('receives_quantity',function($row){
+                 return $row->purchaseReceives->sum('quantity');
+            })
+             
 
+            
             ->addColumn('action', function ($row) {
                 $button = '<div class="text-center">';
                 $button .= '<a href="/purchase-order/edit/' . $row->id . '" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -100,14 +106,7 @@ class PurchaseOrderController extends Controller
                                         <span class="navi-text">Penerimaan</span>
                                     </a>
                                 </li>
-                                <li class="navi-item">
-                                    <a href="/purchase-order/return/' . $row->id . '" class="navi-link">
-                                        <span class="navi-icon">
-                                            <i class="flaticon-logout"></i>
-                                        </span>
-                                        <span class="navi-text">Retur</span>
-                                    </a>
-                                </li>
+                              
                                  <li class="navi-item">
                                     <a href="/purchase-order/transaction/' . $row->id . '" class="navi-link">
                                         <span class="navi-icon">
@@ -136,7 +135,8 @@ class PurchaseOrderController extends Controller
     public function create()
     {
         
-        $goods = Goods::with(['goodsCategory'])->get();
+        $goods = Goods::with(['goodsCategory','pphRates'])->get();
+       // return $goods;
         $shipments = Shipment::all();
         $fobItems = FobItem::all();
         $suppliers = Supplier::with('division')->get();
@@ -157,19 +157,23 @@ class PurchaseOrderController extends Controller
      */
     public function store(Request $request)
     {
+        
+       // return $request->selected_goods;
+
+      //  return $request->all();
 
         $supplier = Supplier::findOrFail($request->supplier_id);
         // return $supplier;
       
         DB::beginTransaction();
         try {
-        $supplier = Supplier::with('division')->findOrFail($request->supplier_id);
+       // $supplier = Supplier::with('division')->findOrFail($request->supplier_id);
 
         $date = $request->date;
         
         $transactionsByCurrentDateCount = PurchaseOrder::query()->where('date', $date)->get()->count();
-        $code=$supplier->division!=null?$supplier->division->code:"";
-          $number = $code."".'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+        
+          $number = "PO"."".'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
 
         $purchaseOrderWithNumber = PurchaseOrder::where('number', $request->number)->first();
         if ($purchaseOrderWithNumber !== null) {
@@ -214,7 +218,8 @@ class PurchaseOrderController extends Controller
                     'price' => $item['price'],
                     'discount' => $item['discount'],
                     'total' => $item['total'],
-                    'ppn' => $item['total']*0.1,
+                    'is_ppn' => $item['isPpn'],
+                    'ppn' =>$item['isPpn']==1? $item['total']*0.1:0,
                     'pph' => $item['total']*$item['pph'],
                     // 'description' => $item['description'],
                     'created_at' => Carbon::now()->toDateTimeString(),
@@ -264,6 +269,37 @@ class PurchaseOrderController extends Controller
      */
     public function edit($id)
     {
+
+        $purchaseOrder=PurchaseOrder::with('goods.pphRates')->findOrFail($id);
+        //http://127.0.0.1:8000/purchase-order/edit/24return $purchaseOrder;
+       // return $purchaseOrder;
+
+        $purchaseGoods=collect($purchaseOrder->goods)->each(function($item){
+            $item['quantity']=$item['pivot']['quantity'];
+            $item['discount']=$item['pivot']['discount'];
+            $item['total']=$item['pivot']['total'];
+            $item['ppn']=$item['pivot']['ppn'];
+            $item['isPpn']=$item['pivot']['is_ppn'];
+            $item['price']=$item['pivot']['price'];
+
+        });
+    //  return $purchaseGoods;
+        
+        $goods = Goods::with(['goodsCategory','pphRates'])->get();
+       // return $goods;
+       // return $goods;
+        $shipments = Shipment::all();
+        $fobItems = FobItem::all();
+        $suppliers = Supplier::with('division')->get();
+
+        return view('purchase-order.edit', [
+            'goods' => $goods,
+            'shipments' => $shipments,
+            'fob_items' => $fobItems,
+            'suppliers' => $suppliers,
+            'purchase_order'=>$purchaseOrder,
+            'purhase_goods'=>$purchaseGoods 
+        ]);
         //
     }
     public function print($id){
@@ -337,6 +373,98 @@ class PurchaseOrderController extends Controller
     public function update(Request $request, $id)
     {
         //
+        //return $id;
+
+            $supplier = Supplier::findOrFail($request->supplier_id);
+          //  return $supplier;
+        // return $supplier;
+      
+        DB::beginTransaction();
+        try {
+       // $supplier = Supplier::with('division')->findOrFail($request->supplier_id);
+
+        $date = $request->date;
+        
+        $transactionsByCurrentDateCount = PurchaseOrder::query()->where('date', $date)->get()->count();
+        // $code=$supplier->division!=null?$supplier->division->code:"";
+          $number = "PO"."".'-' . $this->formatDate($date, "d") . $this->formatDate($date, "m") . $this->formatDate($date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+
+        // $purchaseOrderWithNumber = PurchaseOrder::where('number', $request->number)->first();
+        // if ($purchaseOrderWithNumber !== null) {
+        //     return response()->json([
+        //         'message' => 'number or code already used',
+        //         'code' => 400,
+        //         // 'errors' => $/e,
+        //     ], 400);
+        // }
+           // return ""
+            // Create Purchase Order
+        
+            $purchaseOrder = PurchaseOrder::findOrFail($id);
+           // return $purchaseOrder;
+            $purchaseOrder->number = $number;
+            
+            $purchaseOrder->date = $request->date;
+            $purchaseOrder->supplier_id = $request->supplier_id;
+            $purchaseOrder->delivery_address = $request->delivery_address;
+            $purchaseOrder->delivery_date = $request->delivery_date;
+            $purchaseOrder->shipment_id = $request->shipment_id;
+            $purchaseOrder->payment_term = $request->payment_term;
+            $purchaseOrder->fob_item_id = $request->fob_item_id;
+            $purchaseOrder->description = $request->description;
+            $purchaseOrder->subtotal = $request->subtotal;
+            $purchaseOrder->discount = $request->discount;
+            $purchaseOrder->ppn = $request->ppn;
+            $purchaseOrder->ppn_value = $request->ppn_value;
+            $purchaseOrder->ppn_amount = $request->ppn_amount;
+            $purchaseOrder->pph_amount = $request->pph_amount;
+            $purchaseOrder->shipping_cost = $request->shipping_cost;
+            $purchaseOrder->other_cost = $request->other_cost;
+            $purchaseOrder->other_cost_description = $request->other_cost_description;
+            $purchaseOrder->total = $request->total;
+            $purchaseOrder->save();
+
+            // Attach Goods
+            $selectedGoods = $request->selected_goods;
+             DB::table('goods_purchase_order')->where('purchase_order_id',$purchaseOrder->id)->delete();
+            $goods = collect($selectedGoods)->map(function ($item) use ($purchaseOrder) {
+                return [
+                    'purchase_order_id' => $purchaseOrder->id,
+                    'goods_id' => $item['id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'discount' => $item['discount'],
+                    'total' => $item['total'],
+                    'is_ppn' => $item['isPpn'],
+                    'ppn' =>$item['isPpn']==1? $item['total']*0.1:0,
+                    'pph' => $item['total']*$item['pph'],
+                    // 'description' => $item['description'],
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ];
+            })->all();
+
+            // $purchaseOrder->goods()->attach($goods);
+            DB::table('goods_purchase_order')->insert($goods);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Data has been saved',
+                'code' => 200,
+                'error' => false,
+                'data' => $purchaseOrder,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Internal error',
+                'code' => 500,
+                'error' => true,
+                'errors' => $e.'',
+            ], 500);
+        }
     }
 
     /**
@@ -349,6 +477,8 @@ class PurchaseOrderController extends Controller
     {
         //
     DB::beginTransaction();
+
+
     
     try{
         $purchase=PurchaseOrder::findOrFail($id);
@@ -383,8 +513,9 @@ class PurchaseOrderController extends Controller
      */
     public function receive($id)
     {
-        $purchaseOrder = PurchaseOrder::with(['goods', 'supplier', 'fobItem', 'shipment'])->findOrFail($id);
-
+        $purchaseOrder = PurchaseOrder::with(['goods.pphRates', 'supplier', 'fobItem', 'shipment'])->findOrFail($id);
+        //return $purchaseOrder;
+       // return $purchaseOrder->goods;
         $purchaseReceiveGoods = PurchaseReceive::with(['goods'])
             ->where('purchase_order_id', $id)
             ->get()
@@ -429,9 +560,17 @@ class PurchaseOrderController extends Controller
                 'name' => $group[0]->name,
                 'unit' => $group[0]->unit,
                 'purchase_price' => $group[0]->purchase_price,
+                'discount' => $group[0]->discount,
                 'stock' => $group[0]->stock,
+                'type' => $group[0]->type,
+                'pph_rates' => $group[0]->pphRates,
+
                 'pivot' => [
-                    'quantity' => $totalQuantity
+                    'quantity' => $totalQuantity,
+                    'price' => $group[0]->pivot->price,
+                    'discount'=>$group[0]->pivot->discount,
+                    'pphRates'=>$group[0]->pivot->discount,
+                    'ppn'=>$group[0]->pivot->is_ppn
                 ],
                 // 'id' => $group[0]->id,
             ];
@@ -447,15 +586,19 @@ class PurchaseOrderController extends Controller
             // $good['cause'] = 'defective';
             $good['finish'] = $good['received_quantity'] >= $good['pivot']['quantity'] ? 1 : 0;
             return $good;
-        })->sortBy('finish')->all();
+        })->sortBy('finish')->values()->all();
 
-        // return $selectedGoods;
+ //return $selectedGoods;
+
+;
 
         return view('purchase-order.receive', [
             'purchase_order' => $purchaseOrder,
             'selected_goods' => $selectedGoods,
         ]);
     }
+
+  
 
     /**
      * Return goods from specific purchase order.

@@ -12,7 +12,7 @@ class PurchaseOrder extends Model
 
     public function goods()
     {
-        return $this->belongsToMany(Goods::class)->withPivot('id', 'quantity', 'price', 'discount', 'total', 'description');
+        return $this->belongsToMany(Goods::class)->withPivot('id', 'quantity', 'price', 'discount', 'total', 'description','is_ppn');
     }
 
     public function supplier()
@@ -36,7 +36,7 @@ class PurchaseOrder extends Model
     }
     
     public function goodsPurchaseOrders(){
-        return $this->belongsToMany(Goods::class)->withPivot('quantity','price','discount','total','ppn','pph');
+        return $this->belongsToMany(Goods::class)->withPivot('quantity','price','discount','total','ppn','pph','is_ppn');
 
     }
     public function purchaseReturns (){

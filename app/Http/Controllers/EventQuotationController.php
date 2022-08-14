@@ -66,7 +66,7 @@ class EventQuotationController extends Controller
      */
     public function indexData()
     {
-        $quotations = EventQuotation::with('poQuotation')->select('event_quotations.*')->where('type','event');
+        $quotations = EventQuotation::with(['poQuotation','customer','picEvent','picPo','user'])->select('event_quotations.*')->where('type','event');
         //return $quotations;
         return DataTables::eloquent($quotations)
             ->addIndexColumn()
@@ -160,7 +160,11 @@ class EventQuotationController extends Controller
     public function create()
     {
 
- 
+        $items = collect(Item::with(['subitems'])->get())->each(function($item,$index){
+           $item['status']=0;
+        
+        });
+      //  return $items;
         $customers = Customer::all();      
         $eventPics=PicEvent::with('customer')->get();
        
@@ -190,13 +194,14 @@ class EventQuotationController extends Controller
           
 
         });
-
+       
         return view('event-quotation.create', [
             'customers' => $customers,
             'eventPics'=>$eventPics,
             'poPics'=>$poPics,
             'eventPic'=>$eventPic,
             'goods'=>$goods,
+            'items'=>$items
         ]);
     }
 
@@ -208,14 +213,19 @@ class EventQuotationController extends Controller
      */
     public function store(Request $request)
     {
-         $transactionsByCurrentDateCount = EventQuotation::query()->where('date', $request->date)->get()->count();
-        $number = 'QE'.'-' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+       // return $request->selected_subitems;
+      
+      //  return "Tes";
+       
+  
+     
         
-
+    //    // return $request->all();
+    //     $transactionsByCurrentDateCount = EventQuotation::query()->where('date', $request->date)->get()->count();
+    //     $number = 'QE'.'-' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
         DB::beginTransaction();
-
-          $transactionsByCurrentDateCount = EventQuotation::query()->where('date', $request->date)->get()->count();
-            $number = 'QE-' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '-' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
+        $transactionsByCurrentDateCount = EventQuotation::query()->where('date', $request->date)->get()->count();
+        $number = 'QE-' . $this->formatDate($request->date, "d") . $this->formatDate($request->date, "m") . $this->formatDate($request->date, "y") . '' . sprintf('%04d', $transactionsByCurrentDateCount + 1);
 
         try {
 
@@ -234,6 +244,7 @@ class EventQuotationController extends Controller
             $quotation->ppn_amount = $request->ppn_amount;
             $quotation->pph = $request->pph23;
             $quotation->pph23_amount = $request->pph23_amount;
+            $quotation->pphfinal_amount = $request->pphfinal_amount;
             $quotation->total=$request->total;
             $quotation->netto=$request->netto;
             $quotation->customer_id=$request->customer_id;
@@ -244,79 +255,59 @@ class EventQuotationController extends Controller
             $quotation->pic_po_id=$request->po_pic_id;
             $quotation->pic_event_id=$request->event_pic_id;
             $quotation->customer_id = $request->customer_id;
-           // return $selectedItems;
+          //  $quotation->is_show_discount=$request->isShowDiscount;
+            $quotation->is_show_ppn=$request->is_show_ppn;
+            $quotation->is_show_pph=$request->is_show_pph;
+            $quotation->is_show_discount=$request->is_show_discount;
+            $quotation->created_by= $request->created_by;
+            $quotation->is_show_pphfinal=$request->is_show_pphfinal;
+            $quotation->ppn_percent=$request->ppn_percent;
+            $quotation->pph23_percent=$request->pph23_percent;
+            $quotation->pphfinal_percent=$request->pphfinal_percent;
+        
+          
+            
             $quotation->save();
+            
+           // return $selectedItems;
+           $items=collect($request->selected_subitems)->filter(function($item){
+            return $item['is_checked']==true;
+                })->map(function($item) use($quotation){
+            return [
+                'item_id' => $item['item']['id'],
+                'event_quotation_id' => $quotation->id,
+                'type'=>$item['item']['type'],
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'updated_at' => Carbon::now()->toDateTimeString(),
+            ];
 
-            // $items = collect($selectedItems)->map(function ($item) use ($quotation) {
-            //     return [
-            //         'item_id' => $item['id'],
-            //         'event_quotatiom_id' => $quotation->id,
-            //         'type'=>$item['type'],
-            //         'created_at' => Carbon::now()->toDateTimeString(),
-            //         'updated_at' => Carbon::now()->toDateTimeString(),
-            //     ];
-            // })->all();
-
-             foreach ($selectedItems as $item){
-                foreach ($item['items'] as $sub_item ){
-
-                    if ($sub_item['isStock']!=0){
-                    $goodsRow = Goods::find($sub_item['subItemId']);
-                     if ($goodsRow == null) {
-                        continue;
-                     }
-                     $goodsRow->stock=$goodsRow->stock-$sub_item['quantity'];
-                     $goodsRow->save();
-                    }
-                }
-            }
-
-             $items = collect($selectedItems)->map(function ($item) use ($quotation) {
-                return [
-                    'item_id' => $item['id'],
-                    'event_quotation_id' => $quotation->id,
-                    'type'=>$item['type'],
-                    'created_at' => Carbon::now()->toDateTimeString(),
-                    'updated_at' => Carbon::now()->toDateTimeString(),
-                ];
-            })->all();
-
-             DB::table('event_quotation_item')->insert($items);
-
-            collect($selectedItems)->map(function($item) use($quotation){
-                $subitem=collect($item['items'])->where('isStock',0)->map(function($value) use ($quotation){
-                    return [
-                        'sub_item_id'=>$value['subItemId'],
+        })->unique('item_id')->all();
+        DB::table('event_quotation_item')->insert($items);
+            
+        $subitems=collect($request->selected_subitems)->filter(function($item){
+        return $item['is_checked']==true;
+            })->map(function($value) use ($quotation){
+            return [
+                        'sub_item_id'=>$value['id'],
                         'event_quotation_id'=>$quotation->id,
                         'quantity'=>$value['quantity'],
                         'frequency'=>$value['frequency'],
                         'rate'=>$value['rate'],
+                        'duration'=>$value['duration'],
                         'subtotal'=>$value['subtotal'],
-                        'is_stock'=>$value['isStock'],
+                        'is_stock'=>0,
                         
 
                     ];
 
                 })->all();
 
-                 $goods=collect($item['items'])->where('isStock',1)->map(function($value) use ($quotation,$item){
-                    return [
-                        'goods_id'=>$value['subItemId'],
-                        'event_quotation_id'=>$quotation->id,
-                        'quantity'=>$value['quantity'],
-                        'frequency'=>$value['frequency'],
-                        'rate'=>$value['rate'],
-                        'subtotal'=>$value['subtotal'],
-                        'is_stock'=>$value['isStock'],
-                        'item_id'=>$item['id'],
 
-                    ];
+           
+            
+             DB::table('event_quotation_sub_item')->insert($subitems);
 
-                })->all();
-                  DB::table('event_quotation_goods')->insert($goods);
-                  DB::table('event_quotation_sub_item')->insert($subitem);
-            });
-
+        
             
           
             DB::commit();
@@ -671,23 +662,27 @@ class EventQuotationController extends Controller
 
         $company = Company::all()->first();
 
-        if ($company == null) {
-            $newCompany = new Company;
-            $newCompany->save();
-            $company = Company::all()->first();
-        }
+        // if ($company == null) {
+        //     $newCompany = new Company;
+        //     $newCompany->save();
+        //     $company = Company::all()->first();
+
+        // }
+      //  return $company;
         
         $html = view('event-quotation.print', [
             'company' => $company,
             'quotation' => $eventQuotations,
             'cost'=>$cost,
             'non'=>$non,
+            'all'=>$eventQuotations->items,
             'cost_length'=>collect($cost)->count(),
             'non_length'=>collect($non)->count(),
         ]   );
 
         $mpdf->WriteHTML($html);
         $mpdf->Output();
+        exit;
     }
 
     public function email($id){
@@ -698,6 +693,30 @@ class EventQuotationController extends Controller
             'id'=>$id
         ]);
     }
+
+    public function subitem($id){
+        $subitems= subitem::get()->where('item_id',$id)->values()->all();
+        $subtems=collect($subitems)->each(function($item){
+            $item['quantity']=0;
+            $item['frequency']=0;
+            $item['duration']=0;
+            $item['rate']=0;
+            $item['subtotal']=0;
+
+        });
+       // return $subitems;
+
+        return response()->json([
+            'status' => 'OK',
+        
+            'code' => 200,
+            'data'=>$subitems
+        ]);
+        
+
+
+   }
+    
 
     public function sendEmail(Request $request,$id){
            require base_path("vendor/autoload.php");

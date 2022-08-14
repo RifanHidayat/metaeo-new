@@ -72,7 +72,7 @@
                                 </select>
                             </div> -->
                             <div class="form-group">
-                                <label>Tanggal:</label>
+                                <label>Tanggal Penerimaan:</label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
@@ -80,6 +80,32 @@
                                     <input type="text" v-model="date" id="po-date" class="form-control">
                                 </div>
                             </div>
+                                <div class="form-group">
+                                <label>No. Surat jalan:</label>
+                                <div class="input-group">
+                                     <input type="text" v-model="sendNumber"class="form-control">
+                                   
+                                </div>
+                            </div>
+
+                             <div class="form-group">
+                                <label>Tanggal invoice:</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="flaticon2-calendar-9"></i></span>
+                                    </div>
+                                    <input type="text" v-model="invoiceDate" id="invoice-date" class="form-control">
+                                </div>
+                            </div>
+
+                             <div class="form-group">
+                                <label>No. Invoice:</label>
+                                <div class="input-group">
+                                     <input type="text" v-model="invoiceNumber"class="form-control">
+                                   
+                                </div>
+                            </div>
+
                         </div>
                         <!-- <div class="col-lg-4 col-md-12">
                             <div class="form-group">
@@ -201,7 +227,9 @@
                                                 <th>Satuan</th>
                                                 <th>Qty Pesanan</th>
                                                 <th>Diterima</th>
+                                                <th>Diskon</th>
                                                 <th>Kuantitas</th>
+                                                <th>Total</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -225,12 +253,16 @@
                                                 <td style="vertical-align: middle;">@{{ good.unit }}</td>
                                                 <td style="vertical-align: middle;" class="text-center">@{{ good.pivot.quantity }}</td>
                                                 <td style="vertical-align: middle;" class="text-center">@{{ good.received_quantity }}</td>
+                                                 <td style="vertical-align: middle;" class="text-center">@{{ toCurrencyFormat( good.pivot.discount)  }}</td>
+                                                
                                                 <td>
                                                     <input v-if="good.finish == 0" type="text" v-model="good.receive_quantity" class="form-control form-control-sm text-right">
                                                     <div v-else class="text-center">
                                                         <span class="label label-success label-inline mr-2">Selesai</span>
                                                     </div>
                                                 </td>
+                                                <td style="vertical-align: middle;" class="text-center">@{{  toCurrencyFormat( good.pivot.price)  }}</td>
+                                                
                                                 <!-- <td style="vertical-align: middle;" class="text-center">
                                                     <a href="#" @click.prevent="removeGoods(index)"><i class="flaticon2-trash text-danger"></i></a>
                                                 </td> -->
@@ -276,6 +308,22 @@
                                                     <div class="p-3">
                                                         <strong>Total Penerimaan</strong>
                                                         <p class="text-right font-size-h4">@{{ toCurrencyFormat(totalWillBeReceived) }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                                <div class="col-lg-3">
+                                                <div class="border">
+                                                    <div class="bg-success w-100" style="height: 5px;"></div>
+                                                    <div class="p-3">
+                                                        <strong>Total</strong><br>
+                                                        <span  class="text-right font-size-h10">subtotal :@{{ toCurrencyFormat(subtotal) }}</span><br>
+                                                        <span class="text-right font-size-h10">PPN 11% :@{{ toCurrencyFormat(ppnAmount) }}</span><br>
+                                                         <span class="text-right font-size-h10"> :PPh :@{{ toCurrencyFormat( pphAmount) }}</span><br>
+                                                         <span   class="text-right font-size-h10"> :Discount :
+                                                             @{{ toCurrencyFormat( discount) }}
+                                                         </span><br>
+                                                        <span  class="text-right font-size-h10">Total :@{{toCurrencyFormat( total)}}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -352,12 +400,17 @@
             deliveryDate: '',
             shipment: '',
             paymentTerm: 'net_7',
+            sendNumber:'',
             fob: '',
             description: '',
             selectedGoods: JSON.parse(String.raw `{!! json_encode($selected_goods) !!}`),
             checkedGoodsIds: [],
+            invoiceDate:'',
+            invoiceNumber:'',
+            invoiceNumber:'',
             discount: 0,
             purchaseOrderId: '{{ $purchase_order->id }}',
+            purchaseOrder:JSON.parse(String.raw `{!! $purchase_order !!}`),
             loading: false,
         },
         methods: {
@@ -374,6 +427,7 @@
                         purchase_order_id: vm.purchaseOrderId,
                         number: vm.number,
                         date: vm.date,
+                        send_number:vm.sendNumber,
                         // delivery_address: vm.deliveryAddress,
                         // delivery_date: vm.deliveryDate,
                         shipper: vm.shipper,
@@ -383,6 +437,14 @@
                         // fob_item_id: vm.fob,
                         description: vm.description,
                         selected_goods: vm.checkedGoods,
+                        invoice_date:vm.invoiceDate,
+                        invoice_number:vm.invoiceNumber,
+                        quantity:vm.totalWillBeReceived,
+                        subtotal:vm.subtotal,
+                        discount:vm.discount,
+                        ppn:vm.ppnAmount,
+                        pph:vm.pphAmount,
+                       
                         // discount: vm.discount,
                         // subtotal: vm.subtotal,
                         // total: vm.grandTotal,
@@ -396,7 +458,7 @@
                             allowOutsideClick: false,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                 window.location.href = '/purchase-order';
+                                 window.location.href = '/purchase-receive';
                             }
                         })
                         // console.log(response);
@@ -432,13 +494,58 @@
             }
         },
         computed: {
-            // subtotal: function() {
-            //     const subtotal = this.selectedGoods.map(goods => Number(goods.total)).reduce((acc, cur) => {
-            //         return acc + cur;
-            //     }, 0);
+            subtotal: function() {
+                
+                const subtotal = this.checkedGoods.map(goods => (Number(goods.pivot.price) * Number(goods.receive_quantity))-(Number(goods.pivot.discount))).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0);
 
-            //     return subtotal;
-            // },
+                return subtotal;
+            },
+             ppnAmount: function() {
+
+                  const ppn=this.checkedGoods.filter(goods=>{return goods.pivot.ppn>0}).map(goods=>{
+                    const amount=((Number(goods.pivot.price)*Number(goods.pivot.quantity))-Number(goods.pivot.discount))*(Number(11)/100)
+                    return amount;
+                }).reduce((acc,cur)=>{
+                    return Number(acc)+Number(cur)
+                },0)
+                return Math.round(ppn);
+                 
+                // const subtotal = this.checkedGoods.map(goods => ((Number(goods.pivot.price) * Number(goods.receive_quantity))*1.1)).reduce((acc, cur) => {
+                //     return acc + cur;
+                // }, 0);
+
+                // return subtotal;
+            },
+            
+             pphAmount: function() {
+
+                  const pph=this.checkedGoods.filter(goods=>{return goods.type=="jasa"}).map(goods=>{
+                    const  percentage=goods.pph_rates!=null?goods.pph_rates.amount:0;
+                    const amount=((Number(goods.pivot.price)*Number(goods.pivot.quantity))-Number(goods.pivot.discount))*(Number(percentage)/100)
+                    return amount;
+                }).reduce((acc,cur)=>{
+                    return Number(acc)+Number(cur)
+                },0)
+                return Math.round(pph);
+                // const subtotal = this.checkedGoods.map(goods => (Number(goods.pivot.price) * Number(goods.receive_quantity))).reduce((acc, cur) => {
+                //     return acc + cur;
+                // }, 0);
+
+                // return subtotal;
+            },
+             discount: function() {
+                const subtotal = this.checkedGoods.map(goods => (Number(goods.pivot.price) * Number(goods.receive_quantity))).reduce((acc, cur) => {
+                    return acc + cur;
+                }, 0);
+
+                return 0;
+            },
+             total: function() {
+                
+                return (this.subtotal+this.ppnAmount)-(this.pphAmount)+(this.purchaseOrder.discount);
+            },
             // grandTotal: function() {
             //     const grandTotal = this.subtotal - Number(this.discount);
             //     return grandTotal;
@@ -724,6 +831,18 @@
         }).on('changeDate', function(e) {
             app.$data.date = e.format(0, 'yyyy-mm-dd');
         });
+        
+         $('#invoice-date').datepicker({
+            format: 'yyyy-mm-dd',
+            todayBtn: false,
+            clearBtn: true,
+            todayHighlight: true,
+            orientation: "bottom left",
+        }).on('changeDate', function(e) {
+            app.$data.invoiceDate = e.format(0, 'yyyy-mm-dd');
+        });
+
+
 
         $('#delivery-date').datepicker({
             format: 'yyyy-mm-dd',

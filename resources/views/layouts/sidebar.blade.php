@@ -94,6 +94,23 @@
                                     <span class="menu-text">Customer</span>
                                 </a>
                             </li>
+                               <!-- <li class="menu-item {{ request()->is('pic-po*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/pic-po" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">PIC PO</span>
+                                </a>
+                            </li> -->
+                             <li class="menu-item {{ request()->is('pic-event*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                                <a href="/pic-event" class="menu-link">
+                                    <i class="menu-bullet menu-bullet-dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="menu-text">PIC </span>
+                                </a>
+                            </li>
+                           
                              <li class="menu-item {{ request()->is('goods*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="/goods" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot">
@@ -110,23 +127,7 @@
                                     <span class="menu-text">Item Quotation</span>
                                 </a>
                             </li>
-                             <li class="menu-item {{ request()->is('pic-po*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
-                                <a href="/pic-po" class="menu-link">
-                                    <i class="menu-bullet menu-bullet-dot">
-                                        <span></span>
-                                    </i>
-                                    <span class="menu-text">PIC PO</span>
-                                </a>
-                            </li>
-                             <li class="menu-item {{ request()->is('pic-event*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
-                                <a href="/pic-event" class="menu-link">
-                                    <i class="menu-bullet menu-bullet-dot">
-                                        <span></span>
-                                    </i>
-                                    <span class="menu-text">PIC Event</span>
-                                </a>
-                            </li>
-                           
+                          
                         
                            
                         </ul>
@@ -179,14 +180,14 @@
                                     <span class="menu-text">Penerimaan</span>
                                 </a>
                             </li>
-                            <li class="menu-item {{ request()->is('purchase-return*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
+                            <!-- <li class="menu-item {{ request()->is('purchase-return*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="/purchase-return" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot">
                                         <span></span>
                                     </i>
                                     <span class="menu-text">Retur</span>
                                 </a>
-                            </li>
+                            </li> -->
                             <li class="menu-item {{ request()->is('purchase-transaction*') ? 'menu-item-active' : '' }}" aria-haspopup="true">
                                 <a href="/purchase-transaction" class="menu-link">
                                     <i class="menu-bullet menu-bullet-dot">

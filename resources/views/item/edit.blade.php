@@ -56,19 +56,27 @@
               <input v-model="name" type="text" class="form-control" placeholder="Enter item's name" required>
              <span class="form-text text-muted">Please enter item's name</span>
             </div>
-            <div class="col-lg-6">
+            <!-- <div class="col-lg-6">
               <label>Type:<span class="text-danger">*</span></label></label>
                <select class="form-control" aria-label="Default select example" v-model="type">
                 <option value="cost" selected>Commissionable Cost</option>
                 <option value="non">Nonfee Cost</option>
             </select>
               <span class="form-text text-muted">Please enter item's type</span>
-            </div>
-              <div class="col-lg-6">
+            </div> -->
+              <!-- <div class="col-lg-6">
               <label>Category:<span class="text-danger">*</span></label></label>
             <select class="form-control" aria-label="Default select example" v-model="isStock">
                 <option value="0" selected>Non Stock</option>
                 <option value="1">Stock</option>
+            </select>
+              <span class="form-text text-muted">Please enter item's status</span>
+            </div> -->
+            <div class="col-lg-6">
+              <label>Objek PPh:<span class="text-danger">*</span></label></label>
+            <select class="form-control" aria-label="Default select example" v-model="pphObject">
+                <option value="pph23" selected>PPh23</option>
+                <option value="pphfinal">PPh pasal 4</option>
             </select>
               <span class="form-text text-muted">Please enter item's status</span>
             </div>
@@ -135,7 +143,9 @@
       isActive: '{{ $item->is_active }}',
       isStock:'{{ $item->is_stock }}',
       loading: false,
+      pphObject:'{{$item->pph_object}}',
     },
+
     methods: {
       submitForm: function() {
         this.sendData();
@@ -148,7 +158,8 @@
             name: vm.name,
             phone: vm.type,
             is_active: vm.isActive,
-            is_stock:vm.isStock
+            is_stock:vm.isStock,
+            pph_object:vm.pphObject,
         
           })
           .then(function(response) {

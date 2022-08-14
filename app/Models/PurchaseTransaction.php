@@ -13,4 +13,11 @@ class PurchaseTransaction extends Model
     {
         return $this->belongsToMany(PurchaseOrder::class)->withPivot('amount');
     }
+    public function supplier(){
+        return $this->belongsTo(Supplier::class);
+    }
+
+     public function purchaseRecives(){
+        return $this->belongsToMany(PurchaseReceive::class);
+    }
 }

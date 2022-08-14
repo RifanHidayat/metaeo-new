@@ -75,6 +75,7 @@
           <td>Nama</td>
           <td>Telepon</td>
           <td>Email</td>
+          <td>Status  </td>
           <td>Perusahaan</td>
           <td>Action</td>
         </tr>
@@ -85,6 +86,7 @@
           <td>{{ $pic->name }}</td>
           <td>{{ $pic->phone }}</td>
           <td>{{ $pic->email }}</td>
+          <td>{{ $pic->type=="po"?"PIC PO":"PIC Event" }}</td>
           <td>{{ $pic->customer->name }}</td>
           <td class="text-center">
             <a href="/pic-event/edit/{{ $pic->id }}" class="btn btn-sm btn-clean btn-icon mr-2" title="Edit"> <span class="svg-icon svg-icon-md"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">

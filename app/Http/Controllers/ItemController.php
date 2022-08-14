@@ -58,6 +58,7 @@ class ItemController extends Controller
         $item->type = $request->type;
         $item->is_active = $request->is_active;
         $item->is_stock=$request->is_stock;
+        $item->pph_object=$request->pph_object;
         try{
             $item->save();
             
@@ -115,6 +116,7 @@ class ItemController extends Controller
         $item->type = $request->phone;
         $item->is_active = $request->is_active;
         $item->is_stock=$request->is_stock;
+        $item->pph_object=$request->pph_object;
 
         try{
             $item->save();
@@ -162,11 +164,43 @@ class ItemController extends Controller
     }
 
      public function subitem($id){
-          $item = Item::with('subitems')->findOrFail($id);
+        $item = Item::with('subitems')->findOrFail($id);
+       // return $item;
+          
+
          // return $items->subitems;
         return view('item.subitem.index', ['item' => $item]);
 
      }
+     public function detail($id){
+        $subitems= subitem::with('item','goods')->get()->where('item_id',$id)->values()->all();
+        $subtems=collect($subitems)->each(function($item){
+            $item['quantity']=0;
+            $item['frequency']=1;
+            $item['duration']=1;
+            $item['rate']=0;
+            $item['subtotal']=0;
+            $item['disabled']=true;
+            $item['is_checked']=false;
+            $item['is_asf']=false;
+            $item['is_pph23']=false;
+            $item['is_pphfinal']=false;
+
+
+
+        });
+        
+
+        return response()->json([
+            'status' => 'OK',
+        
+            'code' => 200,
+            'data'=>$subitems
+        ]);
+        
+
+
+   }
 
        public function subitemStore(Request $request)
     {
@@ -203,7 +237,23 @@ class ItemController extends Controller
          // return $item;
 
           if ($item->is_stock==0){
-               return view('item.subitem.create.nonstock', ['item' => $item]);
+               //return view('item.subitem.create.nonstock', ['item' => $item]);
+
+               $goods=Goods::with('goodsCategory')->get();
+               $products = $goods->map(function ($item, $key) {
+               return ['id' => $item->id, 'text' => $item->name];
+               });
+               $products->prepend(['id' => '', 'text' => 'Choose goods']);
+                
+                  return view('item.subitem.create.stock',
+                   ['item' => $item ,
+                   'goods'=>$goods,
+                   'products'=>$products
+                   
+                   ]
+               
+               );
+   
 
           }else{
               $goods=Goods::with('goodsCategory')->get();

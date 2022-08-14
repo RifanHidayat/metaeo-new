@@ -51,6 +51,7 @@ class PicEventController extends Controller
         $pic->email = $request->email;
         $pic->position = $request->position;
         $pic->customer_id = $request->customer_id;
+        $pic->type = $request->type;
 
         try{
             $pic->save();

@@ -1654,7 +1654,7 @@
                             allowOutsideClick: false,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                 window.location.href = '/bast';
+                                 window.location.href = '/delivery-order';
                             }
                         })
                         // console.log(response);

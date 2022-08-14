@@ -2,12 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\Customer;
+use App\Models\CustomerTax;
+use App\Models\CustomerTaxItem;
+use App\Models\Division;
 use App\Models\Invoice;
+use App\Models\Supplier;
+use App\Models\SupplierTax;
+use App\Models\SupplierTaxItem;
 use App\Models\Transaction;
 use App\Models\Warehouse;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -51,7 +59,19 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        return view('customer.create');
+        $kode = Supplier::max('id');
+        $number = "S" . sprintf("%03d", $kode + 1);
+        $divisions=Division::all();
+        $supplierTax=CustomerTax::all();
+        $supplierTaxItem=CustomerTaxItem::all();
+        $accounts=Account::all();
+        return view('customer.create',[
+             'number' => $number,
+            'divisions'=>$divisions,
+            'supplier_tax'=>$supplierTax,
+            'accounts'=>$accounts,
+            'supplier_tax_item'=>$supplierTaxItem,
+        ]);
     }
 
     /**
@@ -62,16 +82,47 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
+      //  return $request->all();
+
+        DB::beginTransaction();
         $customer = new Customer;
+        // $maxSupplier = Cus::max('id');
+        // $number = "S" . sprintf("%03d", $maxSupplier + 1);
+        // $customer->number = $number;
+
+        $supplierAccounts=$request->supplier_accounts;
+        // $customer->number = $request->number;
+    
         $customer->name = $request->name;
-        $customer->phone = $request->phone;
-        $customer->npwp = $request->npwp;
-        $customer->with_ppn = $request->with_ppn;
-        $customer->with_pph = $request->with_pph;
         $customer->address = $request->address;
+        $customer->telephone = $request->telephone;
+        $customer->handphone = $request->handphone;
+        $customer->email = $request->email;
+        $customer->npwp =$request->npwp_number;
+        $customer->npwp_address=$request->npwp_address;
+        $customer->contact_name = $request->contact_name;
+        $customer->contact_address = $request->contact_address;
+        $customer->contact_number = $request->contact_number;
+        $customer->contact_position = $request->contact_position;
+        $customer->contact_email = $request->contact_email;
+        
+        $customer->customer_tax_id=$request->supplier_tax_id;
+        $customer->customer_tax_item_id=$request->supplier_tax_item_id;
+        $customer->advanced_account=$request->advanced_account;
+        $customer->piutang_id=$request->piutang_id;
+        $customer->ktp_number=$request->ktp_number;
+        $customer->ref_pajak=$request->ref_pajak;
+        $customer->is_active=1;
+        // $customer->name = $request->name;
+        // $customer->phone = $request->phone;
+        // $customer->npwp = $request->npwp;
+        // $customer->with_ppn = $request->with_ppn;
+        // $customer->with_pph = $request->with_pph;
+        // $customer->address = $request->address;
 
         try {
             $customer->save();
+            DB::commit();
             return response()->json([
                 'message' => 'Data has been saved',
                 'code' => 200,
@@ -79,11 +130,12 @@ class CustomerController extends Controller
                 'data' => $customer,
             ]);
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Internal error',
                 'code' => 500,
                 'error' => true,
-                'errors' => $e,
+                'errors' => $e.'',
             ], 500);
         }
     }
@@ -108,7 +160,21 @@ class CustomerController extends Controller
     public function edit($id)
     {
         $customer = Customer::findOrFail($id);
-        return view('customer.edit', ['customer' => $customer]);
+         $kode = Supplier::max('id');
+        $number = "S" . sprintf("%03d", $kode + 1);
+        $divisions=Division::all();
+        $supplierTax=CustomerTax::all();
+        $supplierTaxItem=CustomerTaxItem::all();
+        $accounts=Account::all();
+
+        return view('customer.edit', ['customer' => $customer,
+          'number' => $number,
+            'divisions'=>$divisions,
+            'supplier_tax'=>$supplierTax,
+            'accounts'=>$accounts,
+            'supplier_tax_item'=>$supplierTaxItem,
+
+    ]);
     }
 
     /**
@@ -120,16 +186,45 @@ class CustomerController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $customer = Customer::find($id);
+              //  return $request->all();
+
+        DB::beginTransaction();
+        $customer = Customer::findOrFail($id);
+        // $maxSupplier = Cus::max('id');
+        // $number = "S" . sprintf("%03d", $maxSupplier + 1);
+        // $customer->number = $number;
+
+        $supplierAccounts=$request->supplier_accounts;
+        // $customer->number = $request->number;
+    
         $customer->name = $request->name;
-        $customer->phone = $request->phone;
-        $customer->npwp = $request->npwp;
-        $customer->with_ppn = $request->with_ppn;
-        $customer->with_pph = $request->with_pph;
         $customer->address = $request->address;
+        $customer->telephone = $request->telephone;
+        $customer->handphone = $request->handphone;
+        $customer->email = $request->email;
+        $customer->npwp =$request->npwp_number;
+        $customer->npwp_address=$request->npwp_address;
+        $customer->contact_name = $request->contact_name;
+        $customer->contact_address = $request->contact_address;
+        $customer->contact_number = $request->contact_number;
+        $customer->contact_position = $request->contact_position;
+        $customer->contact_email = $request->contact_email;
+        
+        $customer->customer_tax_id=$request->supplier_tax_id;
+        $customer->customer_tax_item_id=$request->supplier_tax_item_id;
+        $customer->advanced_account=$request->advanced_account;
+        $customer->piutang_id=$request->piutang_id;
+        $customer->is_active=$request->is_active;
+        // $customer->name = $request->name;
+        // $customer->phone = $request->phone;
+        // $customer->npwp = $request->npwp;
+        // $customer->with_ppn = $request->with_ppn;
+        // $customer->with_pph = $request->with_pph;
+        // $customer->address = $request->address;
 
         try {
             $customer->save();
+            DB::commit();
             return response()->json([
                 'message' => 'Data has been saved',
                 'code' => 200,
@@ -137,13 +232,40 @@ class CustomerController extends Controller
                 'data' => $customer,
             ]);
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Internal error',
                 'code' => 500,
                 'error' => true,
-                'errors' => $e,
+                'errors' => $e.'',
             ], 500);
         }
+
+
+        // $customer = Customer::find($id);
+        // $customer->name = $request->name;
+        // $customer->phone = $request->phone;
+        // $customer->npwp = $request->npwp;
+        // $customer->with_ppn = $request->with_ppn;
+        // $customer->with_pph = $request->with_pph;
+        // $customer->address = $request->address;
+
+        // try {
+        //     $customer->save();
+        //     return response()->json([
+        //         'message' => 'Data has been saved',
+        //         'code' => 200,
+        //         'error' => false,
+        //         'data' => $customer,
+        //     ]);
+        // } catch (Exception $e) {
+        //     return response()->json([
+        //         'message' => 'Internal error',
+        //         'code' => 500,
+        //         'error' => true,
+        //         'errors' => $e,
+        //     ], 500);
+        // }
     }
 
     /**

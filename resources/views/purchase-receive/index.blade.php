@@ -76,7 +76,9 @@
                     <th>Tanggal</th>
                     <th>Nomor Pembelian</th>
                     <th>Nomor Penerimaan</th>   
-                        <th>Pengirim</th>   
+                    <th>Pengirim</th>   
+                    <th>Total</th>   
+                    <th>Pembayaran</th>   
                     
                     <th>Action</th>
                 </tr>
@@ -183,6 +185,21 @@
                         return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data!=null?data:""}</div>`;
                     }
                 },
+                 {
+                    data: 'total',
+                    name: 'total',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data!=null?Intl.NumberFormat('De-de').format(data):""}</div>`;
+                    }
+                },
+                {
+                    data: 'payment',
+                    name: 'payment',
+                    render: function(data, type, row) {
+                        return `<div class="text-dark-75 font-weight-bolder font-size-lg mb-0">${data!=null?Intl.NumberFormat('De-de').format(data):""}</div>`;
+                    }
+                },
+               
                
                 {
                     data: 'action',

@@ -18,4 +18,10 @@ class PurchaseReceive extends Model
     {
         return $this->belongsTo(PurchaseOrder::class);
     }
+
+         public function purchaseTransactions()
+    {
+        return $this->belongsToMany(PurchaseTransaction::class)->withPivot('purchase_receive_id','purchase_transaction_id','amount');
+    }
+    
 }

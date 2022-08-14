@@ -73,13 +73,11 @@
         <table class="table datatable datatable-bordered datatable-head-custom" id="purchase-order-table">
             <thead>
                 <tr class="text-center">
-                      <th>Tanggal</th>
+                    <th>Tanggal</th>
                     <th>Nomor</th>
-                  
                     <th>Supplier</th>
-                     <th>Total</th>
+                    <th>Total</th>
                     <th>Pembayaran</th>
-                       <th>Sisa Bayar</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -179,6 +177,7 @@
                         return `<span class="text-dark-75 font-weight-bolder font-size-lg">${data}</span>`;
                     }
                 },
+                
                  {
                     data: 'total',
                     name: 'total',
@@ -186,20 +185,17 @@
                         return `<span class="text-dark-75 font-weight-bolder font-size-lg">${Intl.NumberFormat('De-de').format(data)}</span>`;
                     }
                 },
+               
+              
                    {
-                    data: 'payment',
-                    name: 'payment',
+                    data: 'payment_amount',
+                    name: 'payment_amount',
                     render: function(data, type) {
                         return `<span class="text-dark-75 font-weight-bolder font-size-lg text-right">${Intl.NumberFormat('De-de').format(data)}</span>`;
                     }
                 },
-                  {
-                    data: 'remaining',
-                    name: 'remaining',
-                    render: function(data, type) {
-                        return `<span class="text-dark-75 font-weight-bolder font-size-lg text-right">${Intl.NumberFormat('De-de').format(data)}</span>`;
-                    }
-                },
+                 
+                 
                 {
                     data: 'action',
                     name: 'action',

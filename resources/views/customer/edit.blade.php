@@ -4,6 +4,7 @@
 
 @section('head')
 <link href="{{ asset('plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css">
+<script src="https://cdn.rawgit.com/igorescobar/jQuery-Mask-Plugin/1ef022ab/dist/jquery.mask.min.js"></script>
 @endsection
 
 @section('subheader')
@@ -19,13 +20,13 @@
         <!--begin::Breadcrumb-->
         <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
           <li class="breadcrumb-item">
-            <a href="" class="text-muted">Dashboard</a>
+            <a href="/dashboard" class="text-muted">Dashboard</a>
           </li>
           <li class="breadcrumb-item">
-            <a href="" class="text-muted">Customer</a>
+            <a href="/supplier" class="text-muted">Customer</a>
           </li>
           <li class="breadcrumb-item">
-            <a href="" class="text-muted">Edit</a>
+            <a href="/supplier/create" class="text-muted">Tambah</a>
           </li>
         </ul>
         <!--end::Breadcrumb-->
@@ -41,6 +42,44 @@
 
 @section('content')
 <div class="row" id="app">
+
+<div class="modal fade" id="supplierAccountModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">New message</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="form"  @submit.prevent="addSupplierAccount">
+          <div class="form-group">
+            <label for="recipient-name" class="col-form-label">No rekening:</label>
+            <input v-model="supplierAccountNumber" type="text" class="form-control" id="recipient-name">
+          </div>
+          <div class="form-group">
+            <label for="message-text" class="col-form-label">Nama Pemilik:</label>
+       <input v-model="supplierAccountName" type="text" class="form-control" id="recipient-name">
+          </div>
+           <div class="form-group">
+            <label for="message-text" class="col-form-label">Nama Bank:</label>
+          <input v-model="supplierAccountBankName" type="text" class="form-control" id="recipient-name">
+          </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" :class="loading && 'spinner spinner-white spinner-right'" :disabled="loading">
+                Save
+              </button>
+      </div>
+        </form>
+      </div>
+     
+    </div>
+  </div>
+</div>
+
+
   <div class="col-lg-12">
     <div class="card card-custom gutter-b">
       <div class="card-header">
@@ -49,45 +88,232 @@
       </div>
       <!--begin::Form-->
       <form class="form" autocomplete="off" @submit.prevent="submitForm">
-        <div class="card-body">
-          <div class="form-group row">
-            <div class="col-lg-6">
-              <label>Name:<span class="text-danger">*</span></label>
-              <input v-model="name" type="text" class="form-control" placeholder="Enter customer's name" required>
-              <span class="form-text text-muted">Please enter customer's name</span>
-            </div>
-            <div class="col-lg-6">
-              <label>Contact Number:</label>
-              <input v-model="phone" type="text" class="form-control" placeholder="Enter contact number">
-              <span class="form-text text-muted">Please enter customer's contact number (Optional)</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>NPWP:</label>
-            <input v-model="npwp" type="text" class="form-control" placeholder="Enter customer's NPWP">
-            <span class="form-text text-muted">Please enter customer's NPWP (Optional)</span>
-          </div>
-          <div class="form-group row">
-            <div class="col-lg-6">
-              <label for="with-ppn">PPN<span class="text-danger">*</span></label>
-              <select v-model="withPpn" class="form-control" id="with-ppn" required>
-                <option value="1">With PPN</option>
-                <option value="0">No PPN</option>
-              </select>
-            </div>
-            <div class="col-lg-6">
-              <label for="with-pph">PPH<span class="text-danger">*</span></label>
-              <select v-model="withPph" class="form-control" id="with-pph" required>
-                <option value="1">With PPH</option>
-                <option value="0">No PPH</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Address:<span class="text-danger">*</span></label>
-            <textarea v-model="address" class="form-control" rows="3" required placeholder="Enter customer's address"></textarea>
-            <span class="form-text text-muted">Please enter customer's address</span>
-          </div>
+        <div class="card-body ">
+          
+       
+            <!-- <div class="form-group col-lg-6">
+              {{-- <div class=""> --}}
+                <label>Number:</label>
+                
+                <input v-model="number" type="text" class="form-control" disabled>
+              {{-- </div> --}}
+              </div> -->
+              <div class="section-block m-0 mb-4">
+                  <h3 class="section-title">Informasi Perusahaan</h3>
+                  
+                </div>
+                 <!-- <div class="form-group col-md-4">
+                                                    <label class="checkbox">
+                                                        <input v-model="isIndividual" type="checkbox">
+                                                        <span></span>&nbsp;
+                                                        Ya, Penjual jasa orang pribadi (Dikenakan PPh 21)
+                                                    </label>
+                                                </div> -->
+
+                            <div class="form-row col-8">
+                        <div class="form-group col-lg-6">
+                         <label>Status:</label>
+                                <select v-model="isActive" class="form-control">
+                                    <option value="1">Active</option>
+                                    <option value="0">In Active</option>
+                                    
+                                </select>
+                        </div>
+                      
+                        
+                        </div>
+
+               <div class="form-row col-8" >
+                
+                  <div class="form-group col-lg-6">
+                      <label>Nama: <span class="text-danger">*</span></label>
+                      <input v-model="name" type="text" class="form-control" >
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>  
+                   <div class="form-group col-lg-6">
+                      <label>Email kantor:</label>
+                      <input v-model="email" type="text" class="form-control">
+                     
+                   </div>                
+                </div>
+
+                  <div class="form-row col-8" >
+                  
+                  <div class="form-group col-lg-6">
+                      <label>No. handphone:</label>
+                      <input v-model="hanphone" type="text" class="form-control">
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+
+                    <div class="form-group col-lg-6">
+                      <label>No. Telephone:</label>
+                      <input v-model="telephone" type="text" class="form-control">
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+
+                   
+                      
+                </div>
+                 
+                    <div class="form-row col-8" >
+                  <div class="form-group col-lg-12">
+                      <label>Alamat Kantor:</label>
+                      <textarea v-model="address" type="text" class="form-control"  rows="4"></textarea>
+                     
+                   </div>
+                  
+                      
+                </div>
+              
+              
+
+                
+ 
+   
+     
+
+          <!-- begin: Example Code-->
+
+          <!-- end: Example Code-->
+        
+           <div class="card-body border-top">
+       
+            <!-- <div class="form-group col-lg-6">
+              {{-- <div class=""> --}}
+                <label>Number:</label>
+                
+                <input v-model="number" type="text" class="form-control" disabled>
+              {{-- </div> --}}
+              </div> -->
+              <div class="section-block m-0 mb-4">
+                  <h3 class="section-title">Informasi Kontak</h3>
+                  
+                </div>
+
+              
+                  <div class="form-row col-8" >
+                  <div class="form-group col-lg-6">
+                      <label>Nama  lengkap:</label>
+                      <input v-model="contactName" type="text" class="form-control" >
+                     
+                   </div>
+                  <div class="form-group col-lg-6">
+                      <label>Jabatan:</label>
+                      <input v-model="contactPosition" type="text" class="form-control" >
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>  
+                </div>
+
+                  <div class="form-row col-8" >
+                  <div class="form-group col-lg-6">
+                      <label>Email:</label>
+                      <input v-model="contactEmail" type="text" class="form-control" >
+                     
+                   </div>
+                  <div class="form-group col-lg-6">
+                      <label>Hanphone:</label>
+                      <input v-model="contactNumber" type="text" class="form-control" >
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+                      
+                </div>
+                   <div class="form-row col-8" >
+                  <div class="form-group col-lg-12">
+                      <label>Alamat:</label>
+                      <textarea v-model="contactAddress" type="text" class="form-control"  rows="4"></textarea>
+                     
+                   </div>
+                  
+                      
+                </div>
+          <!-- begin: Example Code-->
+
+          <!-- end: Example Code-->
+        </div>
+
+
+              <div class="card-body border-top">
+
+              <div class="section-block m-0 mb-4">
+                  <h3 class="section-title">Informasi Pajak</h3>
+                  
+                </div>
+
+                  <div class="form-group col-lg-8">
+                      <label>No. NPWP:</label>
+                      <input v-model="npwpNumber" type="text" class="form-control npwp" >
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+                   <div class="form-group col-lg-8">
+                      <label>Jenis Dokumen:</label>
+                      <select  class="form-control" v-model="supplierTaxId">
+                        <option v-for="(tax,index) in supplierTax" :value='tax.id'>
+                            @{{tax.name}}
+
+                        </option>
+                      </select>
+                      <!-- <input v-model="npwpNumber" type="text" class="form-control npwp" > -->
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+                   <div class="form-group col-lg-8">
+                      <label>Jenis Transaksi</label>
+                       <select class="form-control" v-model="supplierTaxItemId">
+                        <option v-for="(taxItem,index) in supplierTaxItem" :value='taxItem.id'>
+                            @{{taxItem.name}}
+
+                        </option>
+                      </select>
+                   </div>
+                      <div class="form-row col-8" >
+                  <div class="form-group col-lg-12">
+                      <label>Alamat NPWP:</label>
+                      <textarea v-model="npwpAddress" type="text" class="form-control"  rows="4"></textarea>
+                     
+                   </div>
+                  
+                      
+                </div>
+                      
+                </div>
+                
+
+              <div class="card-body border-top">
+
+              <div class="section-block m-0 mb-4">
+                  <h3 class="section-title">Informasi Penjualan</h3>
+                  
+                </div>
+
+                
+                   <div class="form-group col-lg-8">
+                      <label>Akun Piutang:</label>
+                      <select class="form-control" v-model="piutangId">
+                        <option v-for="(account,index) in accounts" :value="account.id">
+                           @{{account.number}} -  @{{account.name}}
+                       
+                        </option>
+                      </select>
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+
+                     <div class="form-group col-lg-8">
+                      <label>Akun Uang Muka:</label>
+                      <select class="form-control" v-model="advancedAccount">
+                        <option v-for="(account,index) in accounts" :value="account.id">
+                           @{{account.number}} -  @{{account.name}}
+                       
+                        </option>
+                      </select>
+                      <!-- <span class="form-text text-muted">Please enter supplier's name</span> -->
+                   </div>
+              
+                  
+                      
+                </div>
+              
+              
+                
+
 
           <!-- begin: Example Code-->
 
@@ -108,9 +334,15 @@
         </div>
       </form>
       <!--end::Form-->
+
+
+
+
     </div>
   </div>
+
 </div>
+
 @endsection
 
 @section('script')
@@ -122,29 +354,76 @@
   let app = new Vue({
     el: '#app',
     data: {
-      name: '{{ $customer->name }}',
-      phone: '{{ $customer->phone }}',
-      npwp: '{{ $customer->npwp }}',
-      withPpn: '{{ $customer->with_ppn }}',
-      withPph: '{{ $customer->with_pph }}',
-      address: '{{ $customer->address }}',
+      divisionId:'',
+      number: '{{ $number }}',
+      supplierTax:JSON.parse('{!!$supplier_tax!!}'),
+      supplierTaxId:'{!!$customer->customer_tax_id!!}',
+      advancedAccount:'{!!$customer->advanced_account!!}',
+      supplierTaxItemId:'{!!$customer->customer_tax_item_id!!}',
+      supplierTaxItem:JSON.parse('{!!$supplier_tax_item!!}'),
+      accounts:JSON.parse('{!!$accounts!!}'),
+      supplierAccounts:[],
+      supplierAccountName:"",
+      supplierAccountBankName:"",
+      supplierAccountNumber:'',
+      hutangId:'',
+      piutangId:'{!!$customer->piutang_id!!}',
+    
+      name: '{!!$customer->name!!}',
+      address: '{!!$customer->address!!}',
+      telephone: '{!!$customer->telephone!!}',
+      handphone: '{!!$customer->handphone!!}',
+      email: '{!!$customer->email!!}',
+      npwpNumber:'{!!$customer->npwp!!}',
+      npwpAddress:"{!!$customer->npwp_address!!}",
+       contactName: '{!!$customer->contact_name!!}',
+      contactAddress: '{!!$customer->contact_address!!}',
+      contactPosition: '{!!$customer->contact_position!!}',
+      contactNumber: '{!!$customer->contact_number!!}',
+      contactEmail: '{!!$customer->contact_email!!}',
+       id: '{!!$customer->id!!}',
+      isIndividual:'',
+      isActive:'{!!$customer->is_active!!}',
+
+
+
+      divisions:JSON.parse('{!! $divisions !!}'),
       loading: false,
     },
     methods: {
       submitForm: function() {
+        //  console.log($('#division-ids').val());
         this.sendData();
       },
+
       sendData: function() {
-        // console.log('submitted');
+       
         let vm = this;
         vm.loading = true;
-        axios.patch('/customer/{{ $customer->id }}', {
+        axios.patch('/customer/'+this.id, {
+            // division_ids:$('#division-ids').val(),
+            number: this.number,
             name: this.name,
-            phone: this.phone,
-            npwp: this.npwp,
-            with_ppn: this.withPpn,
-            with_pph: this.withPph,
             address: this.address,
+            telephone: this.telephone,
+            handphone: this.handphone,
+            email: this.email,
+            is_individual:this.isIndividual,
+            npwp_number:this.npwpNumber,
+            npwp_address:this.npwpAddress,
+            contact_name: this.contactName,
+            contact_address: this.contactAddress,
+            contact_telephone: this.contactTelephone,
+            contact_number: this.contactNumber,
+            contact_email: this.contactEmail,
+            contact_position: this.contactPosition,
+            hutang_id:this.hutangId,
+            piutang_id:this.piutangId,
+            supplier_accounts:this.supplierAccounts,
+            supplier_tax_id:this.supplierTaxId,
+            supplier_tax_item_id:this.supplierTaxItemId,
+            advanced_account:this.advancedAccount,
+            is_active:this.isActive
           })
           .then(function(response) {
             vm.loading = false;
@@ -155,7 +434,7 @@
               allowOutsideClick: false,
             }).then((result) => {
               if (result.isConfirmed) {
-                window.location.href = '/customer';
+              window.location.href = '/customer';
               }
             })
             // console.log(response);
@@ -169,8 +448,39 @@
               'error'
             )
           });
+      },
+      addSupplierAccount:function(){
+     
+        this.supplierAccounts.push({
+          "number":this.supplierAccountNumber,
+          "name":this.supplierAccountName,
+          'bank_name':this.supplierAccountBankName
+        })
+        $('#supplierAccountModal').modal('hide');
+
+      },
+      removeItem:function(index){
+    //  this.suppierAccounts.splice()
+              this.supplierAccounts.splice(index, 1);
       }
     }
   })
 </script>
+
+<script>
+  $(document).ready(function(){
+      $('.division').select2();
+
+    // // Format mata uang.
+    // $( '.uang' ).mask('0.000.000.000', {reverse: true});
+
+    // // Format nomor HP.
+    // $( '.no_hp' ).mask('0000−0000−0000');
+
+    // Format tahun pelajaran.
+    $('.npwp' ).mask('00.000.000.0-000.000');
+})
+</script>
+
+
 @endsection

@@ -21,11 +21,16 @@ class Goods extends Model
 
     public function purchaseReceives()
     {
-        return $this->belongsToMany(PurchaseReceive::class)->withPivot('quantity', 'description');
+        return $this->belongsToMany(PurchaseReceive::class)->withPivot('quantity', 'description','price');
     }
 
     public function purchaseReturns()
     {
         return $this->belongsToMany(PurchaseReturn::class)->withPivot('quantity', 'cause', 'description');
+    }
+
+      public function pphRates()
+    {
+        return $this->belongsTo(PphRate::class,'pph_rate_id');
     }
 }
