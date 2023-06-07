@@ -17,7 +17,7 @@
                 <h5 class="text-dark font-weight-bold my-1 mr-5">Edit SPK</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
-                <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 ">
                     <li class="breadcrumb-item">
                         <a href="" class="text-muted">Dashboard</a>
                     </li>
