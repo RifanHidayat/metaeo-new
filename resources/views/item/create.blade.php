@@ -37,7 +37,7 @@
     <!--end::Toolbar-->
   </div>
 </div>
-@endsection
+@endsection`
 
 @section('content')
 <div class="row" id="app">
